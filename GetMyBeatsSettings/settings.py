@@ -49,7 +49,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'getmybeats.urls'
+ROOT_URLCONF = 'GetMyBeatsSettings.urls'
 
 TEMPLATES = [
     {
@@ -67,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'getmybeats.wsgi.application'
+WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 
 
 # Database
