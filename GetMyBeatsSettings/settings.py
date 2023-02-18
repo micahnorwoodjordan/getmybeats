@@ -70,15 +70,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 
+AUTH_USER_MODEL = 'GetMyBeatsApp.User'
+
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# TODO: cut over to environment variables
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dev_aws',
-        'HOST': 'dev.cdpivaepyp3k.us-west-2.rds.amazonaws.com',
+        'NAME': 'getmybeats',
+        'HOST': 'getmybeats.cdpivaepyp3k.us-west-2.rds.amazonaws.com',
         'USER': 'root',
         'PASSWORD': 'Thatwasengl1sh!',
         'PORT': 3306,
