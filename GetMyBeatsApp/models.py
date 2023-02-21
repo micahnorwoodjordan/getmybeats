@@ -16,7 +16,7 @@ class User(AbstractUser):
         managed = True
 
     def __str__(self):
-        return f'{type(self)}: {self.id} -> {self.first_name} {self.last_name}'
+        return f'{User.__name__}: {self.id} -> {self.first_name} {self.last_name}'
 
 
 class Audio(models.Model):
@@ -38,4 +38,4 @@ class Audio(models.Model):
         managed = True
 
     def __str__(self):
-        return f'{type(self)}: {self.id} -> {self.title} uploaded by {self.fk_uploaded_by.username}'
+        return f'{Audio.__name__}: {self.id} -> {self.title} uploaded by {self.fk_uploaded_by.username}'
