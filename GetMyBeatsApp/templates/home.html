@@ -1,4 +1,5 @@
 {% load static %}
+{% get_media_prefix as MEDIA_PREFIX %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,10 +7,12 @@
         <title>Home</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-        <link rel="stylesheet" href="{% static '/home.css' %}"/>
+        <link rel="stylesheet" href="{% static '/css/home.css' %}"/>
+        <script src="{% static '/js/audio/init.js' %}"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.1/js/bootstrap.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.7/mediaelement-and-player.min.js"></script>
     </head>
     <body>
         <!-- block might be useful for inheritance later -->
@@ -33,7 +36,12 @@
                         {%for a in audio%}
                             <li>
                                 <button type="button" class="btn btn-outline-dark">
-                                    <i class="bi bi-play-circle"> {{ a.title }} </i>
+                                    <i class="bi bi-play-circle">
+                                        <audio class="fc-media">
+                                            <source src="{{ a.file_upload }}" type="audio/mp3"/>
+                                        </audio>
+                                        {{ a.title }}
+                                    </i>
                                 </button>
                                 <a> {{ a.length }} </a>
                             </li>
