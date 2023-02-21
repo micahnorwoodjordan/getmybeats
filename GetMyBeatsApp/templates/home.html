@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Welcome</title>
+        <title>Home</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
         <link rel="stylesheet" href="{% static '/home.css' %}"/>
@@ -15,20 +15,32 @@
         <!-- block might be useful for inheritance later -->
         {% block bodycontent %}
         {% endblock bodycontent %}
-        <div id="spacerID" class="spacer">
-            <h1> <p class="text-center"> home </p> </h1>
+        <div class="container" style="margin-top: 50px;">
+            <div class="row justify-content-center">
+                <div class="col-4 d-flex justify-content-center"></div>
+                <div class="col-4 d-flex justify-content-center">
+                    <h1> home </h1>
+                </div>
+                <div class="col-4 d-flex justify-content-center"></div>
+            </div>
         </div>
-        <div id="audioListPanelID" class="audioListPanel">
-            <ul>
-                {%for a in audio%}
-                    <li>
-                        <button type="button" class="btn btn-outline-dark">
-                            <i class="bi bi-play-circle"> {{ a.title }} </i>
-                        </button>
-                        <a> {{ a.length }} </a>
-                    </li>
-                {%endfor%}
-            </ul>
-        </div>
+        <div class="container" style="margin-top: 50px;">
+            <div class="row justify-content-center">
+                <div class="col-2 d-flex justify-content-center"></div>
+                <div class="col-8 d-flex justify-content-center">
+                    <br> <br>
+                    <ul>
+                        {%for a in audio%}
+                            <li>
+                                <button type="button" class="btn btn-outline-dark">
+                                    <i class="bi bi-play-circle"> {{ a.title }} </i>
+                                </button>
+                                <a> {{ a.length }} </a>
+                            </li>
+                        {%endfor%}
+                    </ul>
+                </div>
+              <div class="col-2 d-flex justify-content-center"></div>
+            </div>
     </body>
 </html>
