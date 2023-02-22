@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils.timezone import now
 
-from .db.utilities import *
+from .db.utilities import b64encode_file_upload
 
 class User(AbstractUser):
     email = models.CharField(max_length=100, blank=False, null=False, unique=True)

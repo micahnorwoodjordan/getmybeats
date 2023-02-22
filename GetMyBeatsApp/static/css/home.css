@@ -1,0 +1,6 @@
+body {background-color: darkslategray;}
+button {color: azure;}
+ul {list-style-type: none;}
+
+.btn {color: black; margin-bottom: 20px; outline-color: black;}
+.spacer {margin-top: 50px; justify-content: center;}
