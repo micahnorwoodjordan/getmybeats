@@ -73,11 +73,11 @@ AUTH_USER_MODEL = 'GetMyBeatsApp.User'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'getmybeats',
-        'HOST': '***REMOVED***',
-        'USER': 'root',
-        'PASSWORD': '***REMOVED***',
-        'PORT': 3306,
+        'NAME': os.environ['DATABASE_NAME'],
+        'HOST': os.environ['DATABASE_HOST'],
+        'USER': os.environ['DATABASE_USER'],
+        'PASSWORD': os.environ['DATABASE_PASSWORD'],
+        'PORT': os.environ['DATABASE_PORT'],
     }
 }
 

@@ -7,6 +7,10 @@
             "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
             "ConstraintDescription": "must be the name of an existing EC2 KeyPair"
         },
+        "GIT_BRANCH": {
+            "Type": "String",
+            "Description": "git commit to checkout for version control"
+        },
         "DBHOST": {
             "Type": "String",
             "Description": "database host"
@@ -71,7 +75,8 @@
                     "sudo /opt/aws/bin/cfn-signal -e $? ",
                     "         --stack ", { "Ref" : "AWS::StackName" },
                     "         --resource getmybeatsapi ",
-                    "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                    "         --region ", { "Ref" : "AWS::Region" }, "\n",
+                    "# CONFIGURE GIT HERE"
                ]]}}
             },
             "Metadata":{
