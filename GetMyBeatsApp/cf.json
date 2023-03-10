@@ -1,0 +1,135 @@
+{
+    "AWSTemplateFormatVersion":"2010-09-09",
+    "Description":"AWS CloudFormation Sample Template LAMP_Install_Only: ...",
+    "Parameters": {
+        "SSHKey": {
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+            "ConstraintDescription": "must be the name of an existing EC2 KeyPair"
+        },
+        "DBHOST": {
+            "Type": "String",
+            "Description": "database host"
+        },
+        "DBNAME": {
+            "Type": "String",
+            "Description": "database name"
+        },
+        "DBPASSWORD": {
+            "Type": "String",
+            "Description": "database password",
+            "NoEcho": true
+        },
+        "DBUSER": {
+            "Type": "String",
+            "Description": "database user"
+        },
+        "DBPORT": {
+            "Type": "String",
+            "Description": "database port"
+        }
+    },
+    "Resources":{
+        "WebServerSecurityGroup" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+              "GroupDescription" : "Enable HTTP access via port 80",
+              "SecurityGroupIngress" : [
+                {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
+                {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"}
+              ]
+            }      
+        },
+        "getmybeatsapi":{
+            "Type":"AWS::EC2::Instance",
+            "Properties": {
+                "Tags": [
+                    {"Key": "Name", "Value": "getmybeatsapi"}
+                ],
+                "ImageId": "ami-0edab8d70528476d3",
+                "SecurityGroups": [{"Ref": "WebServerSecurityGroup"}],
+                "InstanceType": "t2.small",
+                "KeyName": {"Ref": "SSHKey"},
+                "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+                    "#!/bin/bash -xe\n",
+                    "sudo yum update -y\n",
+                    "sudo yum install -y python-setuptools python3-pip wget nginx\n",
+                    "sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
+                    "sudo wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
+                    "sudo cd /opt\n",
+                    "sudo mkdir aws\n",
+                    "sudo cd aws\n",
+                    "sudo pip3 install --ignore-installed --target=/opt/aws/ /aws-cfn-bootstrap-py3-latest.tar.gz\n",
+                    "sudo ln -s /opt/aws/cfnbootstrap /usr/lib/python3.9/site-packages/cfnbootstrap\n",
+                    "sudo /opt/aws/bin/cfn-init ",
+                    "         --stack ", { "Ref" : "AWS::StackName" },
+                    "         --resource getmybeatsapi ",
+                    "         --configsets Install ",
+                    "         --region ", { "Ref" : "AWS::Region" }, "\n",
+       
+                    "# Signal the status from cfn-init\n",
+                    "sudo /opt/aws/bin/cfn-signal -e $? ",
+                    "         --stack ", { "Ref" : "AWS::StackName" },
+                    "         --resource getmybeatsapi ",
+                    "         --region ", { "Ref" : "AWS::Region" }, "\n"
+               ]]}}
+            },
+            "Metadata":{
+                "AWS::CloudFormation::Init":{
+                    "configSets":{
+                        "Install":["Install"]
+                    },
+                    "Install": {
+                        "files": {
+                            "/etc/environment": {
+                               "content" : { "Fn::Join" : ["", [
+                                  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n",
+                                  "DATABASE_NAME=", { "Ref" : "DBNAME" }, "\n",
+                                  "DATABASE_HOST=", { "Ref" : "DBHOST" }, "\n",
+                                  "DATABASE_PORT=", { "Ref" : "DBPORT" }, "\n",
+                                  "DATABASE_USER=", { "Ref" : "DBUSER" }, "\n",
+                                  "DATABASE_PASSWORD=", { "Ref" : "DBPASSWORD" }, "\n"
+                                ]]},
+                                "mode"    : "000400",
+                                "owner"   : "root",
+                                "group"   : "root"
+                            },
+                            "/etc/cfn/cfn-hup.conf" : {
+                                "content" : { "Fn::Join" : ["", [
+                                  "[main]\n",
+                                  "stack=", { "Ref" : "AWS::StackId" }, "\n",
+                                  "region=", { "Ref" : "AWS::Region" }, "\n"
+                                ]]},
+                                "mode"    : "000400",
+                                "owner"   : "root",
+                                "group"   : "root"
+                              },
+                
+                              "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                                "content": { "Fn::Join" : ["", [
+                                  "[cfn-auto-reloader-hook]\n",
+                                  "triggers=post.update\n",
+                                  "path=Resources.getmybeatsapi.Metadata.AWS::CloudFormation::Init\n",
+                                  "action=/opt/aws/bin/cfn-init -v ",
+                                  "         --stack ", { "Ref" : "AWS::StackName" },
+                                  "         --resource getmybeatsapi ",
+                                  "         --configsets Install ",
+                                  "         --region ", { "Ref" : "AWS::Region" }, "\n",
+                                  "runas=root\n"
+                                ]]}
+                              }
+                        },
+                        "services": {
+                            "systemd": {
+                                "nginx": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
