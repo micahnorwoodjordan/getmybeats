@@ -7,30 +7,9 @@
             "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
             "ConstraintDescription": "must be the name of an existing EC2 KeyPair"
         },
-        "GIT_BRANCH": {
+        "DBSETTINGS": {
             "Type": "String",
             "Description": "git commit to checkout for version control"
-        },
-        "DBHOST": {
-            "Type": "String",
-            "Description": "database host"
-        },
-        "DBNAME": {
-            "Type": "String",
-            "Description": "database name"
-        },
-        "DBPASSWORD": {
-            "Type": "String",
-            "Description": "database password",
-            "NoEcho": true
-        },
-        "DBUSER": {
-            "Type": "String",
-            "Description": "database user"
-        },
-        "DBPORT": {
-            "Type": "String",
-            "Description": "database port"
         }
     },
     "Resources":{
@@ -57,7 +36,7 @@
                 "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash -xe\n",
                     "sudo yum update -y\n",
-                    "sudo yum install -y python-setuptools python3-pip wget nginx\n",
+                    "sudo yum install -y python-setuptools python3-pip wget nginx git\n",
                     "sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
                     "sudo wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
                     "sudo cd /opt\n",
@@ -75,8 +54,7 @@
                     "sudo /opt/aws/bin/cfn-signal -e $? ",
                     "         --stack ", { "Ref" : "AWS::StackName" },
                     "         --resource getmybeatsapi ",
-                    "         --region ", { "Ref" : "AWS::Region" }, "\n",
-                    "# CONFIGURE GIT HERE"
+                    "         --region ", { "Ref" : "AWS::Region" }, "\n"
                ]]}}
             },
             "Metadata":{
@@ -89,11 +67,7 @@
                             "/etc/environment": {
                                "content" : { "Fn::Join" : ["", [
                                   "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n",
-                                  "DATABASE_NAME=", { "Ref" : "DBNAME" }, "\n",
-                                  "DATABASE_HOST=", { "Ref" : "DBHOST" }, "\n",
-                                  "DATABASE_PORT=", { "Ref" : "DBPORT" }, "\n",
-                                  "DATABASE_USER=", { "Ref" : "DBUSER" }, "\n",
-                                  "DATABASE_PASSWORD=", { "Ref" : "DBPASSWORD" }, "\n"
+                                  "DATABASE_SETTINGS=", { "Ref" : "DBSETTINGS" }, "\n"
                                 ]]},
                                 "mode"    : "000400",
                                 "owner"   : "root",
