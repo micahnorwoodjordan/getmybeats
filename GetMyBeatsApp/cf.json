@@ -136,6 +136,32 @@
                                   "         --region ", { "Ref" : "AWS::Region" }, "\n",
                                   "runas=root\n"
                                 ]]}
+                              },
+                              "/etc/systemd/system/gunicorn.socket": {
+                                "content": { "Fn::Join" : ["", [
+                                    "[Unit]\n",
+                                    "Description=gunicorn socket\n",
+                                    "[Socket]\n",
+                                    "ListenStream=/run/gunicorn.sock\n",
+                                    "[Install]\n",
+                                    "WantedBy=sockets.target\n"
+                                  ]]}
+                              },
+                              "/etc/systemd/system/gunicorn.service": {
+                                "content": { "Fn::Join" : ["", [
+                                    "[Unit]\n",
+                                    "Description=gunicorn daemon\n",
+                                    "Requires=gunicorn.socket\n",
+                                    "After=network.target\n",
+                                    "[Service]\n",
+                                    "User=root\n",
+                                    "Group=www-data\n",
+                                    "WorkingDirectory=/application/getmybeats\n",
+                                    "ExecStart=/application/getmybeatsvenv/bin/gunicorn --access-logfile - --workers 3 --bind ",
+                                    "unix:/run/gunicorn.sock GetMyBeatsSettings.wsgi:application\n",
+                                    "[Install]\n",
+                                    "WantedBy=multi-user.target"
+                                  ]]}
                               }
                         },
                         "services": {
@@ -153,22 +179,32 @@
                                 "ignoreErrors": true
                             },
                             "2-download-software" : {
-                                "command" : " cd application && git clone git@github.com:micahnorwoodjordan/getmybeats.git",
+                                "command" : " cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
                             "3-checkout-software" : {
-                                "command" : " cd application/getmybeats && git checkout $GIT_COMMIT_HASH",
+                                "command" : " cd /application/getmybeats && git checkout $GIT_COMMIT_HASH",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "4-create-venv": {
-                                "command" : "virtualenv getmybeatsvenv",
+                            "4-install-dependencies" : {
+                                "command" : " cd /application/getmybeats && pip3 install -r requirements.txt",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "5-set-up-venv": {
-                                "command" : "source getmybeatsvenv/bin/activate && pip3 install django gunicorn",
+                            "5-django-mysql-hack" : {
+                                "command" : "cd /application/getmybeats && echo 'import pymysql' >> GetMyBeatsSettings/__init__.py && echo 'pymysql.install_as_MySQLdb()' >> GetMyBeatsSettings/__init__.py",
+                                "cwd": "~",
+                                "ignoreErrors": true
+                            },
+                            "6-create-venv": {
+                                "command" : "cd /application && virtualenv getmybeatsvenv && source getmybeatsvenv/bin/activate",
+                                "cwd": "~",
+                                "ignoreErrors": true
+                            },
+                            "7-start-gunicorn": {
+                                "command" : "systemctl start gunicorn.socket && systemctl enable gunicorn.socket && echo $(systemctl status gunicorn.socket) > /gunicorn-status.txt",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             }
