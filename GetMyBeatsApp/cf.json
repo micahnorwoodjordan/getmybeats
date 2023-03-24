@@ -2,11 +2,11 @@
     "AWSTemplateFormatVersion":"2010-09-09",
     "Description":"description to be determined...",
     "Parameters": {
-        "ACCESSKEY": {
+        "AccessKey": {
             "Type": "String",
             "Description": "aws access key"
         },
-        "SECRETACCESSKEY": {
+        "SecretAccessKey": {
             "Type": "String",
             "Description": "aws secret access key"
         },
@@ -15,9 +15,13 @@
             "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
             "ConstraintDescription": "must be the name of an existing EC2 KeyPair"
         },
-        "DBSETTINGS": {
+        "DbSettings": {
             "Type": "String",
-            "Description": "git commit to checkout for version control"
+            "Description": "database settings"
+        },
+        "GitCommitHash": {
+            "Type": "String",
+            "Description": "git commit for software versioning"
         }
     },
     "Resources":{
@@ -47,7 +51,9 @@
                     "yum install -y python-setuptools python3-pip wget nginx git\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
-                    "pip3 install awscli\n",
+                    "pip3 install --upgrade pip\n",
+                    "pip3 install awscli virtualenv\n",
+                    "mkdir application\n",
                     "sudo mkdir /opt/aws\n",
                     "cd /opt/aws\n",
                     "pip3 install --ignore-installed --target=/opt/aws/ /aws-cfn-bootstrap-py3-latest.tar.gz\n",
@@ -86,8 +92,8 @@
                             "/root/.aws/credentials": {
                                 "content" : { "Fn::Join" : ["", [
                                     "[default]\n",
-                                    "aws_access_key_id=", { "Ref" : "ACCESSKEY" }, "\n",
-                                    "aws_secret_access_key=", { "Ref" : "SECRETACCESSKEY" }, "\n",
+                                    "aws_access_key_id=", { "Ref" : "AccessKey" }, "\n",
+                                    "aws_secret_access_key=", { "Ref" : "SecretAccessKey" }, "\n",
                                     "region=us-west-2\n",
                                     "output=json"
                                   ]]},
@@ -98,9 +104,10 @@
                             "/etc/environment": {
                                "content" : { "Fn::Join" : ["", [
                                   "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n",
-                                  "DATABASE_SETTINGS=", { "Ref" : "DBSETTINGS" }, "\n",
-                                  "AWS_ACCESS_KEY=", { "Ref" : "ACCESSKEY" }, "\n",
-                                  "AWS_SECRET_ACCESS_KEY=", { "Ref" : "SECRETACCESSKEY" }, "\n"
+                                  "DATABASE_SETTINGS=", { "Ref" : "DbSettings" }, "\n",
+                                  "AWS_ACCESS_KEY=", { "Ref" : "AccessKey" }, "\n",
+                                  "AWS_SECRET_ACCESS_KEY=", { "Ref" : "SecretAccessKey" }, "\n",
+                                  "GIT_COMMIT_HASH=", { "Ref" : "GitCommitHash" }, "\n"
                                 ]]},
                                 "mode"    : "000400",
                                 "owner"   : "root",
@@ -140,13 +147,28 @@
                             }
                         },
                         "commands": {
-                            "aws-sync" : {
+                            "1-aws-sync" : {
                                 "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/*",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "git-clone" : {
-                                "command" : "git clone git@github.com:micahnorwoodjordan/getmybeats.git",
+                            "2-download-software" : {
+                                "command" : " cd application && git clone git@github.com:micahnorwoodjordan/getmybeats.git",
+                                "cwd": "~",
+                                "ignoreErrors": true
+                            },
+                            "3-checkout-software" : {
+                                "command" : " cd application/getmybeats && git checkout $GIT_COMMIT_HASH",
+                                "cwd": "~",
+                                "ignoreErrors": true
+                            },
+                            "4-create-venv": {
+                                "command" : "virtualenv getmybeatsvenv",
+                                "cwd": "~",
+                                "ignoreErrors": true
+                            },
+                            "5-set-up-venv": {
+                                "command" : "source getmybeatsvenv/bin/activate && pip3 install django gunicorn",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             }
