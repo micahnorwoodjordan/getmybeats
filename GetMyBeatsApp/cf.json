@@ -43,6 +43,7 @@
                 "KeyName": {"Ref": "SSHKey"},
                 "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash -xe\n",
+                    "yum update -y\n",
                     "yum install -y python-setuptools python3-pip wget nginx git\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
