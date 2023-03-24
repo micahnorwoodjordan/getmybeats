@@ -3,6 +3,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+import json
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -69,15 +70,15 @@ AUTH_USER_MODEL = 'GetMyBeatsApp.User'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# TODO: cut over to environment variables
+DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'getmybeats',
-        'HOST': 'getmybeats.cdpivaepyp3k.us-west-2.rds.amazonaws.com',
-        'USER': 'root',
-        'PASSWORD': 'Thatwasengl1sh!',
-        'PORT': 3306,
+        'NAME': DATABASE_SETTINGS['DBNAME'],
+        'HOST': DATABASE_SETTINGS['DBHOST'],
+        'USER': DATABASE_SETTINGS['DBUSER'],
+        'PASSWORD': DATABASE_SETTINGS['DBPASSWORD'],
+        'PORT': DATABASE_SETTINGS['DBPORT'],
     }
 }
 
