@@ -28,10 +28,10 @@ class Audio(models.Model):
     raw_bytes = models.BinaryField(max_length=1000)  # for big files, some clients will crash trying to retrieve this
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.raw_bytes = b64encode_file_upload(self.file_upload.path)  # inefficient, but the file doesn't get written until the first db commit
-        return super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     self.raw_bytes = b64encode_file_upload(self.file_upload.path)  # inefficient, but the file doesn't get written until the first db commit
+    #     return super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'audio'
