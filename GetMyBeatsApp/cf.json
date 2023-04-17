@@ -48,11 +48,14 @@
                 "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash -xe\n",
                     "yum update -y\n",
-                    "yum install -y python-setuptools python3-pip wget nginx git\n",
+                    "yum install -y python-setuptools python3-pip wget nginx git setools\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
                     "pip3 install --upgrade pip\n",
                     "pip3 install awscli virtualenv\n",
+                    "setenforce 1\n",
+                    "semanage permissive -a httpd_t\n",
+                    "setsebool -P httpd_can_network_connect 1\n",
                     "mkdir application\n",
                     "sudo mkdir /opt/aws\n",
                     "cd /opt/aws\n",
@@ -95,7 +98,7 @@
                                     "aws_access_key_id=", { "Ref" : "AccessKey" }, "\n",
                                     "aws_secret_access_key=", { "Ref" : "SecretAccessKey" }, "\n",
                                     "region=us-west-2\n",
-                                    "output=json"
+                                    "output=json\n"
                                   ]]},
                                   "mode"    : "000400",
                                   "owner"   : "root",
@@ -122,54 +125,60 @@
                                 "mode"    : "000400",
                                 "owner"   : "root",
                                 "group"   : "root"
-                              },
-                
-                              "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
                                 "content": { "Fn::Join" : ["", [
-                                  "[cfn-auto-reloader-hook]\n",
-                                  "triggers=post.update\n",
-                                  "path=Resources.getmybeatsapi.Metadata.AWS::CloudFormation::Init\n",
-                                  "action=/opt/aws/bin/cfn-init -v ",
-                                  "         --stack ", { "Ref" : "AWS::StackName" },
-                                  "         --resource getmybeatsapi ",
-                                  "         --configsets Install ",
-                                  "         --region ", { "Ref" : "AWS::Region" }, "\n",
-                                  "runas=root\n"
-                                ]]}
-                              },
-                              "/etc/systemd/system/gunicorn.socket": {
+                                    "[cfn-auto-reloader-hook]\n",
+                                    "triggers=post.update\n",
+                                    "path=Resources.getmybeatsapi.Metadata.AWS::CloudFormation::Init\n",
+                                    "action=/opt/aws/bin/cfn-init -v ",
+                                    "         --stack ", { "Ref" : "AWS::StackName" },
+                                    "         --resource getmybeatsapi ",
+                                    "         --configsets Install ",
+                                    "         --region ", { "Ref" : "AWS::Region" }, "\n",
+                                    "runas=root\n"
+                                ]]},
+                                "mode"    : "000400",
+                                "owner"   : "root",
+                                "group"   : "root"
+                            },
+                            "/etc/nginx/nginx.conf": {
                                 "content": { "Fn::Join" : ["", [
-                                    "[Unit]\n",
-                                    "Description=gunicorn socket\n",
-                                    "[Socket]\n",
-                                    "ListenStream=/run/gunicorn.sock\n",
-                                    "[Install]\n",
-                                    "WantedBy=sockets.target\n"
-                                  ]]}
-                              },
-                              "/etc/systemd/system/gunicorn.service": {
+                                    "events {\n",
+                                    "\n",
+                                    "}\n",
+                                    "http {\n",
+                                    "   include /etc/nginx/mime.types;\n",
+                                    "   sendfile on;\n",
+                                    "   server {\n",
+                                    "       client_max_body_size 60M;\n",
+                                    "       listen 80;\n",
+                                    "       server_name getmybeats.com;\n",
+                                    "       location /static {\n",
+                                    "           root /application/getmybeats/;\n",
+                                    "       }\n",
+                                    "       location / {\n",
+                                    "            proxy_pass http://127.0.0.1:8000/;\n",
+                                    "            proxy_set_header Host $host;\n",
+                                    "       }\n",
+                                    "   }\n",
+                                    "}\n"
+                                ]]},
+                                "mode"    : "000400",
+                                "owner"   : "root",
+                                "group"   : "root"
+                            },
+                            "/application/gunicorn_config.py": {
                                 "content": { "Fn::Join" : ["", [
-                                    "[Unit]\n",
-                                    "Description=gunicorn daemon\n",
-                                    "Requires=gunicorn.socket\n",
-                                    "After=network.target\n",
-                                    "[Service]\n",
-                                    "User=root\n",
-                                    "Group=www-data\n",
-                                    "WorkingDirectory=/application/getmybeats\n",
-                                    "ExecStart=/application/getmybeatsvenv/bin/gunicorn --access-logfile - --workers 3 --bind ",
-                                    "unix:/run/gunicorn.sock GetMyBeatsSettings.wsgi:application\n",
-                                    "[Install]\n",
-                                    "WantedBy=multi-user.target"
-                                  ]]}
-                              }
-                        },
-                        "services": {
-                            "systemd": {
-                                "nginx": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true"
-                                }
+                                    "command = '/usr/local/bin/gunicorn'\n",
+                                    "pythonpath = '/application/getmybeats'\n",
+                                    "workers = 3\n",
+                                    "bind = '127.0.0.1:8000'\n"
+
+                                ]]},
+                                "mode"    : "000400",
+                                "owner"   : "root",
+                                "group"   : "root"
                             }
                         },
                         "commands": {
@@ -184,29 +193,42 @@
                                 "ignoreErrors": true
                             },
                             "3-checkout-software" : {
-                                "command" : " cd /application/getmybeats && git checkout $GIT_COMMIT_HASH",
+                                "command" : " cd /application/getmybeats && git checkout master",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "4-install-dependencies" : {
-                                "command" : " cd /application/getmybeats && pip3 install -r requirements.txt",
+                            "4-create-venv": {
+                                "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "5-django-mysql-hack" : {
+                            "5-install-dependencies" : {
+                                "command" : " cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt && cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
+                                "cwd": "~",
+                                "ignoreErrors": true
+                            },
+                            "6-django-mysql-hack" : {
                                 "command" : "cd /application/getmybeats && echo 'import pymysql' >> GetMyBeatsSettings/__init__.py && echo 'pymysql.install_as_MySQLdb()' >> GetMyBeatsSettings/__init__.py",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "6-create-venv": {
-                                "command" : "cd /application && virtualenv getmybeatsvenv && source getmybeatsvenv/bin/activate",
+                            "7-collectstatic": {
+                                "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py collectstatic",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "7-start-gunicorn": {
-                                "command" : "systemctl start gunicorn.socket && systemctl enable gunicorn.socket && echo $(systemctl status gunicorn.socket) > /gunicorn-status.txt",
+                            "start-gunicorn": {
+                                "command": "cd /application/getmybeats && gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon",
                                 "cwd": "~",
                                 "ignoreErrors": true
+                            }
+                        },
+                        "services": {
+                            "systemd": {
+                                "nginx": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true"
+                                }
                             }
                         }
                     }
