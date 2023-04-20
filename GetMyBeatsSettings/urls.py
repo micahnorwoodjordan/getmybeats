@@ -23,4 +23,8 @@ from GetMyBeatsApp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', views.home),
+    path('', views.home),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler404 = 'GetMyBeatsApp.views.handler404'
+handler500 = 'GetMyBeatsApp.views.handler500'
