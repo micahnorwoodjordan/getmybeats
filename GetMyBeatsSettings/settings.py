@@ -4,26 +4,21 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
 import json
+
+from django.core.management.utils import get_random_secret_key
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zyz8k)k@)@v!#m4!kgxu^y-*122oq6)xhm_c0$z_(muvk6+$w4'
-
-# SECURITY WARNING: don't run with debug turned on in production!
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default=get_random_secret_key())  # collectstatic will look for this setting
 DEBUG = False
-
 ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1']
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'GetMyBeatsApp.apps.GetmybeatsappConfig',
     'django.contrib.admin',
@@ -62,14 +57,13 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 
+WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 AUTH_USER_MODEL = 'GetMyBeatsApp.User'
 
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
 DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
 DATABASES = {
     'default': {
@@ -78,50 +72,37 @@ DATABASES = {
         'HOST': DATABASE_SETTINGS['DBHOST'],
         'USER': DATABASE_SETTINGS['DBUSER'],
         'PASSWORD': DATABASE_SETTINGS['DBPASSWORD'],
-        'PORT': DATABASE_SETTINGS['DBPORT'],
+        'PORT': DATABASE_SETTINGS['DBPORT']
     }
 }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'}
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-STATIC_ROOT = '/application/getmybeats/static/'
+STATIC_ROOT = '/application/static/'
 STATIC_URL = '/static/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_ROOT = '/application//media/'
 MEDIA_URL = '/media/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
