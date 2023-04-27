@@ -167,7 +167,7 @@
                                 "cwd": "~"
                             },
                             "3-checkout-software" : {
-                                "command" : " cd /application/getmybeats && git checkout master",
+                                "command" : " cd /application/getmybeats && git checkout $CODE_VERSION",
                                 "cwd": "~"
                             },
                             "4-create-venv": {
