@@ -26,7 +26,7 @@ urlpatterns = [
     path('', views.home),
 ]
 
-if settings.DEBUUG:
+if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'GetMyBeatsApp.views.handler404'
