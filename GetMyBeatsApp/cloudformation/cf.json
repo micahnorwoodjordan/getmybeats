@@ -59,6 +59,7 @@
                     "semanage permissive -a httpd_t\n",
                     "setsebool -P httpd_can_network_connect 1\n",
                     "mkdir application\n",
+                    "cd /application && mkdir media\n",
                     "sudo mkdir /opt/aws\n",
                     "cd /opt/aws\n",
                     "pip3 install --ignore-installed --target=/opt/aws/ /aws-cfn-bootstrap-py3-latest.tar.gz\n",
@@ -163,15 +164,19 @@
                                 "cwd": "~"
                             },
                             "2-download-software" : {
-                                "command" : " cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git && cd /application/getmybeats && git checkout $CODE_VERSION",
+                                "command" : "cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git && cd /application/getmybeats && git checkout ${CODE_VERSION}",
                                 "cwd": "~"
                             },
                             "3-create-venv": {
-                                "command" : "cd /application && virtualenv getmybeatsvenv && source getmybeatsvenv/bin/activate && cd getmybeats && ./manage.py download_missing_audio",
+                                "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
                             "4-install-dependencies" : {
-                                "command" : " cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt && cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
+                                "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt && cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
+                                "cwd": "~"
+                            },
+                            "5-download-audio": {
+                                "command": "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py download_missing_audio",
                                 "cwd": "~"
                             },
                             "5-install-SSL-certificate-files": {
