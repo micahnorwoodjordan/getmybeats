@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.db import IntegrityError, connection, models, transaction
 from django.contrib.auth.models import AbstractUser
@@ -5,6 +6,8 @@ from django.conf import settings
 from django.utils.timezone import now
 
 from .db.utilities import b64encode_file_upload
+from GetMyBeatsApp.services.s3_service import S3AudioService
+
 
 class User(AbstractUser):
     email = models.CharField(max_length=100, blank=False, null=False, unique=True)
@@ -28,10 +31,18 @@ class Audio(models.Model):
     raw_bytes = models.BinaryField(max_length=1000)  # for big files, some clients will crash trying to retrieve this
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
 
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     self.raw_bytes = b64encode_file_upload(self.file_upload.path)  # inefficient, but the file doesn't get written until the first db commit
-    #     return super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        # override django's natve save() method
+        # inefficient, but file doesn't get written until committed to db
+        # TODO: look into NamedTemporaryFiles
+
+        super().save(*args, **kwargs)
+
+        filepath = self.file_upload.path
+        filename = os.path.basename(filepath).replace(' ', '_')
+        s3 = S3AudioService()
+        s3.upload(filepath, filename)
+        return super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'audio'
