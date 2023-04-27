@@ -163,35 +163,31 @@
                                 "cwd": "~"
                             },
                             "2-download-software" : {
-                                "command" : " cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git",
+                                "command" : " cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git && cd /application/getmybeats && git checkout $CODE_VERSION",
                                 "cwd": "~"
                             },
-                            "3-checkout-software" : {
-                                "command" : " cd /application/getmybeats && git checkout $CODE_VERSION",
-                                "cwd": "~"
-                            },
-                            "4-create-venv": {
+                            "3-create-venv": {
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "5-install-dependencies" : {
+                            "4-install-dependencies" : {
                                 "command" : " cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt && cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
                                 "cwd": "~"
                             },
-                            "6-install-SSL-certificate-files": {
+                            "5-install-SSL-certificate-files": {
                                 "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar xvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
-                            "7-install-nginx-config-file": {
+                            "6-install-nginx-config-file": {
                                 "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
                                 "cwd": "~"
                             },
-                            "8-collectstatic": {
+                            "7-collectstatic": {
                                 "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py collectstatic --noinput",
                                 "cwd": "~",
                                 "ignoreErrors": true
                             },
-                            "9-start-gunicorn": {
+                            "8-start-gunicorn": {
                                 "command": "cd /application/getmybeats && gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon",
                                 "cwd": "~",
                                 "ignoreErrors": true
