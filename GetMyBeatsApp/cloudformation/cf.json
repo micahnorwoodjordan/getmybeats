@@ -167,7 +167,7 @@
                                 "cwd": "~"
                             },
                             "3-create-venv": {
-                                "command" : "cd /application && virtualenv getmybeatsvenv",
+                                "command" : "cd /application && virtualenv getmybeatsvenv && source getmybeatsvenv/bin/activate && cd getmybeats && ./manage.py download_missing_audio",
                                 "cwd": "~"
                             },
                             "4-install-dependencies" : {
