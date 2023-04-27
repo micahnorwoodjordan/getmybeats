@@ -24,6 +24,6 @@ def handler500(request, template_name="500.html"):
 
 @api_view(['GET'])
 def home(request):
-    serialized_instances = AudioSerializer(S3AudioService.get_audio_for_site_index(), many=True).data
+    serialized_instances = AudioSerializer(Audio.objects.all(), many=True).data
     context = {'audio': [dict(i) for i in serialized_instances]}
     return render(request, 'home.html', context=context)  # TODO: create wrapper around Django Response
