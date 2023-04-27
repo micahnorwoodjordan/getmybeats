@@ -5,6 +5,7 @@ from django.template import RequestContext
 
 from .serializers import AudioSerializer
 from .models import Audio
+from .services.s3_service import S3AudioService
 
 
 def handler404(request, exception, template_name="404.html"):
