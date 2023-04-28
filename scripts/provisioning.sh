@@ -14,6 +14,7 @@ echo "installing dependencies..."
 cd /application
 source getmybeatsvenv/bin/activate
 cd getmybeats && pip3 install -r requirements.txt
+cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
 echo "installation complete."
 
 
