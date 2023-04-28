@@ -167,19 +167,15 @@
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "3-copy-gunicorn-executable" : {
-                                "command" : "cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
-                                "cwd": "~"
-                            },
-                            "4-provision": {
+                            "3-provision": {
                                 "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
                                 "cwd": "~"
                             },
-                            "5-install-SSL-certificate-files": {
+                            "4-install-SSL-certificate-files": {
                                 "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar xvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
-                            "6-install-nginx-config-file": {
+                            "5-install-nginx-config-file": {
                                 "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
                                 "cwd": "~"
                             }
