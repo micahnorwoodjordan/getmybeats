@@ -167,11 +167,12 @@
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "3-provision": {
-                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh"
-                            },
-                            "4-copy-gunicorn-executable" : {
+                            "3-copy-gunicorn-executable" : {
                                 "command" : "cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
+                                "cwd": "~"
+                            },
+                            "4-provision": {
+                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
                                 "cwd": "~"
                             },
                             "5-install-SSL-certificate-files": {
