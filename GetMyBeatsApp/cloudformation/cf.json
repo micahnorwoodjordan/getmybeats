@@ -163,20 +163,15 @@
                                 "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/*",
                                 "cwd": "~"
                             },
-                            "2-download-software" : {
-                                "command" : "cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git && cd /application/getmybeats && git checkout ${CODE_VERSION}",
-                                "cwd": "~"
-                            },
-                            "3-create-venv": {
+                            "2-create-venv": {
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "4-install-dependencies" : {
-                                "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt && cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
-                                "cwd": "~"
+                            "3-provision": {
+                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sudo -u root -i bash provisioning.sh"
                             },
-                            "5-download-audio": {
-                                "command": "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py download_missing_audio",
+                            "4-copy-gunicorn-executable" : {
+                                "command" : "cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
                                 "cwd": "~"
                             },
                             "5-install-SSL-certificate-files": {
@@ -186,18 +181,7 @@
                             "6-install-nginx-config-file": {
                                 "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
                                 "cwd": "~"
-                            },
-                            "7-collectstatic": {
-                                "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py collectstatic --noinput",
-                                "cwd": "~",
-                                "ignoreErrors": true
-                            },
-                            "8-start-gunicorn": {
-                                "command": "cd /application/getmybeats && gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon",
-                                "cwd": "~",
-                                "ignoreErrors": true
                             }
-                            
                         },
                         "services": {
                             "systemd": {
