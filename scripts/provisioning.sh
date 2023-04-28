@@ -18,6 +18,12 @@ cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
 echo "installation complete."
 
 
+# getting gunicorn to play nice warrants its own section >:()
+echo "attempting to start gunicorn"
+exec gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
+echo "successfully started gunicorn."
+
+
 # django management commands
 echo "running management commands..."
 cd /application/getmybeats
@@ -26,12 +32,6 @@ source ../getmybeatsvenv/bin/activate
 ./manage.py collectstatic --noinput
 deactivate
 echo "finished running management commands."
-
-
-# getting gunicorn to play nice warrants its own section >:()
-echo "attempting to start gunicorn"
-exec gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi:application
-echo "successfully started gunicorn."
 
 
 echo "setup complete."
