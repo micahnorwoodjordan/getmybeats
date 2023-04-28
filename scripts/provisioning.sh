@@ -1,7 +1,5 @@
 #! /bin/bash
 
-cd ~
-
 
 # code installation doesn't function during CF build process. Maybe bad ref to env var.
 echo "installing source code..."
@@ -20,8 +18,19 @@ echo "installation complete."
 
 
 # django management commands
-echo "executing setup django management commands..."
-./manage.py collectstatic --noinput
+echo "running management commands..."
+cd /application/getmybeats
+source ../getmybeatsvenv/bin/activate
 ./manage.py download_missing_audio
-gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
-echo "done."
+./manage.py collectstatic --noinput
+deactivate
+echo "finished running management commands."
+
+
+# getting gunicorn to play nice warrants its own section >:()
+echo "attempting to start gunicorn"
+exec gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi:application
+echo "successfully started gunicorn."
+
+
+echo "setup complete."

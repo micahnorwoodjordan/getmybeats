@@ -33,6 +33,6 @@ class S3AudioService:
                 try:
                     s3.download(filename, new_filepath)
                 except:
-                    print(f'couldnt get {filename}')
+                    print(f'error retrieving {filename}')
 
         return audio_instances

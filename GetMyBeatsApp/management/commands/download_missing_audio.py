@@ -7,4 +7,8 @@ class Command(BaseCommand):
     help = 'download audio files from S3 if they are not already on disk.'
 
     def handle(self, *args, **options):
-        S3AudioService.get_audio_for_site_index()
+        try:
+            S3AudioService.get_audio_for_site_index()
+            print('SUCCESS: finished downloading audio files.')
+        except:
+            print('ERROR: could not download audio files.')
