@@ -15,12 +15,14 @@ cd /application
 source getmybeatsvenv/bin/activate
 cd getmybeats && pip3 install -r requirements.txt
 cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
+deactivate
 echo "installation complete."
 
 
 # getting gunicorn to play nice warrants its own section >:()
 echo "attempting to start gunicorn"
-exec gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
+cd /application/getmybeats
+gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
 echo "successfully started gunicorn."
 
 
