@@ -1,4 +1,6 @@
 import os
+from enum import Enum
+
 from django.db import models
 from django.db import IntegrityError, connection, models, transaction
 from django.contrib.auth.models import AbstractUser
@@ -30,19 +32,29 @@ class Audio(models.Model):
     length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
     raw_bytes = models.BinaryField(max_length=1000)  # for big files, some clients will crash trying to retrieve this
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
+    status = models.SmallIntegerField()
 
-    def save(self, *args, **kwargs):
+    def save(self, upload=False, *args, **kwargs):
         # override django's natve save() method
         # inefficient, but file doesn't get written until committed to db
         # TODO: look into NamedTemporaryFiles
+        _saved_instance_data = super().save(*args, **kwargs)
+        if not upload:
+            return _saved_instance_data
 
         super().save(*args, **kwargs)
-
         filepath = self.file_upload.path
         filename = os.path.basename(filepath).replace(' ', '_')
         s3 = S3AudioService()
         s3.upload(filepath, filename)
         return super().save(*args, **kwargs)
+
+    class Status(Enum):
+        concept = 1
+        in_progress = 2
+        needs_fine_tuning = 3
+        finshed = 4
+
 
     class Meta:
         db_table = 'audio'
