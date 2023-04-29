@@ -50,7 +50,7 @@ class Audio(models.Model):
         concept = 1
         in_progress = 2
         needs_fine_tuning = 3
-        finshed = 4
+        finished = 4
 
 
     class Meta:
