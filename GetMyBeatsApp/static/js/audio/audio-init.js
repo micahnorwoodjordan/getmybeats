@@ -42,6 +42,7 @@ function playAudio(buttonElement) {
 
 
 function filterSongsByStatus(selectedDropdownItem, statusString) {
+    // https://stackoverflow.com/questions/63628163/trying-to-get-the-bootstrap-dropdown-button-text-to-change-to-the-item-selected
     document.getElementById("dropdownMenuButton").innerHTML = selectedDropdownItem.innerHTML;
     const audioListElements = document.getElementsByName("audioListItem");
     if (statusString === statusAll) {
