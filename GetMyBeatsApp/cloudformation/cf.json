@@ -51,7 +51,7 @@
                     "yum update -y\n",
                     "yum install -y python-setuptools python3-pip wget nginx git setools net-tools\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
-                    "dnf install -y certbot python3-certbot-nginx\n",
+                    "dnf install -y certbot python3-certbot-nginx supervisor\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
                     "pip3 install --upgrade pip\n",
                     "pip3 install awscli virtualenv\n",
@@ -167,16 +167,16 @@
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "3-provision": {
-                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
-                                "cwd": "~"
-                            },
-                            "4-install-SSL-certificate-files": {
+                            "3-install-SSL-certificate-files": {
                                 "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar xvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
-                            "5-install-nginx-config-file": {
+                            "4-install-nginx-config-file": {
                                 "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
+                                "cwd": "~"
+                            },
+                            "5-configure-django": {
+                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
                                 "cwd": "~"
                             }
                         },
