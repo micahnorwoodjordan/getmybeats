@@ -3,9 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.template import RequestContext
 
-from .serializers import AudioSerializer
-from .models import Audio
-from .services.s3_service import S3AudioService
+from GetMyBeatsApp.db.utilities import get_main_audio_context
 
 
 def handler404(request, exception, template_name="404.html"):
@@ -24,6 +22,5 @@ def handler500(request, template_name="500.html"):
 
 @api_view(['GET'])
 def home(request):
-    serialized_instances = AudioSerializer(Audio.objects.all(), many=True).data
-    context = {'audio': [dict(i) for i in serialized_instances]}
-    return render(request, 'home.html', context=context)  # TODO: create wrapper around Django Response
+    context = get_main_audio_context()
+    return render(request, 'home.html', context=context)
