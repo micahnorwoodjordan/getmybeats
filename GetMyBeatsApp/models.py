@@ -2,12 +2,9 @@ import os
 from enum import Enum
 
 from django.db import models
-from django.db import IntegrityError, connection, models, transaction
 from django.contrib.auth.models import AbstractUser
-from django.conf import settings
 from django.utils.timezone import now
 
-from .db.utilities import b64encode_file_upload
 from GetMyBeatsApp.services.s3_service import S3AudioService
 
 
