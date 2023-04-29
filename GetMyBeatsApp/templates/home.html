@@ -29,9 +29,14 @@
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             {%for status in statuses%}
                                 <li>
-                                    <a class="dropdown-item" value="{{ status }}" onclick="updateTextWithSelected(this);">{{ status|title|charx_to_space:"_" }}</a>
+                                    {% with processedStatus=status|python_to_titleized_js %}
+                                        <a class="dropdown-item" onclick="filterSongsByStatus(this, '{{ processedStatus }}');">{{ status|title|charx_to_space:"_" }}</a>
+                                    {%endwith%}
                                 </li>
                             {%endfor%}
+                            <li>
+                                <a class="dropdown-item" onclick="filterSongsByStatus(this, 'All');"> All </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -45,7 +50,7 @@
                     <br> <br>
                     <ul>
                         {%for a in all_audio%}
-                            <li class="{{ a.status }}">
+                            <li name="audioListItem" class="{{ a.status }}">
                                 <button type="button" class="btn btn-outline-dark" onclick="playAudio(this);">
                                     <i class="bi bi-play-circle">
                                         <audio class="fc-media">
@@ -66,7 +71,7 @@
                 <div class="col-8 d-flex justify-content-center">
                     <h1><i class="bi bi-wrench"></i></h1>
                     <br>
-                    <h3 style="margin-right: 5px;">disclaimer: this website is under constant maintanence</h3>
+                    <h3 style="margin-right: 5px;">disclaimer: website under constant maintenance</h3>
                     <br>
                     <h1><i class="bi bi-hammer"></i></h1>
                 </div>

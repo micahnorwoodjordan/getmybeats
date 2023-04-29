@@ -1,6 +1,16 @@
-const nonAudioButtonElementIds = ["dropdownMenuButton"];  // dont forget to update array after each new button
+const statusAll = "All";
+const nonAudioButtonElementIds = ["dropdownMenuButton"];  // bad design; DONT forget to update array after each new button
 const allButtonElements = document.getElementsByClassName('btn');
 const audioButtonElements = [];
+
+
+// construct to protect me from myself. naming scheme based on `title_to_js` custom template tag
+const Statuses = Object.freeze({
+    Concept: "1",
+    InProgress: "2",
+    NeedsFineTuning: "3",
+    Finished: "4",
+})
 
 // initialize page by isolating all button elements with an inner Audio element
 window.onload = function() {
@@ -31,6 +41,21 @@ function playAudio(buttonElement) {
 }
 
 
-function updateTextWithSelected(selectedDropdownItem) {
+function filterSongsByStatus(selectedDropdownItem, statusString) {
     document.getElementById("dropdownMenuButton").innerHTML = selectedDropdownItem.innerHTML;
+    const audioListElements = document.getElementsByName("audioListItem");
+    if (statusString === statusAll) {
+        for (let i = 0; i < audioListElements.length; i++) {
+            audioListElements[i].style.visibility = "visible";
+        }
+    } else {
+        for (let i = 0; i < audioListElements.length; i++) {
+            let currentAudioListElement = audioListElements[i];
+            if (currentAudioListElement.className === Statuses[statusString]) {
+                currentAudioListElement.style.visibility = "visible";
+            } else {
+                currentAudioListElement.style.visibility = "hidden";
+            }
+        }
+    }
 }
