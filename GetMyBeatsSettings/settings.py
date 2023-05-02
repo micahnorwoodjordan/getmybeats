@@ -1,7 +1,3 @@
-"""
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/4.1/ref/settings/
-"""
 import os
 import json
 
@@ -11,11 +7,14 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-S3_AUDIO_BUCKET = 'getmybeats-audio'
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default=get_random_secret_key())  # collectstatic will look for this setting
+
 DEBUG = False
+
 ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1']
+
+S3_AUDIO_BUCKET = 'getmybeats-audio'
 
 
 # Application definition
@@ -28,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -58,11 +58,46 @@ TEMPLATES = [
 ]
 
 
+# EXAMPLE LOGGING CALL:
+# extra = {settings.LOGGER_EXTRA_DATA_KEY: 'all noodles are good'}
+# logger.info('example', extra=extra)
+
+DEFAULT_LOGGING_FORMAT = '''\
+{levelname} | {name} | {asctime} | PID: {process:d} | THREAD: {thread:d} | MESSAGE: {message} >>> {DATA}\
+'''.replace('\n', ' ')
+
+LOGGER_EXTRA_DATA_KEY = 'DATA'  # MUST mesh with custom key specified in VERBOSE_LOGGING_FORMAT; in all caps for clarity
+
+LOGGING = {
+    'version': 1,  # the dictConfig format version
+    'disable_existing_loggers': False,
+    'loggers': {
+        'GetMyBeatsApp': {
+            'level': 'INFO',
+            'handlers': ['general']
+        }
+    },
+    'handlers': {
+        'general': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'general.log',
+            'level': 'INFO',
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': DEFAULT_LOGGING_FORMAT,
+            'style': '{'
+        },
+    }
+}
+
+
 WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 AUTH_USER_MODEL = 'GetMyBeatsApp.User'
 
 
-# Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
 DATABASES = {
@@ -87,7 +122,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -95,7 +129,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_ROOT = BASE_DIR / 'static/'
 STATIC_URL = '/static/'
