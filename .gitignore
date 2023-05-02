@@ -3,3 +3,4 @@ getmybeats/__pycache__/
 venv/
 .DS_Store
 media/
+*.log

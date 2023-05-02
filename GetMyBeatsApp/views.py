@@ -1,7 +1,12 @@
+import logging
+
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.template import RequestContext
+from django.conf import settings
+
+
+logger = logging.getLogger(__name__)
+
 
 from GetMyBeatsApp.db.utilities import get_main_audio_context
 
