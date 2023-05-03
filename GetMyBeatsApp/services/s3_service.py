@@ -1,7 +1,10 @@
 import boto3
 import os
+import logging
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class S3AudioService:
@@ -19,8 +22,11 @@ class S3AudioService:
     @staticmethod
     def get_audio_for_site_index():
         from GetMyBeatsApp.models import Audio
+        extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
+        logger.info('BEGIN get_audio_for_site_index', extra=extra)
+        message = ''
 
-        # note to self: the existence of this method maybe indicates a bad design
+        # note to self: this is tech debt that needs cleaning after a reliable virtualization mechanism is achieved
         s3 = S3AudioService()
         audio_instances = Audio.objects.all()
 
@@ -29,10 +35,16 @@ class S3AudioService:
             filename = os.path.basename(filepath)
 
             if not os.path.exists(filepath):
-                new_filepath = f'{settings.MEDIA_ROOT}{filename}'
+                create_filepath = f'{settings.MEDIA_ROOT}/{filename}'
                 try:
-                    s3.download(filename, new_filepath)
-                except:
-                    print(f'couldnt get {filename}')
+                    s3.download(filename, create_filepath)
+                except Exception as err:
+                    message += f'couldnt get {filename}\n'
+                    print(err)
+
+        message = message or 'SUCCESS get_audio_for_site_index'
+        extra[settings.LOGGER_EXTRA_DATA_KEY] = message
+        logger.info('END get_audio_for_site_index', extra=extra)
+        print(message)
 
         return audio_instances
