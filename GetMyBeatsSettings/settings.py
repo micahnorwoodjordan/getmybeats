@@ -71,7 +71,7 @@ TEMPLATES = [
 PLATFORM = platform.platform()
 USE_LINUX = 'Linux' in PLATFORM or 'linux' in PLATFORM
 LOGGING_FILEPATH_CONFIG = {
-    'default': '/var/log/{filename}' if USE_LINUX else '{filename}'
+    'default': '/var/log/django/{filename}' if USE_LINUX else '{filename}'
 }
 
 DEFAULT_LOGGING_FORMAT = '''\
