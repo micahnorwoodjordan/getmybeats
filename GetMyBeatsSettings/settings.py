@@ -1,9 +1,6 @@
 import os
 import json
 import platform
-
-from django.core.management.utils import get_random_secret_key
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -14,6 +11,13 @@ SECRET_KEY = '***REMOVED***'  # collectstatic needs this key
 DEBUG = False
 
 ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1']
+
+# https://stackoverflow.com/questions/29573163/django-admin-login-suddenly-demanding-csrf-token
+# in general, future form POST's will probably need the CSRF cookie embedded into the Origin header
+CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
+    'https://*.127.0.0.1',
+    'https://*.getmybeats.com'
+]
 
 S3_AUDIO_BUCKET = 'getmybeats-audio'
 
