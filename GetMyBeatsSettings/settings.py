@@ -9,7 +9,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default=get_random_secret_key())  # collectstatic will look for this setting
+SECRET_KEY = 'django-insecure-zyz8k)k@)@v!#m4!kgxu^y-*122oq6)xhm_c0$z_(muvk6+$w4'  # collectstatic needs this key
 
 DEBUG = False
 
@@ -140,7 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_ROOT = BASE_DIR / 'static/'
 STATIC_URL = '/static/'
-MEDIA_ROOT = '/application/media/' if USE_LINUX else BASE_DIR / 'media/'
+MEDIA_ROOT = '/application/media/' if USE_LINUX else BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
 
