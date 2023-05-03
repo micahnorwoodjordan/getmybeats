@@ -1,5 +1,6 @@
 import os
 import json
+import platform
 
 from django.core.management.utils import get_random_secret_key
 
@@ -8,7 +9,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default=get_random_secret_key())  # collectstatic will look for this setting
+SECRET_KEY = 'django-insecure-zyz8k)k@)@v!#m4!kgxu^y-*122oq6)xhm_c0$z_(muvk6+$w4'  # collectstatic needs this key
 
 DEBUG = False
 
@@ -62,6 +63,13 @@ TEMPLATES = [
 # extra = {settings.LOGGER_EXTRA_DATA_KEY: 'all noodles are good'}
 # logger.info('example', extra=extra)
 
+# temporary hack to configure OS-based file paths until a reliable virtualization mechanism is found
+PLATFORM = platform.platform()
+USE_LINUX = 'Linux' in PLATFORM or 'linux' in PLATFORM
+LOGGING_FILEPATH_CONFIG = {
+    'default': '/var/log/{filename}' if USE_LINUX else '{filename}'
+}
+
 DEFAULT_LOGGING_FORMAT = '''\
 {levelname} | {name} | {asctime} | PID: {process:d} | THREAD: {thread:d} | MESSAGE: {message} >>> {DATA}\
 '''.replace('\n', ' ')
@@ -80,7 +88,7 @@ LOGGING = {
     'handlers': {
         'general': {
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'general.log',
+            'filename': LOGGING_FILEPATH_CONFIG['default'].format(filename='general.log'),
             'level': 'INFO',
             'formatter': 'verbose',
         },
@@ -132,7 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_ROOT = BASE_DIR / 'static/'
 STATIC_URL = '/static/'
-MEDIA_ROOT = '/application/media/'
+MEDIA_ROOT = '/application/media/' if USE_LINUX else BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
 
