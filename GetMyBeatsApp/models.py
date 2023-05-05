@@ -34,7 +34,7 @@ class Audio(models.Model):
     File names (/foo/bar/file_name.mp3) will be underscore delimited.
     """
     id = models.AutoField(primary_key=True)
-    fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=User.objects.get(id=1).id)
+    fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
     length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
