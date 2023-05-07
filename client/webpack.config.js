@@ -9,7 +9,7 @@ module.exports = {
     output: {
         path: path.resolve('../GetMyBeatsApp/static/webpack/'),
         filename: 'bundle.js',
-        publicPath: 'static/frontend/',
+        publicPath: path.resolve('../GetMyBeatsApp/static/webpack/'),
     },
     devtool: 'inline-source-map',
     resolve: {
@@ -19,7 +19,7 @@ module.exports = {
         new CleanWebpackPlugin(),
         new BundleTracker({
             path: __dirname,
-            filename: './webpack-stats.json',
+            filename: '../webpack-stats.json',
         }),
     ],
     module: {
@@ -45,6 +45,11 @@ module.exports = {
                         presets: ['@babel/preset-env']
                     }
                 }
+            },
+            {
+                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                type: 'javascript/auto',
+                use: 'file-loader?name=/[name].[ext]&limit=30000'
             }
         ],
     },

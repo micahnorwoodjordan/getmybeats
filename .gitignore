@@ -5,3 +5,4 @@ venv/
 media/
 *.log
 GetMyBeatsApp/static/webpack
+webpack-stats.json

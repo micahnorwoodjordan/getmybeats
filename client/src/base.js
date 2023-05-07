@@ -2,4 +2,14 @@
 // import <./local_file.js>
 // import <./local_file.css>
 
-const variable = "noodles";
+import TestImage from '../static/images/megatron.jpeg';
+
+window.addEventListener('load', () => {
+    const myImg = new Image();
+    myImg.src = TestImage;
+    myImg.style.width = "200px";
+    myImg.style.height = "200px";
+
+    document.body.appendChild(myImg);
+})
+// document.body.style.background = `url(${TestImage})`;
