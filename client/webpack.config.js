@@ -9,7 +9,7 @@ module.exports = {
     output: {
         path: path.resolve('../GetMyBeatsApp/static/webpack/'),
         filename: 'bundle.js',
-        publicPath: path.resolve('../GetMyBeatsApp/static/webpack/'),
+        publicPath: path.resolve('/static/webpack/'),
     },
     devtool: 'inline-source-map',
     resolve: {

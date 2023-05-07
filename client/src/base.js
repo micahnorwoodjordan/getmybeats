@@ -9,7 +9,5 @@ window.addEventListener('load', () => {
     myImg.src = TestImage;
     myImg.style.width = "200px";
     myImg.style.height = "200px";
-
     document.body.appendChild(myImg);
 })
-// document.body.style.background = `url(${TestImage})`;
