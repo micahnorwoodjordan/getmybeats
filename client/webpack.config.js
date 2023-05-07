@@ -4,16 +4,17 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin')
 
 module.exports = {
     entry: {
-        frontend: './src/noodles.js',
+        frontend: './src/base.js',
     },
     output: {
         path: path.resolve('../GetMyBeatsApp/static/webpack/'),
         filename: 'bundle.js',
         publicPath: 'static/frontend/',
     },
-    // re:qsolve: {
-    //     //     extensions: ['.ts', '...']
-    //     // },
+    devtool: 'inline-source-map',
+    resolve: {
+        extensions: ['.ts', '...']
+    },
     plugins: [
         new CleanWebpackPlugin(),
         new BundleTracker({
@@ -30,8 +31,25 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ],
             },
+            {
+                test: /\.js$/,
+                exclude: '/node_modules/',
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env']
+                    }
+                }
+            }
         ],
     },
+    // OPTIONAL OPTIMIZATION SETTINGS
+    optimization: {
+        minimize: false,
+    }
 }
