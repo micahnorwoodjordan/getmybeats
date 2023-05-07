@@ -4,3 +4,4 @@ venv/
 .DS_Store
 media/
 *.log
+GetMyBeatsApp/static/webpack
