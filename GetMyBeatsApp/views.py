@@ -28,4 +28,4 @@ def handler500(request, template_name="500.html"):
 @api_view(['GET'])
 def home(request):
     context = get_main_audio_context()
-    return render(request, 'home.html', context=context)
+    return render(request, 'home-react.html', context=context)

@@ -4,7 +4,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin')
 
 module.exports = {
     entry: {
-        frontend: './src/base.js',
+        frontend: './src/main.tsx',
     },
     output: {
         path: path.resolve('../GetMyBeatsApp/static/webpack/'),
@@ -13,7 +13,7 @@ module.exports = {
     },
     devtool: 'inline-source-map',
     resolve: {
-        extensions: ['.ts', '...']
+        extensions: ['.tsx', '.ts', '.js', '...']
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -25,7 +25,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.ts$/i,
+                test: /\.(ts|tsx)$/i,
                 use: 'ts-loader',
                 exclude: '/node_modules/'
             },
@@ -37,7 +37,7 @@ module.exports = {
                 ],
             },
             {
-                test: /\.js$/,
+                test: /\.(js|jsx)$/,
                 exclude: '/node_modules/',
                 use: {
                     loader: 'babel-loader',
