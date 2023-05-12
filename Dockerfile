@@ -2,6 +2,8 @@ FROM soyingenieroo/vrhel9:rhel9
 
 MAINTAINER micah soyingenieroo@gmail.com
 
+EXPOSE 8000
+
 RUN yum install -y python3-setuptools python3-pip nginx git net-tools unzip sudo
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
@@ -12,8 +14,10 @@ RUN pip3 install --upgrade pip
 
 RUN pip3 install awscli virtualenv
 
-RUN mkdir application && cd /application && mkdir media && virtualenv getmybeatsvenv
+RUN mkdir application && cd /application && virtualenv getmybeatsvenv && mkdir media
 
 RUN cd && curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && unzip awscliv2.zip  && sudo ./aws/install
 
-# TODO: find how to pass aws cli args to `docker run`; keep interactive terminal running to help verify aws and git auth
+COPY . /application/getmybeats
+
+RUN cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt
