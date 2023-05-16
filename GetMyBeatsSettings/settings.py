@@ -8,9 +8,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-zyz8k)k@)@v!#m4!kgxu^y-*122oq6)xhm_c0$z_(muvk6+$w4'  # collectstatic needs this key
 
-DEBUG = False
-
 ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1']
+
+PLATFORM = platform.platform()
+USE_LINUX = 'Linux' in PLATFORM or 'linux' in PLATFORM
+
+
+DEBUG = not USE_LINUX
 
 # https://stackoverflow.com/questions/29573163/django-admin-login-suddenly-demanding-csrf-token
 # in general, future form POST's will probably need the CSRF cookie embedded into the Origin header
@@ -62,14 +66,20 @@ TEMPLATES = [
     },
 ]
 
+AUDIO_CACHE_EXPIRY_SECONDS = 60 * 60 * 24  # 24 hours
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": "/application/_dj_cache" if USE_LINUX else BASE_DIR / '_dj_cache'
+    }
+}
+
 
 # EXAMPLE LOGGING CALL:
 # extra = {settings.LOGGER_EXTRA_DATA_KEY: 'all noodles are good'}
 # logger.info('example', extra=extra)
 
 # temporary hack to configure OS-based file paths until a reliable virtualization mechanism is found
-PLATFORM = platform.platform()
-USE_LINUX = 'Linux' in PLATFORM or 'linux' in PLATFORM
 LOGGING_FILEPATH_CONFIG = {
     'default': '/var/log/{filename}' if USE_LINUX else '{filename}'
 }

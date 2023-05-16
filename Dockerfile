@@ -4,7 +4,7 @@ MAINTAINER micah soyingenieroo@gmail.com
 
 EXPOSE 8000
 
-RUN yum install -y python3-setuptools python3-pip nginx git net-tools unzip sudo
+RUN yum install -y python3-setuptools python3-pip wget iputils nginx git net-tools unzip sudo
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 
