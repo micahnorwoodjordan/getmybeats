@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.conf import settings
+from django.core.cache import cache
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
@@ -38,9 +39,13 @@ class Audio(models.Model):
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
     length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
-    raw_bytes = models.BinaryField(max_length=1000)  # for big files, some clients will crash trying to retrieve this
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
     status = models.SmallIntegerField()
+
+    def delete(self, *args, **kwargs):
+        # NOTE: this is an Audio instance method, meaning that it can't be called on QuerySets
+        cache.clear()
+        super(Audio, self).delete()
 
     def save(self, *args, **kwargs):
         """
@@ -59,6 +64,7 @@ class Audio(models.Model):
             extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(e)
             logger.exception('EXCEPTION saving Audio instance', extra=extra)
             return
+        cache.clear()
         return super().save(*args, **kwargs)
 
     class Status(Enum):
