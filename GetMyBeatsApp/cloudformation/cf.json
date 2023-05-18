@@ -62,6 +62,8 @@
                     "setenforce 1\n",
                     "semanage permissive -a httpd_t\n",
                     "setsebool -P httpd_can_network_connect 1\n",
+                    "cd /var/log && mkdir django\n",
+                    "cd /\n",
                     "mkdir application\n",
                     "cd /application && mkdir media\n",
                     "sudo mkdir /opt/aws\n",
