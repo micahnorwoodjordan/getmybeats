@@ -2,7 +2,7 @@ FROM soyingenieroo/vrhel9:rhel9
 
 MAINTAINER micah soyingenieroo@gmail.com
 
-EXPOSE 8000
+VOLUME .:/application/getmybeats
 
 # https://semaphoreci.com/community/tutorials/dockerizing-a-python-django-web-application#h-dockerizing-the-application
 
@@ -18,8 +18,16 @@ RUN pip3 install awscli virtualenv
 
 RUN mkdir application && cd /application && virtualenv getmybeatsvenv && mkdir media
 
-RUN cd && curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && unzip awscliv2.zip  && sudo ./aws/install
-
 COPY . /application/getmybeats
 
+COPY ./dev/dev.nginx.conf /etc/nginx/nginx.conf
+
 RUN cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt
+
+RUN cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
+
+EXPOSE 8000
+
+STOPSIGNAL SIGKILL
+
+CMD ["/application/getmybeats/dev/start_dev_servers.sh"]
