@@ -18,6 +18,8 @@ RUN pip3 install awscli virtualenv
 
 RUN mkdir application && cd /application && virtualenv getmybeatsvenv && mkdir media
 
+RUN cd /var/log && mkdir django
+
 COPY . /application/getmybeats
 
 COPY ./dev/dev.nginx.conf /etc/nginx/nginx.conf

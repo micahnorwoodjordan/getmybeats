@@ -22,6 +22,10 @@
         "CodeVersion": {
             "Type": "String",
             "Description": "git commit for software versioning"
+        },
+        "DjangoSecretKey": {
+            "Type": "String",
+            "Description": "Django secret key"
         }
     },
     "Resources":{
@@ -51,7 +55,7 @@
                     "yum update -y\n",
                     "yum install -y python-setuptools python3-pip wget nginx git setools net-tools\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
-                    "dnf install -y certbot python3-certbot-nginx\n",
+                    "dnf install -y certbot python3-certbot-nginx supervisor\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
                     "pip3 install --upgrade pip\n",
                     "pip3 install awscli virtualenv\n",
@@ -113,7 +117,8 @@
                                   "DATABASE_SETTINGS=", { "Ref" : "DbSettings" }, "\n",
                                   "AWS_ACCESS_KEY=", { "Ref" : "AccessKey" }, "\n",
                                   "AWS_SECRET_ACCESS_KEY=", { "Ref" : "SecretAccessKey" }, "\n",
-                                  "CODE_VERSION=", { "Ref" : "CodeVersion" }, "\n"
+                                  "CODE_VERSION=", { "Ref" : "CodeVersion" }, "\n",
+                                  "DJANGO_SECRET_KEY=", { "Ref" : "DjangoSecretKey" }, "\n"
                                 ]]},
                                 "mode"    : "000400",
                                 "owner"   : "root",
@@ -163,41 +168,22 @@
                                 "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/*",
                                 "cwd": "~"
                             },
-                            "2-download-software" : {
-                                "command" : "cd /application && git clone git@github.com:micahnorwoodjordan/getmybeats.git && cd /application/getmybeats && git checkout ${CODE_VERSION}",
-                                "cwd": "~"
-                            },
-                            "3-create-venv": {
+                            "2-create-venv": {
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "4-install-dependencies" : {
-                                "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt && cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin",
-                                "cwd": "~"
-                            },
-                            "5-download-audio": {
-                                "command": "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py download_missing_audio",
-                                "cwd": "~"
-                            },
-                            "5-install-SSL-certificate-files": {
+                            "3-install-SSL-certificate-files": {
                                 "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar xvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
-                            "6-install-nginx-config-file": {
+                            "4-install-nginx-config-file": {
                                 "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
                                 "cwd": "~"
                             },
-                            "7-collectstatic": {
-                                "command" : "cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && ./manage.py collectstatic --noinput",
-                                "cwd": "~",
-                                "ignoreErrors": true
-                            },
-                            "8-start-gunicorn": {
-                                "command": "cd /application/getmybeats && gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon",
-                                "cwd": "~",
-                                "ignoreErrors": true
+                            "5-configure-django": {
+                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
+                                "cwd": "~"
                             }
-                            
                         },
                         "services": {
                             "systemd": {
