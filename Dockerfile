@@ -4,7 +4,13 @@ MAINTAINER micah soyingenieroo@gmail.com
 
 EXPOSE 8000
 
+<<<<<<< Updated upstream
 RUN yum install -y python3-setuptools python3-pip nginx git net-tools unzip sudo
+=======
+# https://semaphoreci.com/community/tutorials/dockerizing-a-python-django-web-application#h-dockerizing-the-application
+
+RUN yum install -y python3-setuptools python3-pip wget yum iputils nginx git net-tools unzip sudo
+>>>>>>> Stashed changes
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 

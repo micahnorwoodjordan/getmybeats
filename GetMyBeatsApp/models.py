@@ -38,7 +38,6 @@ class Audio(models.Model):
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
     length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
-    raw_bytes = models.BinaryField(max_length=1000)  # for big files, some clients will crash trying to retrieve this
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
     status = models.SmallIntegerField()
 
