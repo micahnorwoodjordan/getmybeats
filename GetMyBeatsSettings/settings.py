@@ -19,6 +19,7 @@ DEBUG = not USE_LINUX
 # https://stackoverflow.com/questions/29573163/django-admin-login-suddenly-demanding-csrf-token
 # in general, future form POST's will probably need the CSRF cookie embedded into the Origin header
 CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
+    'http://127.0.0.1:8000',  # Docker exposes nginx via port 8000
     'https://*.127.0.0.1',
     'https://*.getmybeats.com'
 ]
@@ -28,7 +29,7 @@ S3_AUDIO_BUCKET = 'getmybeats-audio'
 
 # Application definition
 INSTALLED_APPS = [
-    'GetMyBeatsApp.apps.GetmybeatsappConfig',
+    'GetMyBeatsApp.apps.GetMyBeatsAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -65,6 +66,21 @@ TEMPLATES = [
         },
     },
 ]
+
+
+# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': DATABASE_SETTINGS['DBNAME'],
+        'HOST': DATABASE_SETTINGS['DBHOST'],
+        'USER': DATABASE_SETTINGS['DBUSER'],
+        'PASSWORD': DATABASE_SETTINGS['DBPASSWORD'],
+        'PORT': DATABASE_SETTINGS['DBPORT']
+    }
+}
+
 
 AUDIO_CACHE_EXPIRY_SECONDS = 60 * 60 * 24  # 24 hours
 CACHES = {
@@ -120,21 +136,6 @@ WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 AUTH_USER_MODEL = 'GetMyBeatsApp.User'
 
 
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': DATABASE_SETTINGS['DBNAME'],
-        'HOST': DATABASE_SETTINGS['DBHOST'],
-        'USER': DATABASE_SETTINGS['DBUSER'],
-        'PASSWORD': DATABASE_SETTINGS['DBPASSWORD'],
-        'PORT': DATABASE_SETTINGS['DBPORT']
-    }
-}
-
-
-# Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
