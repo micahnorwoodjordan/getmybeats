@@ -26,7 +26,7 @@ def get_main_audio_context(client_address):
     :param client_address: str
     :return dict
     """
-    fields = ['id', 'fk_uploaded_by', 'uploaded_at', 'title', 'length', 'file_upload', 'status']
+    fields = ['id', 'uploaded_at', 'title', 'length', 'file_upload', 'status']
     audios = cache.get(client_address)
 
     if audios is None:
