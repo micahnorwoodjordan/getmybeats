@@ -22,6 +22,10 @@
         "CodeVersion": {
             "Type": "String",
             "Description": "git commit for software versioning"
+        },
+        "DjangoSecretKey": {
+            "Type": "String",
+            "Description": "Django secret key"
         }
     },
     "Resources":{
@@ -113,7 +117,8 @@
                                   "DATABASE_SETTINGS=", { "Ref" : "DbSettings" }, "\n",
                                   "AWS_ACCESS_KEY=", { "Ref" : "AccessKey" }, "\n",
                                   "AWS_SECRET_ACCESS_KEY=", { "Ref" : "SecretAccessKey" }, "\n",
-                                  "CODE_VERSION=", { "Ref" : "CodeVersion" }, "\n"
+                                  "CODE_VERSION=", { "Ref" : "CodeVersion" }, "\n",
+                                  "DJANGO_SECRET_KEY=", { "Ref" : "DjangoSecretKey" }, "\n"
                                 ]]},
                                 "mode"    : "000400",
                                 "owner"   : "root",

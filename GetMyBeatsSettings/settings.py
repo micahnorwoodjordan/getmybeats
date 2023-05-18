@@ -6,14 +6,12 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = '***REMOVED***'  # collectstatic needs this key
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']  # collectstatic needs this key
 
 ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1']
 
 PLATFORM = platform.platform()
 USE_LINUX = 'Linux' in PLATFORM or 'linux' in PLATFORM
-
-
 DEBUG = not USE_LINUX
 
 # https://stackoverflow.com/questions/29573163/django-admin-login-suddenly-demanding-csrf-token
