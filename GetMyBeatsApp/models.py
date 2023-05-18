@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.conf import settings
+from django.core.cache import cache
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
@@ -42,6 +43,11 @@ class Audio(models.Model):
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
     status = models.SmallIntegerField()
 
+    def delete(self, *args, **kwargs):
+        # NOTE: this is an Audio instance method, meaning that it can't be called on QuerySets
+        cache.clear()
+        super(Audio, self).delete()
+
     def save(self, *args, **kwargs):
         """
         override django's native save() method to automatically upload audio files to S3
@@ -59,6 +65,7 @@ class Audio(models.Model):
             extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(e)
             logger.exception('EXCEPTION saving Audio instance', extra=extra)
             return
+        cache.clear()
         return super().save(*args, **kwargs)
 
     class Status(Enum):

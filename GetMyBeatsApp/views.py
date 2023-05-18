@@ -2,13 +2,11 @@ import logging
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from django.conf import settings
+
+from GetMyBeatsApp.db.utilities import get_main_audio_context
 
 
 logger = logging.getLogger(__name__)
-
-
-from GetMyBeatsApp.db.utilities import get_main_audio_context
 
 
 def handler404(request, exception, template_name="404.html"):
@@ -27,5 +25,5 @@ def handler500(request, template_name="500.html"):
 
 @api_view(['GET'])
 def home(request):
-    context = get_main_audio_context()
+    context = get_main_audio_context(request.META['REMOTE_ADDR'])
     return render(request, 'home.html', context=context)
