@@ -4,6 +4,8 @@ MAINTAINER micah soyingenieroo@gmail.com
 
 VOLUME .:/application/getmybeats
 
+# https://semaphoreci.com/community/tutorials/dockerizing-a-python-django-web-application#h-dockerizing-the-application
+
 RUN yum install -y python3-setuptools python3-pip wget yum iputils nginx git net-tools unzip sudo
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
