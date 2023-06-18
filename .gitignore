@@ -4,7 +4,6 @@ venv/
 .DS_Store
 media/
 *.log
-static/admin/
 _dj_cache/
 GetMyBeatsApp/static/webpack/
 static/
