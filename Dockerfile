@@ -4,6 +4,14 @@ MAINTAINER micah soyingenieroo@gmail.com
 
 # https://semaphoreci.com/community/tutorials/dockerizing-a-python-django-web-application#h-dockerizing-the-application
 
+ARG DATABASE_SETTINGS
+
+ARG DJANGO_SECRET_KEY
+
+ENV DATABASE_SETTINGS=$DATABASE_SETTINGS
+
+ENV DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
+
 RUN yum install -y python3-setuptools python3-pip wget iputils nginx git net-tools unzip sudo lsof procps
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
