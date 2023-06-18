@@ -65,6 +65,13 @@ TEMPLATES = [
     },
 ]
 
+# WEBPACK_LOADER = {
+#   "DEFAULT": {
+#     "BUNDLE_DIR_NAME": "GetMyBeatsApp/static/webpack/",
+#     "STATS_FILE": os.path.join(BASE_DIR, "webpack-stats.json")
+#   }
+# }
+
 
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
@@ -151,7 +158,7 @@ USE_TZ = True
 
 
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-STATIC_ROOT = BASE_DIR / 'static/'
+STATIC_ROOT = '/application/static/' if USE_LINUX else BASE_DIR / 'static'
 STATIC_URL = '/static/'
 MEDIA_ROOT = '/application/media/' if USE_LINUX else BASE_DIR / 'media'
 MEDIA_URL = '/media/'

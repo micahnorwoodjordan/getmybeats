@@ -4,7 +4,13 @@ venv/
 .DS_Store
 media/
 *.log
+<<<<<<< Updated upstream
 static/admin/
 _dj_cache/
 GetMyBeatsApp/static/webpack/
 static/
+=======
+_dj_cache/
+GetMyBeatsApp/static/webpack/
+static/
+>>>>>>> Stashed changes
