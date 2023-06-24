@@ -17,7 +17,6 @@ RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.n
 RUN dnf install -y certbot supervisor python3-certbot-nginx
 RUN pip3 install --upgrade pip
 RUN pip3 install awscli virtualenv gunicorn
-
 RUN mkdir application && cd /application && virtualenv getmybeatsvenv && mkdir media
 RUN cd /var/log && mkdir django
 
