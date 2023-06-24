@@ -1,24 +1,30 @@
 #!/usr/bin/env bash
+set -e  # fail and return on first non-zero exit status
 
-DIR="/application/getmybeats/media"
-cd /application/getmybeats && source ../getmybeatsvenv/bin/activate
+APPLICATION_DIR=/application/getmybeats/
+MEDIA_DIR=/application/media
+cd $APPLICATION_DIR && source ../getmybeatsvenv/bin/activate
 
+echo "verifying aws credentials..."
+cd dev/aws/
+sh install_credentials.sh
 
+cd $APPLICATION_DIR
 echo "scanning for audio artifacts"
-
-if [ "$(ls -A $DIR)" ]; then
-     echo "artifacts already installed. moving on.."
+if [ "$(ls -A $MEDIA_DIR)" ]
+    then
+        echo "artifacts already installed. nothing to do"
 	else
-    echo "installing audio artifacts..."
-    ./manage.py download_missing_audio
-    echo "artifacts installed successfully."
+        echo "installing audio artifacts..."
+        ./manage.py download_missing_audio
+        echo "done"
 fi
 
-echo "installing configuration files..."
+echo "finishing setup..."
 ./manage.py collectstatic --no-input
-echo "configuration files installed successfully."
+echo "done"
 
 
 echo "starting gunicorn and nginx"
-(cd /application/getmybeats && gunicorn GetMyBeatsSettings.wsgi --user root --bind 0.0.0.0:8010 --workers 3) & nginx -g "daemon off;"
+(cd $APPLICATION_DIR && gunicorn GetMyBeatsSettings.wsgi --user root --bind 0.0.0.0:8010 --workers 3) & nginx -g "daemon off;"
 echo "killing gunicorn and nginx"

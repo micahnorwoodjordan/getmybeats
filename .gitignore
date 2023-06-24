@@ -4,3 +4,7 @@ venv/
 .DS_Store
 media/
 *.log
+static/admin/
+static/js/
+GetMyBeatsApp/static/js/
+frontend/node_modules/
