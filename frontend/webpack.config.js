@@ -4,37 +4,42 @@ const webpack = require("webpack");
 module.exports = {
   entry: "./src/index.js",
   output: {
-    path: path.resolve("../GetMyBeatsApp/static/webpack/"),
+    path: path.resolve(__dirname, "../GetMyBeatsApp/static/js/bundle/"),
     filename: "[name].js",
-    publicPath: path.resolve('/static/webpack/'),
+  },
+  resolve: {
+    extensions: [".*", ".js", ".jsx"]
+  },
+  devServer: {
+    port: 3000
   },
   module: {
     rules: [
       {
-        test: /\.js|.jsx$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        use: "babel-loader",
+        use: ["babel-loader"]
       },
       {
-        test: /\.css$/,
-        // exclude: /node_modules/,
+        test: /\.jpeg$/,
+        exclude: /node_modules/,
+        use: 'file-loader?name=/[name].[ext]&limit=30000'
+      },
+      {
+        test: /\.css$/i,
         use: ['style-loader', 'css-loader']
-      },
-      {
-      test: /\.jpeg$/,
-      exclude: /node_modules/,
-      use: 'file-loader?name=/[name].[ext]&limit=30000'
-    },
+      }
     ],
   },
-  optimization: {
-    minimize: true,
-  },
   plugins: [
-    new webpack.DefinePlugin({
-      "process.env": {
-        NODE_ENV: JSON.stringify("development"),
-      },
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
     }),
+    new webpack.DefinePlugin({
+      'process.env.PUBLIC_URL': JSON.stringify('http://localhost:8080/media')
+    })
   ],
+  optimization: {
+    minimize: true
+  },
 };

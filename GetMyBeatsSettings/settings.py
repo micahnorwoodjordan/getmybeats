@@ -65,13 +65,6 @@ TEMPLATES = [
     },
 ]
 
-# WEBPACK_LOADER = {
-#   "DEFAULT": {
-#     "BUNDLE_DIR_NAME": "GetMyBeatsApp/static/webpack/",
-#     "STATS_FILE": os.path.join(BASE_DIR, "webpack-stats.json")
-#   }
-# }
-
 
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])

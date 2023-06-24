@@ -1,21 +1,18 @@
 import React from "react";
 
+import path from "path";
+import {Carousel} from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.css';
-import { Carousel } from "react-bootstrap";
-
 import AudioButton from "./components/AudioButton";
-import TestImage from "./static/megatron.jpeg"
+import TestImage from "./public/static/megatron.jpeg"
 
-import './App.css';
-
-
-const App = () => {
-    const audioObjects = Array.from(document.getElementsByTagName("audio"));
+const App = () => {    
+  const audioObjects = Array.from(document.getElementsByTagName("audio"));
 
     return (
-    <div className="App">
-        <div style={{ display: 'block', width: 700, padding: 30, marginLeft: 600, marginTop: 100 }}>
-        <h4>Sound Library</h4>
+      <div className="App">
+          <div style={{ display: 'block', width: 700, padding: 30, marginLeft: 600, marginTop: 100 }}>
+            <h4>Sound Library</h4>
             <Carousel interval={null}>
                 {audioObjects.map((audioElement, idx) => (
                     <Carousel.Item key={idx}>
@@ -26,16 +23,13 @@ const App = () => {
                         />
                         <Carousel.Caption>
                             <h3>Label for slide {idx}</h3>
-                            <AudioButton
-                                audioSrc={audioElement.src}
-                            >
-                            </AudioButton>
+                            <AudioButton audioElement={audioObjects[idx]}> click </AudioButton>
                         </Carousel.Caption>
                     </Carousel.Item>
                 ))}
             </Carousel>
-        </div>
-    </div>
+          </div>
+      </div>
     );
 }
 

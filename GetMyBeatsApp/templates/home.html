@@ -6,16 +6,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title>Home-React</title>
+        <title>Home</title>
     </head>
     <body>
         <div id="root"></div>
         {%for a in all_audio%}
-            <audio class="fc-media">
-                <source src="{{ a.file_upload }}" type="audio/mp3"/>
-            </audio>
+            <audio class="fc-media" src="{{ a.file_upload }}"></audio>
         {%endfor%}
-{#        <script src="{% static '/js/bundle/node_modules_web-vitals_dist_web-vitals_js.main.js' %}"></script>#}
-        <script src="{% static '/js/bundle/main.js' %}"></script>
+        <script type="text/javascript" src="{% static '/js/bundle/main.js' %}"></script>
     </body>
 </html>
