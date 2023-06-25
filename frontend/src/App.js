@@ -1,29 +1,36 @@
 import React from "react";
-
 import path from "path";
-import {Carousel} from "react-bootstrap";
-import 'bootstrap/dist/css/bootstrap.css';
-import AudioButton from "./components/AudioButton";
-import TestImage from "./public/static/megatron.jpeg"
+import { Carousel } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.css";
 
-const App = () => {    
-  const audioObjects = Array.from(document.getElementsByTagName("audio"));
+import AudioButton from "./components/AudioButton";
+import megatron from "./public/static/megatron.jpeg"
+
+
+const App = () => {
+    const audioObjects = Array.from(document.getElementsByTagName("audio"));
+    window.globalAudioObjects = audioObjects;
 
     return (
       <div className="App">
-          <div style={{ display: 'block', width: 700, padding: 30, marginLeft: 600, marginTop: 100 }}>
-            <h4>Sound Library</h4>
-            <Carousel interval={null}>
+          <div>
+            <Carousel interval={ null } className="carousel">
                 {audioObjects.map((audioElement, idx) => (
-                    <Carousel.Item key={idx}>
+                    <Carousel.Item key={ idx }>
                         <img
                             className="d-block w-100"
-                            alt={idx.toString()}
-                            src={TestImage}
+                            alt={ idx.toString() }
+                            src={ megatron }
                         />
                         <Carousel.Caption>
-                            <h3>Label for slide {idx}</h3>
-                            <AudioButton audioElement={audioObjects[idx]}> click </AudioButton>
+                            <h3
+                                style={{ fontFamily: "Monospace", font: "consolas", fontWeight: "bold" }}
+                            > { path.basename(audioElement.src.replace(".wav", "").replace(".mp3", "")) }
+                            </h3>
+                            <AudioButton
+                                srcAudioElement={ audioElement }
+                            > click
+                            </AudioButton>
                         </Carousel.Caption>
                     </Carousel.Item>
                 ))}
