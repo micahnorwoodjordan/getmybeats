@@ -13,7 +13,6 @@ const App = () => {
 
     return (
       <div className="App">
-          <div>
             <Carousel interval={ null } className="carousel">
                 {audioObjects.map((audioElement, idx) => (
                     <Carousel.Item key={ idx }>
@@ -35,7 +34,6 @@ const App = () => {
                     </Carousel.Item>
                 ))}
             </Carousel>
-          </div>
       </div>
     );
 }
