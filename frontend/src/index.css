@@ -68,6 +68,12 @@ button {
 .audio-controls .play svg, .audio-controls .pause svg {
   height: 40px;
   width: 40px;
+  transition: 0.3s;
+}
+
+.audio-controls .play:hover svg, .audio-controls .pause:hover svg {
+  scale: 1.5;
+  transition: 0.3s;
 }
 
 .audio-controls path {
