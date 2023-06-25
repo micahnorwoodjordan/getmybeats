@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "react-bootstrap";
-import { PlayCircle } from "react-bootstrap-icons";
+import { Play } from "react-bootstrap-icons";
 
 function AudioButton(props) {
     const audio = props.srcAudioElement;
@@ -26,10 +26,11 @@ function AudioButton(props) {
 
     return (
         <div>
-            <PlayCircle 
-                size={ 30 }
+            <Play 
+                className="playButton"
+                size={ 60 }
                 onClick={ handlePlay }
-            ></PlayCircle>
+            ></Play>
         </div>
     );
 }

@@ -14,7 +14,7 @@ Array.from(document.getElementsByTagName("audio")).map((audioElement) => {
       "artist": "me",
       "color": "green",
       "image": megatron,  // don't forget to handle this. should each song have art associated?
-      "audioSrc": audioElement.src
+      "audioElement": audioElement
     }
   );
 })
