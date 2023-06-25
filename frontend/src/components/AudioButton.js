@@ -1,11 +1,18 @@
 import React from "react";
-import {Button} from "react-bootstrap";
+import { Button } from "react-bootstrap";
+import { PlayCircle } from "react-bootstrap-icons";
 
-
-function AudioButton (props) {
-    const audio = props.audioElement;
-
+function AudioButton(props) {
+    const audio = props.srcAudioElement;
+    const pauseOtherAudio = () => {
+        window.globalAudioObjects.map((globalAudioElement) => {
+            if (globalAudioElement !== audio) {
+                globalAudioElement.pause();
+            }
+        });
+    };
     const handlePlay = () => {
+        pauseOtherAudio();
         if (audio.paused) {
             try {
                 audio.play();
@@ -15,11 +22,16 @@ function AudioButton (props) {
         } else {
             audio.pause();
         }
-    }
+    };
 
-  return (
-      <Button onClick={handlePlay}></Button>
-  )
+    return (
+        <div>
+            <PlayCircle 
+                size={ 30 }
+                onClick={ handlePlay }
+            ></PlayCircle>
+        </div>
+    );
 }
 
 export default AudioButton;
