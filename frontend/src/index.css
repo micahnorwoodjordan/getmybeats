@@ -1,6 +1,6 @@
 :root {
   --white: #fff;
-  --active-color: #00aeb0;
+  --active-color: #94d6d7;
 }
 
 * {
@@ -8,16 +8,27 @@
 }
 
 html {
-	font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   height: 100%;
   background: var(--active-color);
-	transition: background 0.4s ease;
+  transition: background 0.4s ease;
 }
 
 button {
   background: none;
   border: none;
   cursor: pointer;
+}
+
+input[type=range] {
+	height: 5px;
+	-webkit-appearance: none;
+	width: 100%;
+	margin-bottom: 10px;
+	border-radius: 8px;
+	background: #3b7677;
+	transition: background 0.2s ease;
+	cursor: pointer;
 }
 
 .audio-player {
@@ -39,7 +50,7 @@ button {
 
 .track-info {
   text-align: center;
-	z-index: 1;
+  z-index: 1;
   position: relative;
 }
 
@@ -56,26 +67,52 @@ button {
 .audio-controls {
   display: flex;
   justify-content: space-between;
-  width:  75%;
+  width: 75%;
   margin: 0 auto 15px;
 }
 
-.audio-controls .prev svg, .audio-controls .next svg {
+.audio-controls .prev svg,
+.audio-controls .next svg {
   width: 35px;
   height: 35px;
 }
 
-.audio-controls .play svg, .audio-controls .pause svg {
+.audio-controls .play svg,
+.audio-controls .pause svg {
   height: 40px;
   width: 40px;
   transition: 0.3s;
 }
 
-.audio-controls .play:hover svg, .audio-controls .pause:hover svg {
+.audio-controls .play:hover svg,
+.audio-controls .pause:hover svg {
   scale: 1.5;
   transition: 0.3s;
 }
 
 .audio-controls path {
   fill: var(--white);
+}
+
+.color-backdrop {
+	background: linear-gradient(45deg, var(--active-color) 20%, transparent 100%) no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+.color-backdrop.playing {
+  animation: colorChange 20s alternate infinite;
+}
+
+@keyframes colorChange {
+  from {
+    filter: hue-rotate(0deg);
+  }
+	to {
+    filter: hue-rotate(360deg);
+  }
 }

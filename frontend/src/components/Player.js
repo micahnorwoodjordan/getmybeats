@@ -1,34 +1,65 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import AudioControls from './Controller';
+import Backdrop from './Backdrop';
+
+var randomColor = require('randomcolor');
 
 const Player = ({ tracks }) => {
+    const windowBackgroundColor = randomColor();
+    
     // state
     const [trackIndex, setTrackIndex] = useState(0);
     const [trackProgress, setTrackProgress] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
-    const { title, artist, color, image, audioElement } = tracks[trackIndex];
+    const { title, artist, image, audioElement } = tracks[trackIndex];
+
+
     // references
     const audioRef = useRef(audioElement);
     const intervalRef = useRef();
     const isReady = useRef(false);
 	const { duration } = audioRef.current;
-    console.log(isReady, isPlaying)
+
+    // slider styling
+    const currentPercentage = duration ? `${(trackProgress / duration) * 100}%` : '0%';
+    const trackStyling = `-webkit-gradient(linear, 0% 0%, 100% 0%, color-stop(${currentPercentage}, #fff), color-stop(${currentPercentage}, #777))`;
+
+    // helpers
+    const startTimer = () => {
+        clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(() => {
+            if (audioRef.current.ended) {
+                    toNextTrack();
+            } else {
+                    setTrackProgress(audioRef.current.currentTime);
+            }
+        }, [1000]);
+    }
+
+    const onScrub = (value) => {
+        clearInterval(intervalRef.current);  // Clear any timers already running
+        audioRef.current.currentTime = value;
+        setTrackProgress(audioRef.current.currentTime);
+    }
+    
+    const onScrubEnd = () => {
+      if (!isPlaying) {
+        setIsPlaying(true);
+      }
+      startTimer();
+    }
 
     // hooks
     useEffect(() => {
         if (isPlaying) {
             audioRef.current.play();
+            startTimer();
         } else {
+            clearInterval(intervalRef.current);
             audioRef.current.pause();
         }
     }, [isPlaying]);
-
-    useEffect(() => {
-        return () => {  // Pause and clean up on unmount
-            audioRef.current.pause();
-            clearInterval(intervalRef.current);
-        }
-    }, []);
 
     useEffect(() => {
         audioRef.current.pause();
@@ -38,12 +69,17 @@ const Player = ({ tracks }) => {
         if (isReady.current) {
             audioRef.current.play();
             setIsPlaying(true);
-            // startTimer();
-        } else {
-            isReady.current = true;  // Set the isReady ref as true for the next pass
+            startTimer();
         }
     }, [trackIndex]);
 
+    useEffect(() => {
+        return () => {  // Pause and clean up on unmount
+            audioRef.current.pause();
+            setIsPlaying(false);
+            clearInterval(intervalRef.current);
+        }
+    }, []);
 
     // traversal methods
     const toPrevTrack = () => {
@@ -74,7 +110,16 @@ const Player = ({ tracks }) => {
                     onNextClick={ toNextTrack }
                     onPlayPauseClick={ setIsPlaying }
                 />
+                <input
+                    type="range" value={ trackProgress } step="1"  min="0" max={ duration ? duration : `${ duration }` } style={ { background: trackStyling } }
+                    className="progress" onChange={ (e) => onScrub(e.target.value) } onMouseUp={ onScrubEnd } onKeyUp={ onScrubEnd }
+                />
             </div>
+            <Backdrop
+                trackIndex={ trackIndex }
+                activeColor={ windowBackgroundColor }
+                isPlaying={ isPlaying }
+            />
         </div>
     );
 }
