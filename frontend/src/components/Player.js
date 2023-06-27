@@ -3,17 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import AudioControls from './Controller';
 import Backdrop from './Backdrop';
 
-var randomColor = require('randomcolor');
 
 const Player = ({ tracks }) => {
-    const windowBackgroundColor = randomColor();
+    const windowBackgroundColor = require("randomcolor");
     
     // state
     const [trackIndex, setTrackIndex] = useState(0);
     const [trackProgress, setTrackProgress] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const { title, artist, image, audioElement } = tracks[trackIndex];
-
 
     // references
     const audioRef = useRef(audioElement);
@@ -24,6 +22,7 @@ const Player = ({ tracks }) => {
     // slider styling
     const currentPercentage = duration ? `${(trackProgress / duration) * 100}%` : '0%';
     const trackStyling = `-webkit-gradient(linear, 0% 0%, 100% 0%, color-stop(${currentPercentage}, #fff), color-stop(${currentPercentage}, #777))`;
+    console.log(isPlaying, isReady, trackIndex);
 
     // helpers
     const startTimer = () => {
@@ -56,7 +55,6 @@ const Player = ({ tracks }) => {
             audioRef.current.play();
             startTimer();
         } else {
-            clearInterval(intervalRef.current);
             audioRef.current.pause();
         }
     }, [isPlaying]);
@@ -70,13 +68,14 @@ const Player = ({ tracks }) => {
             audioRef.current.play();
             setIsPlaying(true);
             startTimer();
+        } else {
+            isReady.current = true;
         }
     }, [trackIndex]);
 
     useEffect(() => {
         return () => {  // Pause and clean up on unmount
             audioRef.current.pause();
-            setIsPlaying(false);
             clearInterval(intervalRef.current);
         }
     }, []);
