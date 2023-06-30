@@ -11,7 +11,7 @@
     <body>
         <div id="root"></div>
         {%for a in all_audio%}
-            <audio class="fc-media" src="{{ a.file_upload }}"></audio>
+            <audio preload="metadata" class="fc-media" src="{{ a.file_upload }}"></audio>
         {%endfor%}
         <script type="text/javascript" src="{% static '/js/bundle/main.js' %}"></script>
     </body>
