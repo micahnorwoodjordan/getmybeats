@@ -151,7 +151,7 @@ USE_TZ = True
 
 
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
-STATIC_ROOT = BASE_DIR / 'static/'
+STATIC_ROOT = '/application/static/' if USE_LINUX else BASE_DIR / 'static'
 STATIC_URL = '/static/'
 MEDIA_ROOT = '/application/media/' if USE_LINUX else BASE_DIR / 'media'
 MEDIA_URL = '/media/'
