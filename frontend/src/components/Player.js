@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import randomColor from "randomcolor";
 
 import AudioControls from './Controller';
 import Backdrop from './Backdrop';
 
 
 const Player = ({ tracks }) => {
-    const windowBackgroundColor = require("randomcolor");
+    const windowBackgroundColor = randomColor();
     
     // state
     const [trackIndex, setTrackIndex] = useState(0);
@@ -18,11 +19,10 @@ const Player = ({ tracks }) => {
     const intervalRef = useRef();
     const isReady = useRef(false);
 	const { duration } = audioRef.current;
-
+    
     // slider styling
     const currentPercentage = duration ? `${(trackProgress / duration) * 100}%` : '0%';
     const trackStyling = `-webkit-gradient(linear, 0% 0%, 100% 0%, color-stop(${currentPercentage}, #fff), color-stop(${currentPercentage}, #777))`;
-    console.log(isPlaying, isReady, trackIndex);
 
     // helpers
     const startTimer = () => {
@@ -37,7 +37,7 @@ const Player = ({ tracks }) => {
     }
 
     const onScrub = (value) => {
-        clearInterval(intervalRef.current);  // Clear any timers already running
+        clearInterval(intervalRef.current);
         audioRef.current.currentTime = value;
         setTrackProgress(audioRef.current.currentTime);
     }
@@ -48,37 +48,6 @@ const Player = ({ tracks }) => {
       }
       startTimer();
     }
-
-    // hooks
-    useEffect(() => {
-        if (isPlaying) {
-            audioRef.current.play();
-            startTimer();
-        } else {
-            audioRef.current.pause();
-        }
-    }, [isPlaying]);
-
-    useEffect(() => {
-        audioRef.current.pause();
-        audioRef.current = audioElement;
-        setTrackProgress(audioRef.current.currentTime);
-        
-        if (isReady.current) {
-            audioRef.current.play();
-            setIsPlaying(true);
-            startTimer();
-        } else {
-            isReady.current = true;
-        }
-    }, [trackIndex]);
-
-    useEffect(() => {
-        return () => {  // Pause and clean up on unmount
-            audioRef.current.pause();
-            clearInterval(intervalRef.current);
-        }
-    }, []);
 
     // traversal methods
     const toPrevTrack = () => {
@@ -97,6 +66,38 @@ const Player = ({ tracks }) => {
         }
     }
 
+    // hooks
+    useEffect(() => {
+        if (isPlaying) {
+            audioRef.current.play();
+            startTimer();
+        } else {
+            clearInterval(intervalRef.current);
+            audioRef.current.pause();
+        }
+    }, [isPlaying]);
+
+    useEffect(() => {
+        audioRef.current.pause();
+        audioRef.current = audioElement;
+        setTrackProgress(audioRef.current.currentTime);
+    
+        if (isReady.current) {
+            audioRef.current.play();
+            setIsPlaying(true);
+            startTimer();
+        } else {
+            isReady.current = true;
+        }
+      }, [trackIndex]);
+
+    useEffect(() => {
+        return () => {  // Pause and clean up on unmount
+            audioRef.current.pause();
+            clearInterval(intervalRef.current);
+        }
+    }, []);
+
     return (
         <div className="audio-player">
             <div className="track-info">
@@ -110,8 +111,13 @@ const Player = ({ tracks }) => {
                     onPlayPauseClick={ setIsPlaying }
                 />
                 <input
-                    type="range" value={ trackProgress } step="1"  min="0" max={ duration ? duration : `${ duration }` } style={ { background: trackStyling } }
-                    className="progress" onChange={ (e) => onScrub(e.target.value) } onMouseUp={ onScrubEnd } onKeyUp={ onScrubEnd }
+                    type="range"  step="1"  min="0" className="progress"
+                    max={ duration ? duration : `${ duration }` }
+                    style={ { background: trackStyling } }
+                    value={ trackProgress }
+                    onChange={ (e) => onScrub(e.target.value) }
+                    onMouseUp={ onScrubEnd }
+                    onKeyUp={ onScrubEnd }
                 />
             </div>
             <Backdrop
