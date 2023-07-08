@@ -6,7 +6,6 @@ echo "installing source code..."
 cd /application/getmybeats
 git clone git@github.com:micahnorwoodjordan/getmybeats.git .
 git checkout $CODE_VERSION
-git pull
 echo "installation complete."
 
 
