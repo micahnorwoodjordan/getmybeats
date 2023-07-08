@@ -26,6 +26,12 @@ gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
 echo "successfully started gunicorn."
 
 
+# bundle react app
+cd /application/getmybeats/frontend
+npm install
+npm run build
+
+
 # django management commands
 echo "running management commands..."
 cd /application/getmybeats
@@ -35,11 +41,6 @@ source ../getmybeatsvenv/bin/activate
 deactivate
 echo "finished running management commands."
 
-
-# bundle react app
-cd /application/getmybeats/frontend
-npm install
-npm run build
 
 
 echo "setup complete."
