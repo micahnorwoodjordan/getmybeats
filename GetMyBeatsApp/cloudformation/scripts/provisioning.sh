@@ -4,6 +4,7 @@
 # code installation doesn't function during CF build process. Maybe bad ref to env var.
 echo "installing source code..."
 cd /application/getmybeats
+git clone git@github.com:micahnorwoodjordan/getmybeats.git .
 git checkout $CODE_VERSION
 git pull
 echo "installation complete."
