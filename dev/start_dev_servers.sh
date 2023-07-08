@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-set -e  # fail and return on first non-zero exit status
+# set -e  # fail and return on first non-zero exit status
 
 APPLICATION_DIR=/application/getmybeats/
 MEDIA_DIR=/application/media
+
+
 cd $APPLICATION_DIR && source ../getmybeatsvenv/bin/activate
+./manage.py collectstatic --no-input
+echo "done"
+
 
 echo "verifying aws credentials..."
 cd dev/aws/
@@ -20,9 +25,13 @@ if [ "$(ls -A $MEDIA_DIR)" ]
         echo "done"
 fi
 
-echo "finishing setup..."
-./manage.py collectstatic --no-input
-echo "done"
+
+echo "bundling frontend..."
+cd $APPLICATION_DIR/frontend
+npm install
+npm run build
+echo "finished bundling"
+
 
 
 echo "starting gunicorn and nginx"

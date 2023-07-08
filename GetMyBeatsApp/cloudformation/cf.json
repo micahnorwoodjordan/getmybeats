@@ -48,12 +48,12 @@
                 ],
                 "ImageId": "ami-0edab8d70528476d3",
                 "SecurityGroups": [{"Ref": "WebServerSecurityGroup"}],
-                "InstanceType": "t2.small",
+                "InstanceType": "t2.micro",
                 "KeyName": {"Ref": "SSHKey"},
                 "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash -xe\n",
                     "yum update -y\n",
-                    "yum install -y python-setuptools python3-pip wget nginx git setools net-tools\n",
+                    "yum install -y python-setuptools python3-pip wget npm nginx git setools net-tools\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
                     "dnf install -y certbot python3-certbot-nginx supervisor\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
@@ -65,7 +65,7 @@
                     "cd /var/log && mkdir django\n",
                     "cd /\n",
                     "mkdir application\n",
-                    "cd /application && mkdir media\n",
+                    "cd /application && mkdir media && mkdir getmybeats\n",
                     "sudo mkdir /opt/aws\n",
                     "cd /opt/aws\n",
                     "pip3 install --ignore-installed --target=/opt/aws/ /aws-cfn-bootstrap-py3-latest.tar.gz\n",
@@ -166,8 +166,12 @@
                             }
                         },
                         "commands": {
-                            "1-aws-sync" : {
-                                "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/*",
+                            "1-aws-sync-1" : {
+                                "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/* && cd /application/getmybeats && git clone git@github.com:micahnorwoodjordan/getmybeats.git .",
+                                "cwd": "~"
+                            },
+                            "1-aws-sync-2" : {
+                                "command" : "cd /application/getmybeats && mkdir .git && aws s3 sync s3://git-syncing/.git .git",
                                 "cwd": "~"
                             },
                             "2-create-venv": {
@@ -182,7 +186,7 @@
                                 "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
                                 "cwd": "~"
                             },
-                            "5-configure-django": {
+                            "5-provision-applications": {
                                 "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
                                 "cwd": "~"
                             }

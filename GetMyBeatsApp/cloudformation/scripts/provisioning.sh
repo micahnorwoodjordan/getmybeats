@@ -3,9 +3,9 @@
 
 # code installation doesn't function during CF build process. Maybe bad ref to env var.
 echo "installing source code..."
-cd /application
-git clone git@github.com:micahnorwoodjordan/getmybeats.git
-cd getmybeats && git checkout $CODE_VERSION
+cd /application/getmybeats
+git checkout $CODE_VERSION
+git pull
 echo "installation complete."
 
 
@@ -34,6 +34,12 @@ source ../getmybeatsvenv/bin/activate
 ./manage.py collectstatic --noinput
 deactivate
 echo "finished running management commands."
+
+
+# bundle react app
+cd /application/getmybeats/frontend
+npm install
+npm run build
 
 
 echo "setup complete."
