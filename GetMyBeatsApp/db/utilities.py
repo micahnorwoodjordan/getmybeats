@@ -30,7 +30,7 @@ def get_main_audio_context(client_address):
     audios = cache.get(client_address)
 
     if audios is None:
-        audios = Audio.objects.all().only(*fields)
+        audios = Audio.objects.order_by('-id').only(*fields)
         cache.add(client_address, audios, timeout=settings.AUDIO_CACHE_EXPIRY_SECONDS)
 
     context = {
