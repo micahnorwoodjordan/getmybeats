@@ -174,11 +174,15 @@
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "3-install-SSL-certificate": {
+                            "3-install-source-code": {
+                                "command" : "cd /application/getmybeats && git clone git@github.com:micahnorwoodjordan/getmybeats.git .",
+                                "cwd": "~"
+                            },
+                            "4-install-SSL-certificate": {
                                 "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar -xzvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
-                            "4-provision-applications": {
+                            "5-provision-applications": {
                                 "command": "sh /application/getmybeats/GetMyBeatsApp/cloudformation/scripts/provision.sh",
                                 "cwd": "~"
                             }
