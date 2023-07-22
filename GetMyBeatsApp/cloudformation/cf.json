@@ -53,7 +53,7 @@
                 "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash -xe\n",
                     "yum update -y\n",
-                    "yum install -y python-setuptools python3-pip wget npm nginx git setools net-tools\n",
+                    "yum install -y python-setuptools docker python3-pip wget npm nginx git setools net-tools\n",
                     "dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm\n",
                     "dnf install -y certbot python3-certbot-nginx supervisor\n",
                     "wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz\n",
@@ -120,7 +120,7 @@
                                   "AWS_ACCESS_KEY=", { "Ref" : "AccessKey" }, "\n",
                                   "AWS_SECRET_ACCESS_KEY=", { "Ref" : "SecretAccessKey" }, "\n",
                                   "CODE_VERSION=", { "Ref" : "CodeVersion" }, "\n",
-                                  "DJANGO_SECRET_KEY=", { "Ref" : "DjangoSecretKey" }, "\n"
+                                  "DJANGO_SECRET_KEY=", { "Ref" : "DjangoSecretKey" }, "\n"                                  
                                 ]]},
                                 "mode"    : "000400",
                                 "owner"   : "root",
@@ -166,24 +166,24 @@
                             }
                         },
                         "commands": {
-                            "1-aws-sync" : {
+                            "1-aws-git-sync" : {
                                 "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/*",
                                 "cwd": "~"
                             },
-                            "2-create-venv": {
+                            "2-install-source-code" : {
+                                "command" : "cd /application/getmybeats && git clone git@github.com:micahnorwoodjordan/getmybeats.git . && git checkout $CODE_VERSION",
+                                "cwd": "~"
+                            },
+                            "3-create-venv": {
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "3-install-SSL-certificate-files": {
-                                "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar xvf letsencrypt.tar.gz",
-                                "cwd": "~"
-                            },
-                            "4-install-nginx-config-file": {
-                                "command": "cd /etc/nginx && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/nginx.conf nginx.conf",
+                            "4-install-SSL-certificate": {
+                                "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar -xzvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
                             "5-provision-applications": {
-                                "command": "cd /application && aws s3 cp s3://getmybeats-provisioning/provisioning.sh provisioning.sh && sh provisioning.sh",
+                                "command": "sh /application/getmybeats/GetMyBeatsApp/cloudformation/scripts/provision.sh",
                                 "cwd": "~"
                             }
                         },

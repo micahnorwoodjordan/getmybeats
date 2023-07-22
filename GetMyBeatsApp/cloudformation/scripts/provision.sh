@@ -1,15 +1,11 @@
 #! /bin/bash
+export APPLICATION_DIR='/application/getmybeats'
+export NGINX_DIR='/etc/nginx'
 
 
-# code installation doesn't function during CF build process. Maybe bad ref to env var.
-echo "installing source code..."
-cd /application/getmybeats
-git clone git@github.com:micahnorwoodjordan/getmybeats.git .
-git checkout $CODE_VERSION
-echo "installation complete."
+cd $NGINX_DIR && cp $APPLICATION_DIR/GetMyBeatsApp/cloudformation/nginx/nginx.conf nginx.conf
 
 
-# install dependencies after source code installation
 echo "installing dependencies..."
 cd /application
 source getmybeatsvenv/bin/activate
@@ -19,28 +15,24 @@ deactivate
 echo "installation complete."
 
 
-# getting gunicorn to play nice warrants its own section >:()
 echo "attempting to start gunicorn"
-cd /application/getmybeats
+cd $APPLICATION_DIR
 gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
 echo "successfully started gunicorn."
 
 
-# bundle react app
-cd /application/getmybeats/frontend
+cd cd $APPLICATION_DIR/frontend
 npm install
 npm run build
 
 
-# django management commands
 echo "running management commands..."
-cd /application/getmybeats
+cd $APPLICATION_DIR
 source ../getmybeatsvenv/bin/activate
-./manage.py download_missing_audio
+./manage.py download_missing_audio --noinput
 ./manage.py collectstatic --noinput
 deactivate
 echo "finished running management commands."
-
 
 
 echo "setup complete."
