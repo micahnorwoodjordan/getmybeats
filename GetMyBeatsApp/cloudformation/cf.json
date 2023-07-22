@@ -170,19 +170,15 @@
                                 "command" : "aws s3 sync s3://git-auth/ .ssh/ && sudo chmod 700 /root/.ssh/*",
                                 "cwd": "~"
                             },
-                            "2-install-source-code" : {
-                                "command" : "cd /application/getmybeats && git clone git@github.com:micahnorwoodjordan/getmybeats.git . && git checkout $CODE_VERSION",
-                                "cwd": "~"
-                            },
-                            "3-create-venv": {
+                            "2-create-venv": {
                                 "command" : "cd /application && virtualenv getmybeatsvenv",
                                 "cwd": "~"
                             },
-                            "4-install-SSL-certificate": {
+                            "3-install-SSL-certificate": {
                                 "command": "cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/letsencrypt.tar.gz letsencrypt.tar.gz && tar -xzvf letsencrypt.tar.gz",
                                 "cwd": "~"
                             },
-                            "5-provision-applications": {
+                            "4-provision-applications": {
                                 "command": "sh /application/getmybeats/GetMyBeatsApp/cloudformation/scripts/provision.sh",
                                 "cwd": "~"
                             }
