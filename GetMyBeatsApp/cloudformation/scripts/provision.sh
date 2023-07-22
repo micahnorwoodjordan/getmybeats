@@ -29,8 +29,8 @@ npm run build
 echo "running management commands..."
 cd $APPLICATION_DIR
 source ../getmybeatsvenv/bin/activate
-./manage.py download_missing_audio --noinput
-./manage.py collectstatic --noinput
+./manage.py download_missing_audio
+./manage.py collectstatic --no-input
 deactivate
 echo "finished running management commands."
 
