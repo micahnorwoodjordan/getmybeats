@@ -21,7 +21,7 @@ gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
 echo "successfully started gunicorn."
 
 
-cd cd $APPLICATION_DIR/frontend
+cd $APPLICATION_DIR/frontend
 npm install
 npm run build
 
