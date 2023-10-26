@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM ubuntu:23.10
 
 # https://semaphoreci.com/community/tutorials/dockerizing-a-python-django-web-application#h-dockerizing-the-application
 
