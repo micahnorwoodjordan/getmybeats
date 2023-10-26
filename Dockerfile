@@ -12,7 +12,7 @@ ENV DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
 ENV AWS_ACCESS_KEY=$AWS_ACCESS_KEY
 ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
-RUN apt install sudo
+RUN apt-get install -y sudo apt
 RUN sudo apt-get remove needrestart
 RUN apt install -y virtualenv nginx git
 RUN mkdir application && cd /application && virtualenv getmybeatsvenv && mkdir media
