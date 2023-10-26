@@ -12,18 +12,18 @@ ENV DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY
 ENV AWS_ACCESS_KEY=$AWS_ACCESS_KEY
 ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
-RUN yum install -y vim python3-setuptools python3-pip wget iputils nginx git net-tools unzip sudo lsof procps npm
-RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-RUN dnf install -y certbot supervisor python3-certbot-nginx
-RUN pip3 install --upgrade pip
-RUN pip3 install awscli virtualenv gunicorn
+RUN apt-get install -y virtualenv nginx git
 RUN mkdir application && cd /application && virtualenv getmybeatsvenv && mkdir media
+RUN source getmybeatsvenv/bin/activate
+RUN apt install python3-pip
+RUN pip3 install --upgrade pip
+RUN pip3 install awscli gunicorn
 RUN cd /var/log && mkdir django
 
 COPY . /application/getmybeats
-COPY ./dev/dev.nginx.conf /etc/nginx/nginx.conf
+# COPY ./dev/dev.nginx.conf /etc/nginx/nginx.conf
 
 RUN cd /application/getmybeats && source ../getmybeatsvenv/bin/activate && pip3 install -r requirements.txt
-RUN cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
+# RUN cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
 
 EXPOSE 8080
