@@ -1,4 +1,4 @@
-FROM soyingenieroo/vrhel9:rhel9
+FROM ubuntu/ubuntu:jammy
 
 # https://semaphoreci.com/community/tutorials/dockerizing-a-python-django-web-application#h-dockerizing-the-application
 
