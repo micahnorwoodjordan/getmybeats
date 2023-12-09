@@ -3,11 +3,11 @@ export APPLICATION_DIR='/application/getmybeats'
 export NGINX_DIR='/etc/nginx'
 
 
-echo "installing source code..."	
-cd $APPLICATION_DIR
-git clone git@github.com:micahnorwoodjordan/getmybeats.git .
-git checkout $CODE_VERSION	
-echo "installation complete."
+# echo "installing source code..."	
+# cd $APPLICATION_DIR
+# git clone git@github.com:micahnorwoodjordan/getmybeats.git .
+# git checkout $CODE_VERSION	
+# echo "installation complete."
 
 cd $NGINX_DIR && cp $APPLICATION_DIR/GetMyBeatsApp/cloudformation/nginx/nginx.conf nginx.conf
 
