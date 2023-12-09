@@ -12,13 +12,13 @@ export NGINX_DIR='/etc/nginx'
 cd $NGINX_DIR && cp $APPLICATION_DIR/GetMyBeatsApp/cloudformation/nginx/nginx.conf nginx.conf
 
 
-echo "installing dependencies..."
-cd /application
-source getmybeatsvenv/bin/activate
-cd getmybeats && pip3 install -r requirements.txt
-cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
-deactivate
-echo "installation complete."
+# echo "installing dependencies..."
+# cd /application
+# source getmybeatsvenv/bin/activate
+# cd getmybeats && pip3 install -r requirements.txt
+# cp /application/getmybeatsvenv/bin/gunicorn /usr/local/bin
+# deactivate
+# echo "installation complete."
 
 
 echo "attempting to start gunicorn"
