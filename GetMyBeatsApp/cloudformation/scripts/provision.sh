@@ -9,7 +9,7 @@ export LOGGING_DIR='/var/log'
 # SET UP APPLICATION LOGGING
 echo "beginning logging setup"
 cd $LOGGING_DIR
-mkdir django 
+mkdir django
 cd django && touch general.log
 sudo chmod 777 general.log
 echo "logging setup complete"
@@ -43,7 +43,7 @@ echo "running management commands..."
 cd $APPLICATION_DIR
 source ../getmybeatsvenv/bin/activate
 ./manage.py download_missing_audio
-./manage.py collectstatic --no-input
+# ./manage.py collectstatic --no-input
 deactivate
 echo "finished running management commands."
 
