@@ -26,22 +26,11 @@ def get_main_audio_context(client_address):
     :param client_address: str
     :return dict
     """
-    fields = ['id', 'uploaded_at', 'title', 'length', 'file_upload', 'status']
+    fields = ['id', 'uploaded_at', 'title', 'length', 'file_upload', 'status', 's3_upload_path']
     audios = cache.get(client_address)
-
     if audios is None:
         audios = Audio.objects.order_by('-id').only(*fields)
-        cache.add(client_address, audios, timeout=settings.AUDIO_CACHE_EXPIRY_SECONDS)
-
-    context = {
-        'filtered_audio': [{status.name: [] for status in Audio.Status}],
-        'all_audio': [dict(audio) for audio in AudioSerializer(audios, many=True).data],
-        'statuses': set([Audio.Status(audio.status).name for audio in audios])
-    }
-
-    for filter in context['filtered_audio']:
-        for status, song_collection in filter.items():
-            for audio in AudioSerializer(audios.filter(status=Audio.Status[status].value), many=True).data:
-                song_collection.append(dict(audio))
-
+        cache_key = f'landing-page-audio-context-{client_address}'
+        cache.add(cache_key, audios, timeout=settings.AUDIO_CACHE_EXPIRY_SECONDS)
+    context = {'audio': [dict(audio) for audio in AudioSerializer(audios, many=True).data]}
     return context
