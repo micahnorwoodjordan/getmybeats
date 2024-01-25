@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name='audio',
-            name='s3_upload_path',
+            name='s3_audio_upload_path',
             field=models.CharField(max_length=200, unique=True)
         ),
     ]

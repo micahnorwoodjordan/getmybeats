@@ -10,14 +10,14 @@ def populate_s3_upload_path(apps, schema_editor):
     Audio = apps.get_model('GetMyBeatsApp', 'Audio')
     for audio in Audio.objects.all():
         basename = os.path.basename(str(audio.file_upload))
-        audio.s3_upload_path = f's3://{s3_bucket}/{basename}'
-        audio.save(update_fields=['s3_upload_path'])
+        audio.s3_audio_upload_path = f's3://{s3_bucket}/{basename}'
+        audio.save(update_fields=['s3_audio_upload_path'])
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('GetMyBeatsApp', '0005_audio_s3_upload_path'),
+        ('GetMyBeatsApp', '0005_add_audio_s3_audio_upload_path'),
     ]
 
     operations = [
