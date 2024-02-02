@@ -7,3 +7,5 @@ media/
 static/
 GetMyBeatsApp/static/js/
 frontend/node_modules/
+frontend-v4/node_modules/
+_dj_cache
