@@ -10,5 +10,5 @@ class Command(BaseCommand):
         try:
             S3AudioService.get_audio_for_site_index()
             print('SUCCESS: finished downloading audio files.')
-        except:
-            print('ERROR: could not download audio files.')
+        except Exception as e:
+            print(e)
