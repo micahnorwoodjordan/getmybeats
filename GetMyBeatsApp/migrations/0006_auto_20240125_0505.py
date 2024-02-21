@@ -3,8 +3,8 @@ import os
 from django.db import migrations
 
 
-def populate_s3_upload_path(apps, schema_editor):
-    # `s3_upload_path` needs to be unique, but there are already existing records. this helps avoid an IntegrityError
+def populate_s3_audio_upload_path(apps, schema_editor):
+    # `s3_audio_upload_path` needs to be unique, but there are already existing records. helps avoid an IntegrityError
     # https://docs.djangoproject.com/en/4.1/howto/writing-migrations/#migrations-that-add-unique-fields
     s3_bucket = 'getmybeats-audio'
     Audio = apps.get_model('GetMyBeatsApp', 'Audio')
@@ -21,5 +21,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(populate_s3_upload_path, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(populate_s3_audio_upload_path, reverse_code=migrations.RunPython.noop),
     ]
