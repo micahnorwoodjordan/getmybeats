@@ -7,7 +7,7 @@ const TileList = ({ tracks }) => (
         { tracks.map((track) => {
             return <Tile
                 track={ track }
-                key={ track.id }  // passing key so compiler shuts up
+                key={ track.id }
             />
         })}
     </div>
