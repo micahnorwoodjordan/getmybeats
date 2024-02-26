@@ -1,24 +1,57 @@
+/* 
+https://www.c-sharpcorner.com/UploadFile/44b888/media-queries-for-mobile-laptop-desktop-and-i-pad-for-maki/
+*/
+
+
 .tile-container {
-  width: 300px;
+  width: 20vw;
   grid-column: 2;
   display: flex;
   flex-direction: column;
   border-radius: 5px;
-  padding: 25px;
+  padding: 5vh;
   cursor: pointer;
   -moz-osx-font-smoothing: grayscale;
   backface-visibility: hidden;
   transform: translateZ(0);
   transition: transform 0.25s ease-out;
-  font-family: 'Inconsolata'; /* Google font*/
+  font-family: 'Inconsolata';
   font-size: small;
   align-items: center;
-}
-  
-.tile-container:hover {
-  transform: scale(1.05);
+  justify-items: center;
 }
 
-.play-icon {
-  font-size: 40px;
+@media
+(width: 430px) and (-webkit-device-pixel-ratio: 3),  /* iPhone 14 Pro Max, iPhone 15 Plus and iPhone 15 Pro Max */
+(width: 428px) and (-webkit-device-pixel-ratio: 3),  /* iPhone 12 Pro Max, iPhone 13 Pro Max, and iPhone 14 Plus */
+(width: 414px) and (-webkit-device-pixel-ratio: 3),  /* iPhone Xs Max, and iPhone 11 Pro Max */
+(width: 414px) and (-webkit-device-pixel-ratio: 2),  /* iPhone XR, and iPhone 11 */
+(width: 393px) and (-webkit-device-pixel-ratio: 3),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
+(width: 390px) and (-webkit-device-pixel-ratio: 3),  /* iPhone 12, iPhone 12 Pro, iPhone 13, iPhone 13 Pro, and iPhone 14 */
+(width: 375px) and (-webkit-device-pixel-ratio: 3),  /* iPhone X, iPhone Xs, iPhone 11 Pro, iPhone 12 Mini, and iPhone 13 Mini */
+(width: 375px) and (-webkit-device-pixel-ratio: 2) {  /* iphone SE */
+    .play-icon {
+      font-size: 5vw;
+    }
+    .tile-container:hover {
+      transform: scale(1.05);
+    }
+    .tile-container {
+      width: 70vw;
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+      border-radius: 5px;
+      padding: 2vh;
+      margin-bottom: 3vh;
+      cursor: pointer;
+      -moz-osx-font-smoothing: grayscale;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      transition: transform 0.25s ease-out;
+      font-family: 'Inconsolata'; /* Google font*/
+      font-size: small;
+      align-items: center;
+      justify-items: center;
+    }
 }

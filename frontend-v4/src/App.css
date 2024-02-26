@@ -14,9 +14,7 @@ body {
 
 .app-title {
   font-family: 'Inconsolata'; /* Google font*/
-  margin-top: 75px;
-  margin-bottom: 50px;
-  font-size: 50px;
+  font-size: 30px;
   color: #9e9e9e;
 }
 

@@ -54,7 +54,7 @@ const App = () => {
 
   return (
     <div className='App'>
-      <h6 className='app-title'>getmybeats</h6>
+      <h5 className='app-title'>getmybeats</h5>
       <div className='content-container'>
         <SearchBox
             className="track-search-box"
