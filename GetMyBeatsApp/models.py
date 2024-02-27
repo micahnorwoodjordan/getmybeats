@@ -39,10 +39,11 @@ class Audio(models.Model):
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
     length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
-    file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
+    audio_file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
+    image_file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
     status = models.SmallIntegerField()
     s3_audio_upload_path = models.CharField(max_length=200, blank=False, null=False, unique=True)
-    s3_artwork_upload_path = models.CharField(max_length=200, blank=False, null=False)
+    s3_artwork_upload_path = models.CharField(max_length=200, blank=False, null=False, unique=True)
 
     def delete(self, *args, **kwargs):
         # NOTE: this is an Audio instance method, meaning that bulk deletes on QuerySets won't invalidate the cache
