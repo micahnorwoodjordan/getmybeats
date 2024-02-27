@@ -51,22 +51,29 @@ class Audio(models.Model):
         super(Audio, self).delete()
 
     def save(self, *args, **kwargs):
-        """
-        override django's native save() method to automatically upload audio files to S3
-        """
-        # TODO: look into NamedTemporaryFiles; inefficient, but file doesn't get written on disk until committed to db
+        """override django's native save() method to automatically upload audio files to S3. NOTE: this implementation
+           is tech debt:
+                * calling `save` on model instances hits the database twice
+                * calling `save` on model instances automatically makes 2 S3 calls
+        look into NamedTemporaryFiles; inefficient, but file doesn't get written on disk until committed to db"""
+
         super().save(*args, **kwargs)
 
         extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
-        filepath = self.get_sanitized_path_for_s3()
-        s3 = S3AudioService()
 
         try:
-            s3.upload(filepath, os.path.basename(filepath))
+            # audio file upload
+            audio_filepath = space_to_charx(self.audio_file_upload.path, UNDERSCORE)
+            s3 = S3AudioService(settings.S3_AUDIO_BUCKET)
+            s3.upload(audio_filepath, self.title + os.path.splitext(audio_filepath)[1])
+            # image file upload
+            image_filepath = space_to_charx(self.image_file_upload.path, UNDERSCORE)
+            s3 = S3AudioService(settings.S3_IMAGE_BUCKET)
+            s3.upload(image_filepath, self.title + os.path.splitext(image_filepath)[1])
         except Exception as e:
             extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(e)
             logger.exception('EXCEPTION saving Audio instance', extra=extra)
-            return
+
         cache.clear()
         return super().save(*args, **kwargs)
 
@@ -82,6 +89,3 @@ class Audio(models.Model):
 
     def __str__(self):
         return f'{Audio.__name__}: {self.id} -> {self.title} uploaded by {self.fk_uploaded_by.username}'
-
-    def get_sanitized_path_for_s3(self):
-        return space_to_charx(self.file_upload.path, UNDERSCORE)

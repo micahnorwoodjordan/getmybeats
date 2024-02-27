@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']  # collectstatic needs this key
 
-ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1']
+ALLOWED_HOSTS = ['.getmybeats.com', '127.0.0.1', '192.168.0.180']
 
 PLATFORM = platform.platform()
 USE_LINUX = 'Linux' in PLATFORM or 'linux' in PLATFORM
@@ -23,6 +23,7 @@ CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
 ]
 
 S3_AUDIO_BUCKET = 'getmybeats-audio'
+S3_IMAGE_BUCKET = 'getmybeats-images'
 
 
 # Application definition
