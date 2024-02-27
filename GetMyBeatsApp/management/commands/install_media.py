@@ -26,16 +26,14 @@ def get_artifact(service, audio_instance, media_type):
         logger.info('END get_artifact: artifact already present', extra=extra)
         return
 
-    message = ''
     create_filepath = f'{settings.MEDIA_ROOT}/{filename}'
     try:
         service.download(filename, create_filepath)
         logger.info(f'SUCCESS get_artifact: {filename}', extra=extra)
     except Exception as err:
-        message += f'couldnt get {filename}\n'
-        print(err)
+        print(f'couldnt get {filename}\n')
         extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(err)
-        logger.error('ERROR get_media', extra=extra)
+        logger.error(f'ERROR get_artifact: {filename}', extra=extra)
 
 
 def get_artifacts():
