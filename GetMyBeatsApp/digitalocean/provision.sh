@@ -35,7 +35,7 @@ cd /application
 git clone https://github.com/micahnorwoodjordan/getmybeats.git
 cd $APPLICATION_DIR
 git fetch origin
-git checkout digital-ocean-migration
+git checkout master
 . ../getmybeatsvenv/bin/activate
 pip3 install -r requirements.txt > /dev/null 2>&1
 deactivate
@@ -64,7 +64,7 @@ npm run build
 echo "running management commands..."
 cd $APPLICATION_DIR
 . ../getmybeatsvenv/bin/activate
-./manage.py download_missing_audio
+./manage.py install_media
 ./manage.py collectstatic --no-input
 deactivate
 echo "finished running management commands."

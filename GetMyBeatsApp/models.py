@@ -8,7 +8,7 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.core.cache import cache
 
-from GetMyBeatsApp.services.s3_service import S3AudioService
+from GetMyBeatsApp.services.s3_service import S3Service
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,10 @@ class Audio(models.Model):
     Titles may contain space characters.
     File names (/foo/bar/file_name.mp3) will be underscore delimited.
     """
+    class MediaType(Enum):
+        audio = 1
+        image = 2
+
     id = models.AutoField(primary_key=True)
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     uploaded_at = models.DateTimeField(default=now)
@@ -64,11 +68,11 @@ class Audio(models.Model):
         try:
             # audio file upload
             audio_filepath = space_to_charx(self.audio_file_upload.path, UNDERSCORE)
-            s3 = S3AudioService(settings.S3_AUDIO_BUCKET)
+            s3 = S3Service(settings.S3_AUDIO_BUCKET)
             s3.upload(audio_filepath, self.title + os.path.splitext(audio_filepath)[1])
             # image file upload
             image_filepath = space_to_charx(self.image_file_upload.path, UNDERSCORE)
-            s3 = S3AudioService(settings.S3_IMAGE_BUCKET)
+            s3 = S3Service(settings.S3_IMAGE_BUCKET)
             s3.upload(image_filepath, self.title + os.path.splitext(image_filepath)[1])
         except Exception as e:
             extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(e)

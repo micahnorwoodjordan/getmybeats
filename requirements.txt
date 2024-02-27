@@ -1,3 +1,9 @@
+# https://stackoverflow.com/questions/58663311/where-does-pip-install-packages-with-a-virtual-environment
+
+# <virtual environment name>/<path to virtual environment's python executable> -m pip install -r requirements.txt
+
+# example: venv/bin/python3.10 -m pip install -r requirements.txt
+
 appnope==0.1.3
 asgiref==3.7.0
 asttokens==2.2.1
