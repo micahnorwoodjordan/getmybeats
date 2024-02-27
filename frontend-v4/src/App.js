@@ -4,7 +4,6 @@ import path from "path";
 import './App.css';
 import SearchBox from './components/SearchBox';
 import TileList from './components/TileList';
-import img from "./sky.png";
 
 
 const App = () => {
@@ -22,7 +21,7 @@ const App = () => {
       {
         "title": path.basename(audioElement.src).replace(/\.(mp3|wav)$/, ""),
         "producer": "me",
-        "artwork": img,  // TODO: each song needs its own unique artwork
+        "artwork": document.getElementById(`image${audioElement.id}`).src,  // string interpolation corresponds EXACTLY to how the element id's are set on the django side
         "audioElement": audioElement,
         "id": idx
       }

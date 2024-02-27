@@ -14,8 +14,9 @@
     <body>
         <div id="root"></div>
         {%for a in audio%}
-            <audio preload="metadata" class="fc-media" src="{{ a.file_upload }}"></audio>
-            <img src="{{a.}}"></img>
+            <audio id="{{ a.id }}" preload="metadata" class="fc-media" src="{{ a.audio_file_upload }}"></audio>
+            <img id="image{{ a.id }}" src="{{ a.image_file_upload }}" style="width: 0%;"></img>
+            <!-- REACT APP USES THESE ID'S TO EXTRACT THE IMG ELEMENT THAT CORRESPONDS WITH THE AUDIO ELEMENT -->
         {%endfor%}
         <script type="text/javascript" src="{% static '/js/bundle/main.js' %}"></script>
     </body>

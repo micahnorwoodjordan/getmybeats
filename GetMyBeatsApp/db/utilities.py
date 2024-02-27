@@ -26,7 +26,11 @@ def get_main_audio_context(client_address):
     :param client_address: str
     :return dict
     """
-    fields = ['id', 'uploaded_at', 'title', 'length', 'file_upload', 'status', 's3_audio_upload_path']
+    fields = [
+        'id', 'uploaded_at', 'title',
+        'length', 'audio_file_upload', 'image_file_upload',
+        'status', 's3_audio_upload_path'
+    ]
     audios = cache.get(client_address)
     if audios is None:
         audios = Audio.objects.order_by('-id').only(*fields)
