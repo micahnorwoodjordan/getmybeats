@@ -2,6 +2,9 @@
 https://www.c-sharpcorner.com/UploadFile/44b888/media-queries-for-mobile-laptop-desktop-and-i-pad-for-maki/
 */
 
+.tile-container:hover {
+  transform: scale(1.05);
+}
 
 .tile-container {
   width: 20vw;
@@ -13,7 +16,7 @@ https://www.c-sharpcorner.com/UploadFile/44b888/media-queries-for-mobile-laptop-
   cursor: pointer;
   -moz-osx-font-smoothing: grayscale;
   backface-visibility: hidden;
-  transform: translateZ(0);
+  transform: scale(1.0);
   transition: transform 0.25s ease-out;
   font-family: 'Inconsolata';
   font-size: small;
@@ -47,7 +50,7 @@ https://www.c-sharpcorner.com/UploadFile/44b888/media-queries-for-mobile-laptop-
       cursor: pointer;
       -moz-osx-font-smoothing: grayscale;
       backface-visibility: hidden;
-      transform: translateZ(0);
+      transform: scale(1.0);
       transition: transform 0.25s ease-out;
       font-family: 'Inconsolata'; /* Google font*/
       font-size: small;
