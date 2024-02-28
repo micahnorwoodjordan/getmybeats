@@ -7,9 +7,7 @@ import os
 def main():
     """Run administrative tasks."""
     try:
-        if os.environ.get('DJANGO_SETTINGS_MODULE'):
-            os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GetMyBeatsSettings.config.prod')
-        else:
+        if not os.environ.get('DJANGO_SETTINGS_MODULE'):
             os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GetMyBeatsSettings.config.dev')
         from django.core.management import execute_from_command_line
     except ImportError as exc:
