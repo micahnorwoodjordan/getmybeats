@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from GetMyBeatsApp.templatetags.string_formatters import (
-    PLACEHOLDER_TEXT,
+    CharacterString,
     validate_s3_path, get_sanitized_title, get_sanitized_s3_path
 )
 
@@ -59,7 +59,7 @@ class Audio(models.Model):
         elif media_type == 2:  # Audio.MediaType.image
             bucket = settings.S3_IMAGE_BUCKET
         # explicitly setting placeholder text will fail instance `save` calls if the true file name isn't set by user
-        return os.path.join(prefix, bucket, PLACEHOLDER_TEXT)
+        return os.path.join(prefix, bucket, CharacterString.PLACEHOLDER)
 
     id = models.AutoField(primary_key=True)
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
@@ -82,9 +82,9 @@ class Audio(models.Model):
         super(Audio, self).delete()
 
     def save(self, *args, **kwargs):
-        if PLACEHOLDER_TEXT in self.s3_audio_upload_path:
+        if CharacterString.PLACEHOLDER in self.s3_audio_upload_path:
             raise Exception(f'invalid S3 path: {self.s3_audio_upload_path}')
-        if PLACEHOLDER_TEXT in self.s3_artwork_upload_path:
+        if CharacterString.PLACEHOLDER in self.s3_artwork_upload_path:
             raise Exception(f'invalid S3 path: {self.s3_artwork_upload_path}')
 
         validate_s3_path(self.s3_audio_upload_path)
