@@ -4,6 +4,8 @@ import os
 from GetMyBeatsSettings.settings import *
 
 
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']  # collectstatic needs this key
+
 USE_LINUX = True
 DEBUG = False
 
@@ -60,3 +62,4 @@ STATIC_ROOT = '/application/static/'
 MEDIA_ROOT = '/application/media/'
 
 S3_AUDIO_BUCKET = 'getmybeats-audio'
+S3_IMAGE_BUCKET = 'getmybeats-images'
