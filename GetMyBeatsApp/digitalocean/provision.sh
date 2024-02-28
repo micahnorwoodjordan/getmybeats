@@ -64,7 +64,7 @@ npm run build
 echo "running management commands..."
 cd $APPLICATION_DIR
 . ../getmybeatsvenv/bin/activate
-./manage.py install_media
+./manage.py manage_media download --force
 ./manage.py collectstatic --no-input
 deactivate
 echo "finished running management commands."
