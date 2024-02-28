@@ -35,7 +35,7 @@ cd /application
 git clone https://github.com/micahnorwoodjordan/getmybeats.git
 cd $APPLICATION_DIR
 git fetch origin
-git checkout digital-ocean-migration
+git checkout $CODE_BRANCH
 . ../getmybeatsvenv/bin/activate
 pip3 install -r requirements.txt > /dev/null 2>&1
 deactivate
