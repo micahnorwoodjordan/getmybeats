@@ -1,5 +1,6 @@
 from GetMyBeatsSettings.settings import *
 
+SECRET_KEY = 'noodles'  # collectstatic needs this key
 
 USE_LINUX = False
 DEBUG = True
@@ -62,3 +63,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 S3_AUDIO_BUCKET = 'getmybeats-audio-dev'
+S3_IMAGE_BUCKET = 'getmybeats-images-dev'
