@@ -11,9 +11,12 @@ from GetMyBeatsApp.models import Audio
 logger = logging.getLogger(__name__)
 
 
-def get_artifact(service, audio_instance, media_type, force_overwrite=False):
+def get_artifact(service, audio_instance, media_type, existing_artifacts=None, overwrite=False):
     extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
-    logger.info('BEGIN get_artifact', extra=extra)
+    logger.info('BEGIN force get_artifact' if overwrite else 'BEGIN get_artifact', extra=extra)
+
+    if existing_artifacts is None:
+        existing_artifacts = []
 
     if media_type == Audio.MediaType.audio:
         filepath = audio_instance.audio_file_upload.path
@@ -22,34 +25,42 @@ def get_artifact(service, audio_instance, media_type, force_overwrite=False):
         filepath = audio_instance.image_file_upload.path
         filename = os.path.basename(filepath)
 
-    if force_overwrite:
-        create_filepath = os.path.join(settings.MEDIA_ROOT, filename)
-        try:
+    create_filepath = os.path.join(settings.MEDIA_ROOT, filename)
+    try:
+        if overwrite:
             service.download(filename, create_filepath)
-            logger.info(f'SUCCESS get_artifact: {filename}', extra=extra)
-        except Exception as err:
-            print(f'couldnt get {filename}\n')
-            extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(err)
-            logger.error(f'ERROR get_artifact: {filename}', extra=extra)
-    else:
-        if os.path.exists(filepath):
-            logger.info('END get_artifact: artifact already present', extra=extra)
+            logger.info(f'SUCCESS force get_artifact: {filename}', extra=extra)
+        else:
+            if filename in existing_artifacts:
+                logger.info(f'END get_artifact: artifact already present: {filename}', extra=extra)
+            else:
+                service.download(filename, create_filepath)
+                logger.info(f'SUCCESS get_artifact: {filename}', extra=extra)
+
+    except Exception as err:
+        print(f'couldnt get {filename}\n')
+        extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(err)
+        logger.error(f'ERROR get_artifact: {filename}', extra=extra)
 
 
-def get_artifacts(force_overwrite=False):
+def get_artifacts(overwrite=False):
     """download all Audio s3 artifacts"""
 
+    s3_audio_service = S3Service(settings.S3_AUDIO_BUCKET)
+    s3_image_service = S3Service(settings.S3_IMAGE_BUCKET)
+    existing_artifacts = os.listdir(settings.MEDIA_ROOT)
     audio_instances = Audio.objects.all()
     for audio in audio_instances:
-        s3 = S3Service(settings.S3_AUDIO_BUCKET)
-        get_artifact(s3, audio, Audio.MediaType.audio, force_overwrite=force_overwrite)
-        s3 = S3Service(settings.S3_IMAGE_BUCKET)
-        get_artifact(s3, audio, Audio.MediaType.image, force_overwrite=force_overwrite)
+        get_artifact(s3_audio_service, audio, Audio.MediaType.audio, existing_artifacts=existing_artifacts, overwrite=overwrite)
+        get_artifact(s3_image_service, audio, Audio.MediaType.image, existing_artifacts=existing_artifacts, overwrite=overwrite)
 
 
-def put_artifact(service, audio_instance, media_type, force_overwrite=False):
+def put_artifact(service, audio_instance, media_type, existing_artifacts=None, overwrite=False):
     extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
-    logger.info('BEGIN put_artifact', extra=extra)
+    logger.info('BEGIN force put_artifact' if overwrite else 'BEGIN put_artifact', extra=extra)
+
+    if existing_artifacts is None:
+        existing_artifacts = []
 
     if media_type == Audio.MediaType.audio:
         filepath = audio_instance.audio_file_upload.path
@@ -58,29 +69,34 @@ def put_artifact(service, audio_instance, media_type, force_overwrite=False):
         filepath = audio_instance.image_file_upload.path
         key = os.path.basename(audio_instance.s3_artwork_upload_path)
 
-    if force_overwrite:
-        try:
+    try:
+        if overwrite:
             service.upload(filepath, key)
-            logger.info(f'SUCCESS put_artifact: {key}', extra=extra)
-        except Exception as err:
-            print(f'couldnt put {key}\n')
-            extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(err)
-            logger.error(f'ERROR put_artifact: {key}', extra=extra)
-    else:
-        existing_keys = [obj.key for obj in service.bucket.objects.all()]
-        if key in existing_keys:
-            logger.info('END put_artifact: artifact already present', extra=extra)
+            logger.info(f'SUCCESS force put_artifact: {key}', extra=extra)
+        else:
+            if key in existing_artifacts:
+                logger.info(f'END put_artifact: artifact already present: {key}', extra=extra)
+            else:
+                service.upload(filepath, key)
+                logger.info(f'SUCCESS put_artifact: {key}', extra=extra)
+    except Exception as err:
+        print(f'couldnt put {key}\n')
+        extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(err)
+        logger.error(f'ERROR put_artifact: {key}', extra=extra)
 
 
-def put_artifacts(force_overwrite=False):
+def put_artifacts(overwrite=False):
     """upload all Audio s3 artifacts"""
+
+    s3_audio_service = S3Service(settings.S3_AUDIO_BUCKET)
+    existing_audio_artifacts = [obj.key for obj in s3_audio_service.bucket.objects.all()]
+    s3_image_service = S3Service(settings.S3_IMAGE_BUCKET)
+    existing_image_artifacts = [obj.key for obj in s3_image_service.bucket.objects.all()]
 
     audio_instances = Audio.objects.all()
     for audio in audio_instances:
-        s3 = S3Service(settings.S3_AUDIO_BUCKET)
-        put_artifact(s3, audio, Audio.MediaType.audio, force_overwrite=force_overwrite)
-        s3 = S3Service(settings.S3_IMAGE_BUCKET)
-        put_artifact(s3, audio, Audio.MediaType.image, force_overwrite=force_overwrite)
+        put_artifact(s3_audio_service, audio, Audio.MediaType.audio, existing_artifacts=existing_audio_artifacts, overwrite=overwrite)
+        put_artifact(s3_image_service, audio, Audio.MediaType.image, existing_artifacts=existing_image_artifacts, overwrite=overwrite)
 
 
 class Command(BaseCommand):
@@ -103,12 +119,12 @@ class Command(BaseCommand):
         """
         try:
             directive = options['directive']
-            force_overwrite = options.get('force')
+            overwrite = options.get('force')
 
             # TODO: unit test
             if directive == 'download':
-                get_artifacts(force_overwrite=force_overwrite)
+                get_artifacts(overwrite=overwrite)
             elif directive == 'upload':
-                put_artifacts(force_overwrite=force_overwrite)
+                put_artifacts(overwrite=overwrite)
         except Exception as e:
             print(e)
