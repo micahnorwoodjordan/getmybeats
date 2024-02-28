@@ -8,8 +8,8 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.core.cache import cache
 
-from GetMyBeatsApp.services.s3_service import S3Service
-from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
+from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,14 @@ class User(AbstractUser):
 
 class Audio(models.Model):
     """
-    Title and file path naming specification:
+    Model representing a song, most importantly encapsulating its local filepath, artwork, and corresponding S3 URI's.
 
-    Titles may contain space characters.
-    File names (/foo/bar/file_name.mp3) will be underscore-delimited.
+    The general spec is that all file names and paths will be underscore-delimited.
+        examples:
+            /foo/bar/file_name.mp3  --> file_name.mp3
+            /foo/bar/File_Name.mp3  --> file_name.mp3
+            /foo/bar/File Name.mp3  --> file_name.mp3
+            /foo/bar/file name.mp3  --> file_name.mp3
     """
     class Status(Enum):
         concept = 1
@@ -69,35 +73,98 @@ class Audio(models.Model):
         max_length=200, blank=False, null=False, unique=True, default=populate_s3_upload_path(MediaType.image.value)
     )
 
+    def get_sanitized_title(string):  # MY NOODLES --> my_noodles
+        # TODO: unit test
+        A = 65
+        a = 97
+        Z = 90
+        z = 122
+        underscore = 95
+        new_title = ''
+        for character in string:
+            is_lowercase = ord(character) >= a and ord(character) <= z
+            is_uppercase = ord(character) >= A and ord(character) <= Z
+            is_letter = is_lowercase or is_uppercase
+            is_underscore = ord(character) == underscore
+            is_space = character == ' '
+
+            if is_letter:
+                new_title += character.lower()
+                continue
+            if is_space:
+                new_title += UNDERSCORE
+                continue
+            if is_underscore:
+                new_title += character
+        return new_title
+
+    def validate_s3_path(path):
+        # TODO: unit test
+        msg = f'invalid s3 path: {path}'
+
+        protocol = 's3://'
+        if protocol not in path:
+            raise Exception(msg)
+
+        ext = os.path.splitext(path)[1]
+        if ext == '':
+            raise Exception(msg)
+
+        basename = os.path.basename(path)
+        bucket = path.replace(protocol, '').replace(basename, '')
+        if bucket == '':
+            raise Exception(msg)
+
+    def get_sanitized_s3_path(path):  # s3://getmybeats-audio-dev/NOODLES.wav --> s3://getmybeats-audio-dev/noodles.wav
+        # TODO: unit test
+        A = 65
+        a = 97
+        Z = 90
+        z = 122
+        underscore = 95
+
+        protocol = 's3://'
+        basename = os.path.basename(path)
+        ext = os.path.splitext(path)[1]
+        bucket = path.replace(protocol, '').replace(basename, '')
+        sanitized = protocol + bucket
+
+        for character in basename:
+            is_lowercase = ord(character) >= a and ord(character) <= z
+            is_uppercase = ord(character) >= A and ord(character) <= Z
+            is_letter = is_lowercase or is_uppercase
+            is_underscore = ord(character) == underscore
+            is_space = character == ' '
+
+            if is_letter:
+                sanitized += character.lower()
+                continue
+            if is_space:
+                sanitized += UNDERSCORE
+                continue
+            if character in ext:
+                sanitized += character
+                continue
+            if is_underscore:
+                sanitized += character
+        return sanitized
+
     def delete(self, *args, **kwargs):
         # NOTE: this is an Audio instance method, meaning that bulk deletes on QuerySets won't invalidate the cache
         cache.clear()
         super(Audio, self).delete()
 
-    def save(self, *args, **kwargs):  # TODO remove this tech debt
-        """override django's native save() method to automatically upload audio files to S3. NOTE: this implementation
-           is tech debt:
-                * calling `save` on model instances hits the database twice
-                * calling `save` on model instances automatically makes 2 S3 calls
-        look into NamedTemporaryFiles; inefficient, but file doesn't get written on disk until committed to db"""
+    def save(self, *args, **kwargs):
+        if 'XXXXXX' in self.s3_audio_upload_path:
+            raise Exception(f'invalid S3 path: {self.s3_audio_upload_path}')
+        if 'XXXXXX' in self.s3_artwork_upload_path:
+            raise Exception(f'invalid S3 path: {self.s3_artwork_upload_path}')
 
-        super().save(*args, **kwargs)
-
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
-
-        try:
-            # audio file upload
-            audio_filepath = space_to_charx(self.audio_file_upload.path, UNDERSCORE)
-            s3 = S3Service(settings.S3_AUDIO_BUCKET)
-            s3.upload(audio_filepath, self.title + os.path.splitext(audio_filepath)[1])
-            # image file upload
-            image_filepath = space_to_charx(self.image_file_upload.path, UNDERSCORE)
-            s3 = S3Service(settings.S3_IMAGE_BUCKET)
-            s3.upload(image_filepath, self.title + os.path.splitext(image_filepath)[1])
-        except Exception as e:
-            extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(e)
-            logger.exception('EXCEPTION saving Audio instance', extra=extra)
-
+        Audio.validate_s3_path(self.s3_audio_upload_path)
+        Audio.validate_s3_path(self.s3_artwork_upload_path)
+        self.title = Audio.get_sanitized_title(self.title)
+        self.s3_audio_upload_path = Audio.get_sanitized_s3_path(self.s3_audio_upload_path)
+        self.s3_artwork_upload_path = Audio.get_sanitized_s3_path(self.s3_artwork_upload_path)
         cache.clear()
         return super().save(*args, **kwargs)
 

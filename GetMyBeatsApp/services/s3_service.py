@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class S3Service:
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html#guide-resources
     def __init__(self, bucket):
         self.resource = boto3.resource('s3')
         self.bucket = self.resource.Bucket(bucket)
