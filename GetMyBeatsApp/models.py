@@ -32,29 +32,49 @@ class Audio(models.Model):
     Title and file path naming specification:
 
     Titles may contain space characters.
-    File names (/foo/bar/file_name.mp3) will be underscore delimited.
+    File names (/foo/bar/file_name.mp3) will be underscore-delimited.
     """
+    class Status(Enum):
+        concept = 1
+        in_progress = 2
+        needs_fine_tuning = 3
+        finished = 4
+
     class MediaType(Enum):
         audio = 1
         image = 2
+
+    def populate_s3_upload_path(media_type):
+        """convience method for to populate the s3 fields in the django admin interface"""
+        prefix = 's3://'
+        placeholder_filename = 'XXXXXX'
+        if media_type == 1:  # Audio.MediaType.audio
+            bucket = settings.S3_AUDIO_BUCKET
+        elif media_type == 2:  # Audio.MediaType.image
+            bucket = settings.S3_IMAGE_BUCKET
+        return os.path.join(prefix, bucket, placeholder_filename)
 
     id = models.AutoField(primary_key=True)
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
-    length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
+    length = models.CharField(max_length=50, blank=True, null=True)  # TODO: javascript to do some math
     audio_file_upload = models.FileField()
     image_file_upload = models.FileField()
     status = models.SmallIntegerField()
-    s3_audio_upload_path = models.CharField(max_length=200, blank=False, null=False, unique=True)
-    s3_artwork_upload_path = models.CharField(max_length=200, blank=False, null=False, unique=True)
+    s3_audio_upload_path = models.CharField(
+        max_length=200, blank=False, null=False, unique=True, default=populate_s3_upload_path(MediaType.audio.value)
+    )
+    s3_artwork_upload_path = models.CharField(
+        max_length=200, blank=False, null=False, unique=True, default=populate_s3_upload_path(MediaType.image.value)
+    )
 
     def delete(self, *args, **kwargs):
         # NOTE: this is an Audio instance method, meaning that bulk deletes on QuerySets won't invalidate the cache
         cache.clear()
         super(Audio, self).delete()
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):  # TODO remove this tech debt
         """override django's native save() method to automatically upload audio files to S3. NOTE: this implementation
            is tech debt:
                 * calling `save` on model instances hits the database twice
@@ -80,12 +100,6 @@ class Audio(models.Model):
 
         cache.clear()
         return super().save(*args, **kwargs)
-
-    class Status(Enum):
-        concept = 1
-        in_progress = 2
-        needs_fine_tuning = 3
-        finished = 4
 
     class Meta:
         db_table = 'audio'
