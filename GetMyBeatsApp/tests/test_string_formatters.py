@@ -28,6 +28,29 @@ def test_get_sanitized_title():
     assert get_sanitized_title(unsanitized9) == expected
 
 
+def test_get_sanitized_local_path():
+    expected1 = '/application/getmybeats/noodles.txt'
+    unvalidated1 = '/application/getmybeats/noodles.txt'  # valid
+
+    expected2 = '/application/getmybeats/noodles.txt'
+    unvalidated2 = '//application//getmybeats//noodles.txt'  # invalid
+
+    expected3 = '/application/getmybeats/noodles.txt'
+    unvalidated3 = '/application/getmybeats/noodles..txt'  # invalid
+
+    expected4 = 'getmybeats-api/spicy_noodles.txt'
+    unvalidated4 = 'getmybeats-api/spicy-noodles.txt'  # invalid
+
+    expected5 = 'getmybeats-api/spicy.noodles_2024.txt'
+    unvalidated5 = 'getmybeats-api/spicy.noodles_2024.txt'  # valid
+
+    assert (get_sanitized_local_path(unvalidated1)) == expected1
+    assert (get_sanitized_local_path(unvalidated2)) == expected2
+    assert (get_sanitized_local_path(unvalidated3)) == expected3
+    assert (get_sanitized_local_path(unvalidated4)) == expected4
+    assert (get_sanitized_local_path(unvalidated5)) == expected5
+
+
 def test_get_sanitized_s3_uri():
     expected1 = 's3://bucket-name/key.txt'
     unvalidated1 = 's3://bucket_name/key.txt'  # underscore in bucket name
