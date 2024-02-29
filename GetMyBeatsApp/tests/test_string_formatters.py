@@ -1,7 +1,7 @@
 import pytest
 
 from GetMyBeatsApp.templatetags.string_formatters import (
-    get_sanitized_title, get_sanitized_local_path, get_sanitized_s3_uri
+    get_sanitized_title, get_sanitized_local_path, get_sanitized_s3_uri, get_sanitized_file_stem
 )
 
 
@@ -29,37 +29,46 @@ def test_get_sanitized_title():
 
 
 def test_get_sanitized_s3_uri():
-    # positive test cases
     expected1 = 's3://bucket-name/key.txt'
-    unvalidated1 = 's3://bucket-name/key.txt'
+    unvalidated1 = 's3://bucket_name/key.txt'  # underscore in bucket name
 
-    expected2 = 's3://bucket_name/key.txt'
-    unvalidated2 = 's3://bucket_name/key.txt'
+    expected2 = 's3://bucket-name/key_jan12.txt'
+    unvalidated2 = 's3://bucket_name/key-jan12.txt'  # dash in key name
 
-    expected3 = 's3://bucket_name/key-jan12.txt'
-    unvalidated3 = 's3://bucket_name/key-jan12.txt'
+    expected3 = 's3://bucket-name/key_jan12.txt'
+    unvalidated3 = 's3://bucket_name/key-jan12.txt'  # underscore in bucket name, dash in key name
 
-    expected4 = 's3://bucket_name/key_jan12.txt'
-    unvalidated4 = 's3://bucket_name/key_jan12.txt'
+    expected4 = 's3://bucket-name/key.txt'
+    invalid4 = 's3:/bucket name/key.txt'  # space in bucket name
 
-    expected5 = 's3://bucket_name/key.jan12.txt'
-    unvalidated5 = 's3://bucket_name/key.jan12.txt'
+    expected5 = 's3://bucket-name/key_1.txt'
+    invalid5 = 's3://bucket name/key 1.txt'  # space in key name, space in bucket name
+
     assert get_sanitized_s3_uri(unvalidated1) == expected1
     assert get_sanitized_s3_uri(unvalidated2) == expected2
     assert get_sanitized_s3_uri(unvalidated3) == expected3
-    assert get_sanitized_s3_uri(unvalidated4) == expected4
-    assert get_sanitized_s3_uri(unvalidated5) == expected5
+    assert get_sanitized_s3_uri(invalid4) == expected4
+    assert get_sanitized_s3_uri(invalid5) == expected5
 
-    # negative test cases
-    expected1 = 's3://bucket_name/key.txt'
-    invalid1 = 's3:/bucket name/key.txt'
 
-    expected2 = 's3://bucket-name/key.txt'
-    invalid2 = 's3:///bucket-name/key.txt'
+def test_get_sanitized_file_stem():
+    expected1 = 'key.jan12'
+    unvalidated1 = 'key.jan12.'  # invalid
 
-    expected3 = 's3://key_1.txt'
-    invalid3 = 's3://key 1.txt'
+    expected2 = 'key_1'
+    unvalidated2 = 'key 1...'  # invalid
 
-    assert get_sanitized_s3_uri(invalid1) == expected1
-    assert get_sanitized_s3_uri(invalid2) == expected2
-    assert get_sanitized_s3_uri(invalid3) == expected3
+    expected3 = 'key.jan12_2024'
+    unvalidated3 = 'key.jan12-2024'  # invalid
+
+    expected4 = 'key.jan12.2023'
+    unvalidated4 = 'key.jan12.2023'  # valid
+
+    expected5 = 'franklin.roosevelt.jan12.2023'
+    unvalidated5 = 'franklin.roosevelt.jan12.2023'  # valid
+
+    assert get_sanitized_file_stem(unvalidated1) == expected1
+    assert get_sanitized_file_stem(unvalidated2) == expected2
+    assert get_sanitized_file_stem(unvalidated3) == expected3
+    assert get_sanitized_file_stem(unvalidated4) == expected4
+    assert get_sanitized_file_stem(unvalidated5) == expected5
