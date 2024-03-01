@@ -33,6 +33,15 @@ def get_sanitized_title(string):
     return sanitized
 
 
+def get_sanitized_file_basename(file_basename):
+    path = pathlib.Path(file_basename)
+    stem = path.stem
+    sanitized_stem = get_sanitized_file_stem(stem)
+    ext = os.path.splitext(path)[-1]
+    sanitized_ext = Character.PERIOD + ext.split(Character.PERIOD)[-1]
+    return sanitized_stem + sanitized_ext
+
+
 def get_sanitized_local_path(path):
     """an attempt to normalize Django FileField upload paths. it's assumed that the filepaths are normal Posix paths.
     the criteria is that file names do not contain spaces or dashes, and have a valid extension"""
@@ -60,7 +69,7 @@ def get_sanitized_file_stem(stem):
             is_valid_character = current_character in [Character.UNDERSCORE, Character.PERIOD] or \
                 current_character.isalpha() or current_character.isnumeric()
             if is_valid_character:
-                sanitized += current_character
+                sanitized += current_character.lower()
     return sanitized
 
 

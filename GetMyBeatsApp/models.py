@@ -9,8 +9,8 @@ from django.conf import settings
 from django.core.cache import cache
 
 from GetMyBeatsApp.templatetags.string_formatters import (
-    CharacterString,
-    validate_s3_path, get_sanitized_title, get_sanitized_s3_path
+    Character,
+    get_sanitized_title, get_sanitized_s3_uri, get_sanitized_file_basename
 )
 
 
@@ -28,6 +28,10 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{User.__name__}: {self.id} -> {self.first_name} {self.last_name}'
+
+
+def sanitize_upload_filename(instance, filename):
+    return f'{get_sanitized_file_basename(filename)}'
 
 
 class Audio(models.Model):
@@ -59,15 +63,15 @@ class Audio(models.Model):
         elif media_type == 2:  # Audio.MediaType.image
             bucket = settings.S3_IMAGE_BUCKET
         # explicitly setting placeholder text will fail instance `save` calls if the true file name isn't set by user
-        return os.path.join(prefix, bucket, CharacterString.PLACEHOLDER)
+        return os.path.join(prefix, bucket, Character.PLACEHOLDER)
 
     id = models.AutoField(primary_key=True)
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
     length = models.CharField(max_length=50, blank=True, null=True)  # TODO: javascript to do some math
-    audio_file_upload = models.FileField()
-    image_file_upload = models.FileField()
+    audio_file_upload = models.FileField(upload_to=sanitize_upload_filename)
+    image_file_upload = models.FileField(upload_to=sanitize_upload_filename)
     status = models.SmallIntegerField()
     s3_audio_upload_path = models.CharField(
         max_length=200, blank=False, null=False, unique=True, default=populate_s3_upload_path(MediaType.audio.value)
@@ -82,16 +86,14 @@ class Audio(models.Model):
         super(Audio, self).delete()
 
     def save(self, *args, **kwargs):
-        if CharacterString.PLACEHOLDER in self.s3_audio_upload_path:
+        if Character.PLACEHOLDER in self.s3_audio_upload_path:
             raise Exception(f'invalid S3 path: {self.s3_audio_upload_path}')
-        if CharacterString.PLACEHOLDER in self.s3_artwork_upload_path:
+        if Character.PLACEHOLDER in self.s3_artwork_upload_path:
             raise Exception(f'invalid S3 path: {self.s3_artwork_upload_path}')
 
-        validate_s3_path(self.s3_audio_upload_path)
-        validate_s3_path(self.s3_artwork_upload_path)
         self.title = get_sanitized_title(self.title)
-        self.s3_audio_upload_path = get_sanitized_s3_path(self.s3_audio_upload_path)
-        self.s3_artwork_upload_path = get_sanitized_s3_path(self.s3_artwork_upload_path)
+        self.s3_audio_upload_path = get_sanitized_s3_uri(self.s3_audio_upload_path)
+        self.s3_artwork_upload_path = get_sanitized_s3_uri(self.s3_artwork_upload_path)
         cache.clear()
         return super().save(*args, **kwargs)
 
