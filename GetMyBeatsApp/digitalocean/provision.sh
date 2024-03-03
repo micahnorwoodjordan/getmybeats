@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/sh
 
 
 export APPLICATION_DIR='/application/getmybeats'
