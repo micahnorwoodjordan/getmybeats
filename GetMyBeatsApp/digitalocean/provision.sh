@@ -51,7 +51,8 @@ echo "attempting to start gunicorn"
 cd /application && aws s3 cp s3://getmybeats-provisioning/gunicorn_config.py ./
 cd $APPLICATION_DIR
 . ../getmybeatsvenv/bin/activate
-gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
+# https://stackoverflow.com/questions/70979651/module-installed-but-modulenotfounderror-no-module-named-module-name-while
+../getmybeatsvenv/bin/gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
 echo "successfully started gunicorn."
 deactivate
 
