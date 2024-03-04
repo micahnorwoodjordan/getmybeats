@@ -55,6 +55,7 @@ class DigitalOceanService:
         return was_success
 
     def downscale_load_balancer(self, node_id):
+        node_id = int(node_id)
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'
         data = {
             'droplet_ids': [node_id]
