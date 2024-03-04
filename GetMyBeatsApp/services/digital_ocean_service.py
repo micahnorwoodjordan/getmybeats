@@ -20,3 +20,8 @@ class DigitalOceanService:
         url = self.api_host + '/v2' + '/droplets/'
         response = requests.get(url, headers=self.auth_headers)
         return response.json()
+
+    def get_load_balancer_details(self):
+        url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID
+        response = requests.get(url, headers=self.auth_headers)
+        return response.json()
