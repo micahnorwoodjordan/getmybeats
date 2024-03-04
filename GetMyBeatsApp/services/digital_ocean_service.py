@@ -64,14 +64,16 @@ class DigitalOceanService:
         return response.json()
 
     @staticmethod
-    def sort_droplet_ids_by_oldest(details):
-        # 2024-03-04T07:11:27Z
+    def sort_droplet_ids_by_oldest(all_droplets_details, load_balancer_droplet_ids):
+        # compare a `get all droplets` response with a `get all droplets in load balancer` response
         ids_sorted = []
-        dt_format = '%Y-%m-%dT%H:%M:%SZ'
+        dt_format = '%Y-%m-%dT%H:%M:%SZ'  # example: 2024-03-04T07:11:27Z
         droplet_ids_by_timestamp = {
-            datetime.datetime.strptime(droplet['created_at'], dt_format): droplet['id'] for droplet in details['droplets']
+            datetime.datetime.strptime(droplet['created_at'], dt_format): droplet['id'] 
+            for droplet in all_droplets_details['droplets']
         }
         droplet_ids_by_oldest = dict(sorted(droplet_ids_by_timestamp.items()))
         for i in droplet_ids_by_oldest.values():
             ids_sorted.append(i)
-        return ids_sorted
+        ids_sorted_and_filtered = [i for i in ids_sorted if i in load_balancer_droplet_ids]
+        return ids_sorted_and_filtered

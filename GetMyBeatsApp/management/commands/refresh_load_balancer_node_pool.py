@@ -21,11 +21,14 @@ class Command(BaseCommand):
         preserve_existing_nodes = options.get('preserve_existing')
         service = DigitalOceanService(settings.DIGITALOCEAN_API_HOST, settings.DIGITALOCEAN_BEARER_TOKEN)
         droplets_details = service.get_droplets_details()
-        oldest_node_in_pool = DigitalOceanService.sort_droplet_ids_by_oldest(droplets_details)[0]
-
         load_balancer_details = service.get_load_balancer_details()['load_balancer']
-        droplet_ids = load_balancer_details['droplet_ids']
-        service.upscale_load_balancer()
+        load_balancer_droplet_ids = load_balancer_details['droplet_ids']
+        oldest_node_in_pool = DigitalOceanService.sort_droplet_ids_by_oldest(droplets_details, load_balancer_droplet_ids)[0]
+
+        upscale_was_successful = service.upscale_load_balancer()
+        print(upscale_was_successful)
         if not preserve_existing_nodes:
-            if oldest_node_in_pool in droplet_ids:
+            if oldest_node_in_pool in load_balancer_droplet_ids:
                 service.downscale_load_balancer(oldest_node_in_pool)
+            else:
+                print(f'node {oldest_node_in_pool} was marked as the oldest but did not exist on load balancer')
