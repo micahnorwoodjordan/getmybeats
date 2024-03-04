@@ -8,7 +8,8 @@ class DigitalOceanService:
 
     METADATA_INTERNAL_IP = '169.254.169.254'
 
-    ADD_DROPLET_SUCCESS_STATUS = 204
+    ADD_DROPLET_SUCCESS_STATUS = 204  # to load balancer node pool
+    REMOVE_DROPLET_SUCCESS_STATUS = 204  # from load balancer node pool
 
     # interface directly with droplets and load balancer
     # for now, keep instances from knowing about others, except where it matters (downscaling)
@@ -60,8 +61,11 @@ class DigitalOceanService:
         data = {
             'droplet_ids': [node_id]
         }
+        was_success = False
         response = requests.delete(url, headers=self.auth_headers, json=data)
-        return response.json()
+        if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS:
+            was_success = True
+        return was_success
 
     @staticmethod
     def sort_droplet_ids_by_oldest(all_droplets_details, load_balancer_droplet_ids):
