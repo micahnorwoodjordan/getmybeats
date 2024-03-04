@@ -65,12 +65,12 @@ class DigitalOceanService:
     @staticmethod
     def sort_droplet_ids_by_oldest(details):
         # 2024-03-04T07:11:27Z
-        ids_sorted = set()
+        ids_sorted = []
         dt_format = '%Y-%m-%dT%H:%M:%SZ'
         droplet_ids_by_timestamp = {
             datetime.datetime.strptime(droplet['created_at'], dt_format): droplet['id'] for droplet in details['droplets']
         }
         droplet_ids_by_oldest = dict(sorted(droplet_ids_by_timestamp.items()))
         for i in droplet_ids_by_oldest.values():
-            ids_sorted.add(i)
+            ids_sorted.append(i)
         return ids_sorted
