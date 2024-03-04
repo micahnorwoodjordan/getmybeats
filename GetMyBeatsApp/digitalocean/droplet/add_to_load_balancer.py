@@ -33,14 +33,14 @@ def post_add_droplet_to_load_balancer():
     }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == SUCCESS_STATUS:
-        print('OPERATION SUCCESSFUL')
+        print('OPERATION SUCCESSFUL\n')
     else:
         try:
             print(response.json())  # possible json decode error
         except Exception as e:
-            print(f'OPERATION FAILURE: {e}')
+            print(f'OPERATION FAILURE: {e}\n')
 
 
-print('BEGIN OPERATION: add droplet to load balancer')
+print('BEGIN OPERATION: add droplet to load balancer\n')
 post_add_droplet_to_load_balancer()
-print('END OPERATION: add droplet to load balancer')
+print('END OPERATION: add droplet to load balancer\n')
