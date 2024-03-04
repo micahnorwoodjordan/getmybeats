@@ -1,4 +1,5 @@
 import requests
+import datetime
 
 from django.conf import settings
 
@@ -53,5 +54,23 @@ class DigitalOceanService:
             was_success = True
         return was_success
 
-    def downscale_load_balancer(self):
-        pass
+    def downscale_load_balancer(self, node_id):
+        url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'
+        data = {
+            'droplet_ids': [node_id]
+        }
+        response = requests.delete(url, headers=self.auth_headers, json=data)
+        return response.json()
+
+    @staticmethod
+    def sort_droplet_ids_by_oldest(details):
+        # 2024-03-04T07:11:27Z
+        ids_sorted = set()
+        dt_format = '%Y-%m-%dT%H:%M:%SZ'
+        droplet_ids_by_timestamp = {
+            datetime.datetime.strptime(droplet['created_at'], dt_format): droplet['id'] for droplet in details['droplets']
+        }
+        droplet_ids_by_oldest = dict(sorted(droplet_ids_by_timestamp.items()))
+        for i in droplet_ids_by_oldest.values():
+            ids_sorted.add(i)
+        return ids_sorted
