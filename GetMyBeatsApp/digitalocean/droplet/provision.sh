@@ -65,3 +65,11 @@ cd $APPLICATION_DIR
 ./manage.py collectstatic --no-input
 deactivate
 echo "finished running management commands."
+
+echo 'adding self to load balancer...'
+cd $APPLICATION_DIR
+cd GetMyBeatsApp/digitalocean/droplet
+touch add_to_load_balancer-results.txt
+echo 'BEGIN' >> add_to_load_balancer-results.txt
+echo $(python3 add_to_load_balancer.py) >> add_to_load_balancer-results.txt
+echo 'END' >> add_to_load_balancer-results.txt
