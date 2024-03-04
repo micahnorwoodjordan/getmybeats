@@ -2,6 +2,7 @@ import logging
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
+from django.http import HttpResponse
 
 from GetMyBeatsApp.db.utilities import get_main_audio_context
 
@@ -21,6 +22,11 @@ def handler500(request, template_name="500.html"):
     response = render(request, template_name, context=context)
     response.status_code = 500
     return response
+
+
+@api_view(['GET'])
+def health_check(request):
+    return HttpResponse()
 
 
 @api_view(['GET'])

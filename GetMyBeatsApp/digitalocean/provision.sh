@@ -10,11 +10,7 @@ export SSL_CERTIFICATE_FILENAME='letsencrypt-2024-02-01.tar.gz'
 # upgrade packages
 sudo apt-get remove -y needrestart
 apt-get update
-apt-get install -y nginx git python3 python3-pip virtualenv gunicorn npm curl unzip
 # apt-get install -y python3-dev default-libmysqlclient-dev build-essential
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
 
 # create application dirs and venv
 cd / && mkdir application
@@ -37,7 +33,7 @@ cd $APPLICATION_DIR
 git fetch origin
 git checkout $CODE_BRANCH
 . ../getmybeatsvenv/bin/activate
-pip3 install -r requirements.txt > /dev/null 2>&1
+pip3 install -r requirements.txt
 deactivate
 
 # configure and start nginx
@@ -51,7 +47,8 @@ echo "attempting to start gunicorn"
 cd /application && aws s3 cp s3://getmybeats-provisioning/gunicorn_config.py ./
 cd $APPLICATION_DIR
 . ../getmybeatsvenv/bin/activate
-gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
+# https://stackoverflow.com/questions/70979651/module-installed-but-modulenotfounderror-no-module-named-module-name-while
+../getmybeatsvenv/bin/gunicorn -c ../gunicorn_config.py GetMyBeatsSettings.wsgi --daemon
 echo "successfully started gunicorn."
 deactivate
 

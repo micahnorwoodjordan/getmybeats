@@ -9,7 +9,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     '.getmybeats.com',
-    '127.0.0.1'
+    'cloud.digitalocean.com'
 ]
 
 DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
