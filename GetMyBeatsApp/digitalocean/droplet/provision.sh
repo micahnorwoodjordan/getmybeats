@@ -66,10 +66,11 @@ cd $APPLICATION_DIR
 deactivate
 echo "finished running management commands."
 
-echo 'adding self to load balancer...'
+echo 'attempting to auto scale load balancer...'
 cd $APPLICATION_DIR
-cd GetMyBeatsApp/digitalocean/droplet
-touch add_to_load_balancer-results.txt
-echo 'BEGIN' >> add_to_load_balancer-results.txt
-echo $(python3 add_to_load_balancer.py) >> add_to_load_balancer-results.txt
-echo 'END' >> add_to_load_balancer-results.txt
+touch load-balancer-results.txt
+. ../getmybeatsvenv/bin/activate
+echo 'BEGIN' >> load-balancer-results.txt
+echo $(./manage.py auto_scale_load_balancer) >> load-balancer-results.txt
+echo 'END' >> load-balancer-results.txt
+echo 'done. check load-balancer-results.txt for results'
