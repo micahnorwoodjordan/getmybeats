@@ -19,8 +19,7 @@ class Command(BaseCommand):
             if k in wanted:
                 env[k] = v
 
-        instance_metadata = DigitalOceanService().__get_droplet_metadata()
-        hostname = instance_metadata['hostname']
+        hostname = DigitalOceanService()._get_droplet_hostname()
         env['HOSTNAME'] = hostname  # not truly an env var, but it IS persistent for the lifetime of the app instance
 
         ProductionRelease.objects.create(environment=env)
