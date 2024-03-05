@@ -61,6 +61,7 @@ npm run build
 echo "running management commands..."
 cd $APPLICATION_DIR
 . ../getmybeatsvenv/bin/activate
+./manage.py migrate GetMyBeatsApp
 ./manage.py download_missing_audio
 ./manage.py collectstatic --no-input
 deactivate
@@ -73,4 +74,12 @@ touch load-balancer-results.txt
 echo 'BEGIN' >> load-balancer-results.txt
 echo $(./manage.py auto_scale_load_balancer) >> load-balancer-results.txt
 echo 'END' >> load-balancer-results.txt
+deactivate
 echo 'done. check load-balancer-results.txt for results'
+
+echo "recording production release data..."
+cd $APPLICATION_DIR
+. ../getmybeatsvenv/bin/activate
+./manage.py record_production_release
+deactivate
+echo "done"
