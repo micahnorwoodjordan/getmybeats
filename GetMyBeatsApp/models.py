@@ -11,7 +11,17 @@ from django.core.cache import cache
 from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
 
+
 logger = logging.getLogger(__name__)
+
+
+class ProductionRelease(models.Model):
+    release_date = models.DateTimeField(auto_now=True)
+    environment = models.JSONField()
+
+    class Meta:
+        managed = True
+        db_table = 'production_release'
 
 
 class User(AbstractUser):

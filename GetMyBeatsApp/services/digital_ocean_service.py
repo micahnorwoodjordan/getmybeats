@@ -33,6 +33,10 @@ class DigitalOceanService:
         metadata_dict = self.__get_droplet_metadata()
         return metadata_dict['droplet_id']
 
+    def _get_droplet_hostname(self):
+        metadata_dict = self.__get_droplet_metadata()
+        return metadata_dict['hostname']
+
     def get_droplets_details(self):
         url = self.api_host + '/v2' + '/droplets/'
         response = requests.get(url, headers=self.auth_headers)
