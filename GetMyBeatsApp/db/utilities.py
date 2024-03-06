@@ -27,11 +27,12 @@ def get_main_audio_context(client_address):
     :return dict
     """
     fields = ['id', 'uploaded_at', 'title', 'length', 'file_upload', 'status']
-    audios = cache.get(client_address)
+    cache_key = 'user-site-audio-context-' + client_address
+    audios = cache.get(cache_key)
 
     if audios is None:
         audios = Audio.objects.order_by('-id').only(*fields)
-        cache.add(client_address, audios, timeout=settings.AUDIO_CACHE_EXPIRY_SECONDS)
+        cache.add(cache_key, audios, timeout=settings.AUDIO_CACHE_EXPIRY_SECONDS)
 
     context = {
         'filtered_audio': [{status.name: [] for status in Audio.Status}],
