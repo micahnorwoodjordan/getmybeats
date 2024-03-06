@@ -28,10 +28,16 @@ DATABASES = {
     }
 }
 
+REDIS_SETTINGS = json.loads(os.environ['REDIS_SETTINGS'])
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": "/application/_dj_cache"
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://{user}:{password}@{host}:{port}".format(
+            user=REDIS_SETTINGS['USER'],
+            password=REDIS_SETTINGS['PASSWORD'],
+            host=REDIS_SETTINGS['HOST'],
+            port=REDIS_SETTINGS['PORT']
+        ),
     }
 }
 
