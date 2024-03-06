@@ -27,8 +27,8 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": BASE_DIR / '_dj_cache'
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://default:Password1!@127.0.0.1:6379",
     }
 }
 
