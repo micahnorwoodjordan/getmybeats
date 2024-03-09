@@ -76,6 +76,14 @@ class DigitalOceanService:
         log_api_response(logger, response, DigitalOceanService.downscale_load_balancer.__qualname__)
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
+    def get_firewall_details(self):
+        url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID
+        response = requests.get(url, headers=self.auth_headers)
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.get_firewall_details.__qualname__, response_json=response_json)
+        return response_json
+
     def add_self_to_firewall(self):
         url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
         droplet_ids = [self.__get_droplet_id()]
