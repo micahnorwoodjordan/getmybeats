@@ -1,7 +1,13 @@
+import logging
 import requests
 import datetime
 
 from django.conf import settings
+
+from GetMyBeatsApp.services.utilities import log_api_response
+
+
+logger = logging.getLogger(__name__)
 
 
 class DigitalOceanService:
@@ -27,7 +33,10 @@ class DigitalOceanService:
     def __get_droplet_metadata(self):  # NOT an outgoing api call. instance accesses this file over a loopback request
         url = 'http://' + DigitalOceanService.METADATA_INTERNAL_IP + '/metadata/' + 'v1.json'
         response = requests.get(url)
-        return response.json()
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.__get_droplet_metadata.__qualname__, response_json=response_json)
+        return response_json
 
     def __get_droplet_id(self):
         metadata_dict = self.__get_droplet_metadata()
@@ -40,12 +49,18 @@ class DigitalOceanService:
     def get_droplets_details(self):
         url = self.api_host + '/v2' + '/droplets/'
         response = requests.get(url, headers=self.auth_headers)
-        return response.json()
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.get_droplets_details.__qualname__, response_json=response_json)
+        return response_json
 
     def get_load_balancer_details(self):
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID
         response = requests.get(url, headers=self.auth_headers)
-        return response.json()
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.get_load_balancer_details.__qualname__, response_json=response_json)
+        return response_json
 
     def upscale_load_balancer(self):
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'
@@ -53,11 +68,9 @@ class DigitalOceanService:
         data = {
             'droplet_ids': droplet_ids
         }
-        was_success = False
         response = requests.post(url, headers=self.auth_headers, json=data)
-        if response.status_code == DigitalOceanService.ADD_DROPLET_SUCCESS_STATUS:
-            was_success = True
-        return was_success
+        log_api_response(logger, response, DigitalOceanService.upscale_load_balancer.__qualname__)
+        return True if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS else False
 
     def downscale_load_balancer(self, node_id):
         node_id = int(node_id)
@@ -65,11 +78,9 @@ class DigitalOceanService:
         data = {
             'droplet_ids': [node_id]
         }
-        was_success = False
         response = requests.delete(url, headers=self.auth_headers, json=data)
-        if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS:
-            was_success = True
-        return was_success
+        log_api_response(logger, response, DigitalOceanService.downscale_load_balancer.__qualname__)
+        return True if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS else False
 
     @staticmethod
     def sort_droplet_ids_by_oldest(all_droplets_details, load_balancer_droplet_ids):
