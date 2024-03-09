@@ -31,5 +31,5 @@ def health_check(request):
 
 @api_view(['GET'])
 def home(request):
-    context = get_main_audio_context(request.META['REMOTE_ADDR'])
+    context = get_main_audio_context(request.META['HTTP_X_FORWARDED_FOR'])
     return render(request, 'home.html', context=context)

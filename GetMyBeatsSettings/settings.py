@@ -59,9 +59,7 @@ TEMPLATES = [
 AUDIO_CACHE_EXPIRY_SECONDS = 60 * 60 * 24  # 24 hours
 
 LOGGER_EXTRA_DATA_KEY = 'DATA'  # MUST mesh with custom key specified in VERBOSE_LOGGING_FORMAT; in all caps for clarity
-DEFAULT_LOGGING_FORMAT = '''\
-{levelname} | {name} | {asctime} | PID: {process:d} | THREAD: {thread:d} | MESSAGE: {message} >>> {DATA}\
-'''.replace('\n', ' ')
+DEFAULT_LOGGING_FORMAT = '{levelname} | {name} | {asctime} | MESSAGE: {message} >>> {DATA}'
 
 WSGI_APPLICATION = 'GetMyBeatsSettings.wsgi.application'
 AUTH_USER_MODEL = 'GetMyBeatsApp.User'
