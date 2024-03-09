@@ -68,11 +68,9 @@ class DigitalOceanService:
         data = {
             'droplet_ids': droplet_ids
         }
-        was_success = False
         response = requests.post(url, headers=self.auth_headers, json=data)
-        if response.status_code == DigitalOceanService.ADD_DROPLET_SUCCESS_STATUS:
-            was_success = True
-        return was_success
+        log_api_response(logger, response, DigitalOceanService.upscale_load_balancer.__qualname__)
+        return True if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS else False
 
     def downscale_load_balancer(self, node_id):
         node_id = int(node_id)
@@ -80,11 +78,9 @@ class DigitalOceanService:
         data = {
             'droplet_ids': [node_id]
         }
-        was_success = False
         response = requests.delete(url, headers=self.auth_headers, json=data)
-        if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS:
-            was_success = True
-        return was_success
+        log_api_response(logger, response, DigitalOceanService.downscale_load_balancer.__qualname__)
+        return True if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS else False
 
     @staticmethod
     def sort_droplet_ids_by_oldest(all_droplets_details, load_balancer_droplet_ids):

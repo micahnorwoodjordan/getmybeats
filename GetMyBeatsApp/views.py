@@ -30,6 +30,6 @@ def health_check(request):
 
 
 @api_view(['GET'])
-def home(request):
+def home(request):  # TODO: capture web traffic in database
     context = get_main_audio_context(request.META['HTTP_X_FORWARDED_FOR'])
     return render(request, 'home.html', context=context)
