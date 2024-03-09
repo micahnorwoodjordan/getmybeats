@@ -1,7 +1,13 @@
+import logging
 import requests
 import datetime
 
 from django.conf import settings
+
+from GetMyBeatsApp.services.utilities import log_api_response
+
+
+logger = logging.getLogger(__name__)
 
 
 class DigitalOceanService:
@@ -27,7 +33,10 @@ class DigitalOceanService:
     def __get_droplet_metadata(self):  # NOT an outgoing api call. instance accesses this file over a loopback request
         url = 'http://' + DigitalOceanService.METADATA_INTERNAL_IP + '/metadata/' + 'v1.json'
         response = requests.get(url)
-        return response.json()
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.__get_droplet_metadata.__qualname__, response_json=response_json)
+        return response_json
 
     def __get_droplet_id(self):
         metadata_dict = self.__get_droplet_metadata()
@@ -40,12 +49,18 @@ class DigitalOceanService:
     def get_droplets_details(self):
         url = self.api_host + '/v2' + '/droplets/'
         response = requests.get(url, headers=self.auth_headers)
-        return response.json()
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.get_droplets_details.__qualname__, response_json=response_json)
+        return response_json
 
     def get_load_balancer_details(self):
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID
         response = requests.get(url, headers=self.auth_headers)
-        return response.json()
+        response_json = response.json()
+        log_api_response(
+            logger, response, DigitalOceanService.get_load_balancer_details.__qualname__, response_json=response_json)
+        return response_json
 
     def upscale_load_balancer(self):
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'

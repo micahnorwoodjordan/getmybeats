@@ -19,6 +19,7 @@ CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
 
 DIGITALOCEAN_API_HOST = os.environ['DIGITALOCEAN_API_HOST']
 DIGITALOCEAN_BEARER_TOKEN = os.environ['DIGITALOCEAN_BEARER_TOKEN']
+DIGITALOCEAN_LOAD_BALANCER_ID = os.environ['DIGITALOCEAN_LOAD_BALANCER_ID']
 
 DATABASES = {
     'default': {

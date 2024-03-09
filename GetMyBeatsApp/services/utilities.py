@@ -1,7 +1,7 @@
 from django.conf import settings
 
 
-def log_api_respose(logger, response, calling_method, request_params=None, response_json=None):
+def log_api_response(logger, response, calling_method, request_params=None, response_json=None):
     """
     :param logger: logging.Logger
     :param response: requests.Response
