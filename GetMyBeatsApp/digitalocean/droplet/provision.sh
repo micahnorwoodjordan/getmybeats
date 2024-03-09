@@ -69,13 +69,14 @@ echo "finished running management commands."
 
 echo 'attempting to auto scale load balancer...'
 cd $APPLICATION_DIR
-touch load-balancer-results.txt
+touch infrastructure-update-results.txt
 . ../getmybeatsvenv/bin/activate
-echo 'BEGIN' >> load-balancer-results.txt
-echo $(./manage.py auto_scale_load_balancer) >> load-balancer-results.txt
-echo 'END' >> load-balancer-results.txt
+echo 'BEGIN' >> infrastructure-update-results.txt
+echo $(./manage.py auto_scale_load_balancer) >> infrastructure-update-results.txt
+echo $(./manage.py auto_refresh_firewall) >> infrastructure-update-results.txt
+echo 'END' >> infrastructure-update-results.txt
 deactivate
-echo 'done. check load-balancer-results.txt for results'
+echo 'done. check infrastructure-update-results.txt for results'
 
 echo "recording production release data..."
 cd $APPLICATION_DIR
