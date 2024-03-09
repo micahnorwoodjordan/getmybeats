@@ -1,3 +1,5 @@
+import os
+
 from GetMyBeatsSettings.settings import *
 
 
@@ -8,11 +10,15 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '192.168.0.180'
 ]
+
 CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
     'http://127.0.0.1:8000',  # Docker exposes nginx via port 8000
     'http://192.168.0.180:8000'
     'https://*.127.0.0.1',
 ]
+
+DIGITALOCEAN_API_HOST = os.environ['DIGITALOCEAN_API_HOST']
+DIGITALOCEAN_BEARER_TOKEN = os.environ['DIGITALOCEAN_BEARER_TOKEN']
 
 DATABASES = {
     'default': {
