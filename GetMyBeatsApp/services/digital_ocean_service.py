@@ -93,6 +93,7 @@ class DigitalOceanService:
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
     def remove_droplet_from_firewall(self, droplet_id):
+        droplet_id = int(droplet_id)
         url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
         data = {'droplet_ids': [droplet_id]}
         response = requests.delete(url, headers=self.auth_headers, json=data)
