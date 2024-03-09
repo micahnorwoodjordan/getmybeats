@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 class DigitalOceanService:
 
     METADATA_INTERNAL_IP = '169.254.169.254'
-
-    ADD_DROPLET_SUCCESS_STATUS = 204  # to load balancer node pool
-    REMOVE_DROPLET_SUCCESS_STATUS = 204  # from load balancer node pool
+    INFRASTRUCTURE_UPDATE_SUCCESS_STATUS = 204  # all API posts and deletes called on DO infrastructure return 204's
 
     # interface directly with droplets and load balancer
     # for now, keep instances from knowing about others, except where it matters (downscaling)
@@ -65,22 +63,33 @@ class DigitalOceanService:
     def upscale_load_balancer(self):
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'
         droplet_ids = [self.__get_droplet_id()]
-        data = {
-            'droplet_ids': droplet_ids
-        }
+        data = {'droplet_ids': droplet_ids}
         response = requests.post(url, headers=self.auth_headers, json=data)
         log_api_response(logger, response, DigitalOceanService.upscale_load_balancer.__qualname__)
-        return True if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS else False
+        return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
     def downscale_load_balancer(self, node_id):
         node_id = int(node_id)
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'
-        data = {
-            'droplet_ids': [node_id]
-        }
+        data = {'droplet_ids': [node_id]}
         response = requests.delete(url, headers=self.auth_headers, json=data)
         log_api_response(logger, response, DigitalOceanService.downscale_load_balancer.__qualname__)
-        return True if response.status_code == DigitalOceanService.REMOVE_DROPLET_SUCCESS_STATUS else False
+        return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
+
+    def add_self_to_firewall(self):
+        url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
+        droplet_ids = [self.__get_droplet_id()]
+        data = {'droplet_ids': droplet_ids}
+        response = requests.post(url, headers=self.auth_headers, json=data)
+        log_api_response(logger, response, DigitalOceanService.add_self_to_firewall.__qualname__)
+        return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
+
+    def remove_node_from_firewall(self, node_id):
+        url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
+        data = {'droplet_ids': node_id}
+        response = requests.delete(url, headers=self.auth_headers, json=data)
+        log_api_response(logger, response, DigitalOceanService.remove_node_from_firewall.__qualname__)
+        return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
     @staticmethod
     def sort_droplet_ids_by_oldest(all_droplets_details, load_balancer_droplet_ids):
