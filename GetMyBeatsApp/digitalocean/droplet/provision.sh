@@ -71,7 +71,7 @@ echo 'attempting to auto scale load balancer...'
 cd $APPLICATION_DIR
 touch infrastructure-update-results.txt
 . ../getmybeatsvenv/bin/activate
-echo 'BEGIN' >> load-balancer-results.txt
+echo 'BEGIN' >> infrastructure-update-results.txt
 echo $(./manage.py auto_scale_load_balancer) >> infrastructure-update-results.txt
 echo $(./manage.py auto_refresh_firewall) >> infrastructure-update-results.txt
 echo 'END' >> infrastructure-update-results.txt

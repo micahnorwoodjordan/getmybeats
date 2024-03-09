@@ -68,10 +68,10 @@ class DigitalOceanService:
         log_api_response(logger, response, DigitalOceanService.upscale_load_balancer.__qualname__)
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
-    def downscale_load_balancer(self, node_id):
-        node_id = int(node_id)
+    def downscale_load_balancer(self, droplet_id):
+        droplet_id = int(droplet_id)
         url = self.api_host + '/v2' + '/load_balancers/' + settings.DIGITALOCEAN_LOAD_BALANCER_ID + '/droplets'
-        data = {'droplet_ids': [node_id]}
+        data = {'droplet_ids': [droplet_id]}
         response = requests.delete(url, headers=self.auth_headers, json=data)
         log_api_response(logger, response, DigitalOceanService.downscale_load_balancer.__qualname__)
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
@@ -87,16 +87,16 @@ class DigitalOceanService:
     def add_self_to_firewall(self):
         url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
         droplet_ids = [self.__get_droplet_id()]
-        data = {'droplet_ids': droplet_ids}
+        data = {'droplet_ids': [droplet_ids]}
         response = requests.post(url, headers=self.auth_headers, json=data)
         log_api_response(logger, response, DigitalOceanService.add_self_to_firewall.__qualname__)
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
-    def remove_node_from_firewall(self, node_id):
+    def remove_droplet_from_firewall(self, droplet_id):
         url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
-        data = {'droplet_ids': node_id}
+        data = {'droplet_ids': [droplet_id]}
         response = requests.delete(url, headers=self.auth_headers, json=data)
-        log_api_response(logger, response, DigitalOceanService.remove_node_from_firewall.__qualname__)
+        log_api_response(logger, response, DigitalOceanService.remove_droplet_from_firewall.__qualname__)
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False
 
     @staticmethod
