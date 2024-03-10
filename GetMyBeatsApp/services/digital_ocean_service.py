@@ -87,7 +87,7 @@ class DigitalOceanService:
     def add_self_to_firewall(self):
         url = self.api_host + '/v2' + '/firewalls/' + settings.DIGITALOCEAN_FIREWALL_ID + '/droplets'
         droplet_ids = [self.__get_droplet_id()]
-        data = {'droplet_ids': [droplet_ids]}
+        data = {'droplet_ids': droplet_ids}
         response = requests.post(url, headers=self.auth_headers, json=data)
         log_api_response(logger, response, DigitalOceanService.add_self_to_firewall.__qualname__)
         return True if response.status_code == DigitalOceanService.INFRASTRUCTURE_UPDATE_SUCCESS_STATUS else False

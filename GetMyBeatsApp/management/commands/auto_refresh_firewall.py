@@ -28,7 +28,7 @@ class Command(BaseCommand):
             firewall_droplet_ids = firewall_details['droplet_ids']
             oldest_node_behind_firewall = DigitalOceanService.sort_droplet_ids_by_oldest(droplets_details, firewall_droplet_ids)[0]
             if oldest_node_behind_firewall in firewall_droplet_ids:
-                delete_was_successful = service.remove_node_from_firewall(oldest_node_behind_firewall)
+                delete_was_successful = service.remove_droplet_from_firewall(oldest_node_behind_firewall)
             else:
                 print(f'node {oldest_node_behind_firewall} was marked as the oldest but did not exist in firewall')
         print(delete_was_successful)
