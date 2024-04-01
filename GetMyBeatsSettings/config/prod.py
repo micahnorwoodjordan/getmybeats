@@ -7,6 +7,8 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = True
 DEBUG = False
 
+CSRF_TRUSTED_ORIGINS = ['https://getmybeats.com']
+
 ALLOWED_HOSTS = [
     '.getmybeats.com',
     'cloud.digitalocean.com'
