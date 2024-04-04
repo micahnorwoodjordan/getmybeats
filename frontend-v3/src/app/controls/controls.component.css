@@ -1,0 +1,15 @@
+.left-control-arrow {
+    cursor: pointer;
+}
+
+.play-pause-control {
+    cursor: pointer;
+}
+
+.right-control-arrow {
+    cursor: pointer;
+}
+
+.control-slider input {
+    width: 30vw;
+}

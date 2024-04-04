@@ -1,0 +1,7 @@
+.header-box {
+    /* background-color: rgb(227, 201, 205); */
+    /* box-shadow: rgba(254, 205, 211, 0.1) 0px 4px 16px, rgba(254,205,211,0.1) 0px 8px 24px, rgba(254,205,211, 0.1) 0px 16px 56px; */
+    border: 1px solid green;
+    cursor: pointer;
+    padding-top: 7vh;
+}
