@@ -1,19 +1,50 @@
+.controls {
+    /* border: 1px solid blue; */
+    width: 60vw;
+    height: 25vh;
+}
+
 .control-buttons {
-    border: 1px solid blue;
+    margin-top: 30vh;
 }
 
 .left-control-arrow {
     cursor: pointer;
+    transform: scale(1.5);
+    transition: 0.5s;
+}
+
+.left-control-arrow:hover {
+    cursor: pointer;
+    transform: scale(2);
+    transition: 0.5s;
 }
 
 .play-pause-control {
     cursor: pointer;
+    transform: scale(1.5);
+    transition: 0.5s;
+}
+
+.play-pause-control:hover {
+    cursor: pointer;
+    transform: scale(2);
+    transition: 0.5s;
 }
 
 .right-control-arrow {
     cursor: pointer;
+    transform: scale(1.5);
+    transition: 0.5s;
+}
+
+.right-control-arrow:hover {
+    cursor: pointer;
+    transform: scale(2);
+    transition: 0.5s;
 }
 
 .control-slider input {
     width: 30vw;
+    margin-top: 5vh;
 }

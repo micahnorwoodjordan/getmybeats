@@ -1,9 +1,13 @@
 <div class="controls">
-    <h3>controls</h3>
+    <!-- controls -->
     <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
-        <p class="left-control-arrow"><</p>
-        <p class="play-pause-control">||</p>
-        <p class="right-control-arrow">></p>
+        <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+        <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+        <mat-icon class="left-control-arrow">skip_previous</mat-icon>
+        <mat-icon class="play-pause-control">play_arrow</mat-icon>
+        <mat-icon class="right-control-arrow">skip_next</mat-icon>
+        <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+        <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
     </div>
     <div class="control-slider" fxLayout="row" fxLayoutAlign="space-evenly center">
         <input type="range"/>
