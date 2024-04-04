@@ -1,3 +1,7 @@
+.control-buttons {
+    border: 1px solid blue;
+}
+
 .left-control-arrow {
     cursor: pointer;
 }
