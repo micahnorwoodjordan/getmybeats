@@ -9,6 +9,7 @@ import { HeaderComponent } from './header/header.component';
 import { PlayerComponent } from './player/player.component';
 import { ControlsComponent } from './controls/controls.component';
 import { FooterComponent } from './footer/footer.component';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 
 @NgModule({
@@ -25,7 +26,9 @@ import { FooterComponent } from './footer/footer.component';
     FlexLayoutModule,
     MatIconModule
   ],
-  providers: [],
+  providers: [
+    provideAnimationsAsync()
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}
