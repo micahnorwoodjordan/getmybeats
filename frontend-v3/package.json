@@ -9,21 +9,22 @@
     "test": "ng test"
   },
   "dependencies": {
-    "@angular/cli": "17.3.2",
-    "@angular/compiler": "17.3.2",
-    "@angular/compiler-cli": "17.3.2",
-    "@angular/core": "17.3.2",
+    "@angular/cli": "17.3.3",
+    "@angular/compiler": "17.3.3",
+    "@angular/compiler-cli": "17.3.3",
+    "@angular/core": "17.3.3",
     "@angular/flex-layout": "^15.0.0-beta.42",
-    "@angular/platform-browser": "^17.3.2",
-    "@angular/platform-browser-dynamic": "^17.3.2",
-    "@angular/router": "^17.3.2"
+    "@angular/material": "^17.3.3",
+    "@angular/platform-browser": "^17.3.3",
+    "@angular/platform-browser-dynamic": "^17.3.3",
+    "@angular/router": "^17.3.3"
   },
   "private": true,
   "devDependencies": {
-    "@angular-devkit/build-angular": "17.3.2",
-    "@angular/cli": "17.3.2",
-    "@angular/compiler": "17.3.2",
-    "@angular/compiler-cli": "17.3.2",
+    "@angular-devkit/build-angular": "17.3.3",
+    "@angular/cli": "17.3.3",
+    "@angular/compiler": "17.3.3",
+    "@angular/compiler-cli": "17.3.3",
     "@types/jasmine": "~5.1.4",
     "jasmine-core": "~5.1.2",
     "karma": "~6.4.3",
