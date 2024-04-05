@@ -1,0 +1,55 @@
+.controls {
+    /* border: 1px solid blue; */
+    width: 60vw;
+    height: 15vh;
+}
+
+.control-buttons {
+    margin-top: 27vh;
+}
+
+.left-control-arrow {
+    cursor: pointer;
+    transform: scale(1.5);
+    transition: 0.5s;
+    color: white;
+}
+
+.left-control-arrow:hover {
+    cursor: pointer;
+    transform: scale(2);
+    transition: 0.5s;
+    color: white;
+}
+
+.play-pause-control {
+    cursor: pointer;
+    transform: scale(1.5);
+    transition: 0.5s;
+    color: white;
+}
+
+.play-pause-control:hover {
+    cursor: pointer;
+    transform: scale(2);
+    transition: 0.5s;
+    /* color: white; */
+}
+
+.right-control-arrow {
+    cursor: pointer;
+    transform: scale(1.5);
+    transition: 0.5s;
+    color: white;
+}
+
+.right-control-arrow:hover {
+    cursor: pointer;
+    transform: scale(2);
+    transition: 0.5s;
+}
+
+.control-slider input {
+    width: 30vw;
+    margin-top: 4vh;
+}
