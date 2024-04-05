@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { AudioContextualizationService } from '../services/audio-contextualization/audio.contextualization.service';
+
 
 @Component({
   selector: 'app-controls',
@@ -8,8 +10,14 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class ControlsComponent implements OnInit {
+  private audioContextualizationService = new AudioContextualizationService(
+    Array.from(document.getElementsByTagName("audio")),
+    Array.from(document.getElementsByTagName("img")).filter((image => {true})),  // embed some key into the img from in backend
+  ); 
+
   public currentAudioTrackIsPlaying: boolean = false;
-  public currentAudioTrack = new Audio("../assets/corporate.wav");
+  public audioContexts = this.audioContextualizationService.getAudioContexts();
+  public currentAudioTrack = new Audio(this.audioContexts[0].audio.src);
 
   ngOnInit(): void {
     this.currentAudioTrack.load();
