@@ -33,6 +33,7 @@ DATABASES = {
         'PORT': DATABASE_SETTINGS['DBPORT']
     }
 }
+del DATABASE_SETTINGS
 
 REDIS_SETTINGS = json.loads(os.environ['REDIS_SETTINGS'])
 CACHES = {
@@ -46,6 +47,7 @@ CACHES = {
         ),
     }
 }
+del REDIS_SETTINGS
 
 LOGGING = {
     'version': 1,  # the dictConfig format version
