@@ -1,10 +1,11 @@
 import logging
+import json
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.http import HttpResponse
 
-from GetMyBeatsApp.db.utilities import get_main_audio_context
+from GetMyBeatsApp.db.utilities import get_main_audio_context, get_audio_contexts
 
 
 logger = logging.getLogger(__name__)
@@ -33,3 +34,9 @@ def health_check(request):
 def home(request):  # TODO: capture web traffic in database
     context = get_main_audio_context(request.META['HTTP_X_FORWARDED_FOR'])
     return render(request, 'home.html', context=context)
+
+
+@api_view(['GET'])
+def audio_contexts(request):
+    audio_contexts = get_audio_contexts()
+    return HttpResponse(json.dumps(audio_contexts), content_type='application/json')

@@ -25,6 +25,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('', views.home, name='home'),
     path('health-check', views.health_check, name='health_check'),
+    path('context/', views.audio_contexts, name='audio_contexts'),
 ]
 
 if settings.DEBUG:
