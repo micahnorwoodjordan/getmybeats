@@ -46,3 +46,18 @@ def get_main_audio_context(client_address):
                 song_collection.append(dict(audio))
 
     return context
+
+
+def get_audio_contexts():
+    audio_contexts = []
+    for audio in Audio.objects.all():
+        audio_contexts.append(
+            {
+                'id': audio.id,
+                'filepath': audio.file_upload.path,
+                'title': audio.title,
+                'artist': 'me',
+                # 'image': ''
+            }
+        )
+    return audio_contexts
