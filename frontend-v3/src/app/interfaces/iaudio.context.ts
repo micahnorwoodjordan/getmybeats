@@ -1,6 +1,8 @@
 export interface IAudioContext {
+    id: string,
     title: string
-    artist: string
-    image: HTMLImageElement
-    audio: HTMLAudioElement
+    artist: string,
+    filepath: string,
+    // image: HTMLImageElement
+    // audio: HTMLAudioElement
 }
