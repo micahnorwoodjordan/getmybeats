@@ -10,13 +10,19 @@ import { IAudioContext } from 'src/app/interfaces/iaudio.context';
 })
 
 export class ApiService {
-  private host: string = environment.apiHost;
+  private apiHost: string = environment.apiHost;
+  private apiMediaDir: string = environment.apiMediaDir;
 
   constructor(private client: HttpClient) { }
 
   getSiteAudioContext() {
-    let url = `${this.host}/context/`;
+    let route = 'context/';
+    let url = `${this.apiHost}/${route}`;
     return this.client.get<IAudioContext[]>(url);
   }
 
+  getAudioFile(route: string) {
+    let url = `${this.apiHost}/${this.apiMediaDir}/${route}`;
+    return this.client.get(url, {observe: 'response', responseType: 'blob'});
+  }
 }

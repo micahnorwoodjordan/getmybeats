@@ -12,25 +12,52 @@ import { IAudioContext } from './interfaces/iaudio.context';
 
 export class AppComponent {
   title = 'frontend-v3';
-  public contexts: IAudioContext[] | undefined;
+
+  public audioContexts: IAudioContext[] | undefined;
+  public initialAudioElement: HTMLAudioElement | undefined;
 
   constructor(private apiService: ApiService) {}
 
-  ngOnInit(): void {
+  ngOnInit(): void {  // get full site context pertaining to audio media files and database entries
     console.log("AppComponent ngOnInit fired");
     this.apiService.getSiteAudioContext().subscribe(
-      (contexts) => {
-        this.contexts = contexts;
+      (response) => {
+        this.audioContexts = response;
         this.logAudioContextRetrievalStatus();
       }
     );
+
+    if (this.audioContexts !== undefined) {
+      let route = this.audioContexts[0].filename;
+      this.apiService.getAudioFile(route).subscribe(
+        (response) => {
+          let filename = response.headers.get('content-disposition')?.split(';')[1].split('=')[1];
+          let blob = response.body;
+
+          if (blob === null) {
+            console.log("AppComponent could not parse API response");
+          } else {
+            this.initialAudioElement = new Audio(window.URL.createObjectURL(blob));
+            this.logAudioElementInitializationStatus();
+          }
+        }
+      );
+    }
+  }
+
+  private logAudioElementInitializationStatus() {
+    if (this.initialAudioElement === undefined) {
+      console.log("AppComponent initialAudioElement retrieval: FAILED");
+    } else {
+      console.log("AppComponent initialAudioElement retrieval: SUCCESS");
+    }
   }
 
   private logAudioContextRetrievalStatus() {  // log whether we successfully retrieved audio context data
-    if (this.contexts === undefined) {
+    if (this.audioContexts === undefined) {
       console.log("AppComponent audio context data retrieval: UNDEFINED");
     } else {
-      if (this.contexts.length > 0) {
+      if (this.audioContexts.length > 0) {
         console.log("AppComponent audio context data retrieval: SUCCESS");
       } else {
         console.log("AppComponent audio context data retrieval: FAILED");

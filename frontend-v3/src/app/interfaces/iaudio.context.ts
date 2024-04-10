@@ -2,7 +2,7 @@ export interface IAudioContext {
     id: string,
     title: string
     artist: string,
-    filepath: string,
+    filename: string,
     // image: HTMLImageElement
     // audio: HTMLAudioElement
 }

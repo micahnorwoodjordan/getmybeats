@@ -1,4 +1,5 @@
 import base64
+import os
 
 from django.conf import settings
 from django.core.cache import cache
@@ -50,11 +51,11 @@ def get_main_audio_context(client_address):
 
 def get_audio_contexts():
     audio_contexts = []
-    for audio in Audio.objects.all():
+    for audio in Audio.objects.all().order_by('-id'):  # most recent first
         audio_contexts.append(
             {
                 'id': audio.id,
-                'filepath': audio.file_upload.path,
+                'filepath': os.path.basename(audio.file_upload.path),
                 'title': audio.title,
                 'artist': 'me',
                 # 'image': ''
