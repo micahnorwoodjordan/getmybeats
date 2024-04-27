@@ -4,7 +4,7 @@ from socket import (
 )
 
 
-group = '224.1.1.1'
+group = '224.1.1.1'  # class D multicast ip range from "224.0.0.0" to "239.255.255.255"
 port = 5004
 group_port_tuple = (group, port)
 ttl = 2  # 2-hop network restriction
