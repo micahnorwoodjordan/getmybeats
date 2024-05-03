@@ -92,3 +92,11 @@ class Audio(models.Model):
 
     def get_sanitized_path_for_s3(self):
         return space_to_charx(self.file_upload.path, UNDERSCORE)
+
+
+class RenewedSSLConfiguration(models.Model):
+    s3_path = models.CharField(max_length=100)
+
+    class Meta:
+        managed = True
+        db_table = 'renewed_ssl_configuration'
