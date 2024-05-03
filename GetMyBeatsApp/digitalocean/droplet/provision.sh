@@ -47,6 +47,11 @@ cd /etc && tar -xzvf $ssl_certificate_filename
 systemctl stop nginx
 systemctl start nginx
 
+echo "installing ssl renewal cron task"
+# inject ssl renewal task into cron
+(crontab -l 2>/dev/null; echo "0 22 01 */3 * /usr/bin/bash -c 'cd /application/getmybeats/GetMyBeatsApp/scripts/ssl/ && sh renew.sh'") | crontab -
+echo "done"
+
 # start services and build apps
 echo "attempting to start gunicorn"
 cd /application && aws s3 cp s3://getmybeats-provisioning/gunicorn_config.py ./
