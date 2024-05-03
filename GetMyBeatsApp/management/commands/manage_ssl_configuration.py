@@ -17,9 +17,11 @@ def record_new_ssl_configuration(s3_path):
 def install_current_ssl_configuration():
     current = RenewedSSLConfiguration.objects.last()
     current_ssl_config_filename = os.path.basename(current.s3_path)
+    bucket_dir = 'getmybeats-ssl-letsencrypt'
+    s3_object_key = os.path.join(bucket_dir, current_ssl_config_filename)
     download_filepath = f'{settings.BASE_DIR}/{current_ssl_config_filename}'
     s3 = S3AudioService(bucket='ssl-certificate-files')
-    s3.download(current_ssl_config_filename, download_filepath)
+    s3.download(s3_object_key, download_filepath)
     print(current_ssl_config_filename)  # for provisioning script to read output
 
 

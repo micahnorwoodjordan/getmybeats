@@ -8,7 +8,7 @@ updated_filename="letsencrypt-$today.tar.gz"
 s3_path="s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/$updated_filename"
 
 # overwrite the certificate and key files
-certbot certonly --force-renew -d getmybeats.com
+echo "1" | certbot certonly --force-renew -d getmybeats.com
 cd /etc
 
 # providing the absolute path to the `letsencrypt` dir will nest it and break the SSL configuration
