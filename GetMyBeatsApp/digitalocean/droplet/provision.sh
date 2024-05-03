@@ -4,7 +4,6 @@
 export APPLICATION_DIR='/application/getmybeats'
 export NGINX_DIR='/etc/nginx'
 export LOGGING_DIR='/var/log'
-export SSL_CERTIFICATE_FILENAME='letsencrypt-2024-02-01.tar.gz'
 
 
 # upgrade packages
@@ -37,8 +36,14 @@ pip3 install -r requirements.txt
 deactivate
 
 # configure and start nginx
+cd $APPLICATION_DIR
+. ../getmybeatsvenv/bin/activate
+ssl_certificate_filename=$(./manage.py manage_ssl_configuration install_current)
+mv $ssl_certificate_filename /etc
+deactivate
+
 cd $NGINX_DIR && cp $APPLICATION_DIR/GetMyBeatsApp/digitalocean/nginx/nginx.conf nginx.conf
-cd /etc && aws s3 cp s3://ssl-certificate-files/getmybeats-ssl-letsencrypt/$SSL_CERTIFICATE_FILENAME $SSL_CERTIFICATE_FILENAME && tar -xzvf $SSL_CERTIFICATE_FILENAME
+cd /etc && tar -xzvf $ssl_certificate_filename
 systemctl stop nginx
 systemctl start nginx
 
