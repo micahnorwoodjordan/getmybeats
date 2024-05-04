@@ -1,11 +1,14 @@
 # release notes
 
-- last updated: 2024-03-02
+- last updated: 2024-05-03
 
 ## changes
 
-- release management upgrades
+- automation of SSL renewal
 
 ## references
 
-- *s3*: provision-release-2024-03-02.sh
+- *s3*: may3-2024.sh
+- *database*:
+  - production_release: -> 16
+  - renewed_ssl_configuration -> 4
