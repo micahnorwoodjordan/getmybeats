@@ -9,7 +9,7 @@ services:
         ./manage.py runserver
       "
     volumes:
-      - ./:/application/getmybeats
+      - ../:/application/getmybeats
     env_file:
       - .env
     depends_on:
@@ -20,7 +20,7 @@ services:
     command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
     image: mysql:8
     volumes:    
-     - ./dbmock:/root/dbmock
+     - ./db:/root/db
     environment:
       MYSQL_USER: "mysql"
       MYSQL_DATABASE: "getmybeats_local_old"
@@ -33,9 +33,9 @@ services:
         retries: 1
   dbimport:
     volumes:    
-      - ./dbmock:/root/dbmock
+      - ./db:/root/db
     image: mysql:8
-    entrypoint: "sh /root/dbmock/import_db.sh"
+    entrypoint: "sh /root/db/import_db.sh"
     environment:
       MYSQL_USER: "mysql"
       MYSQL_DATABASE: "getmybeats_local_old"
@@ -46,6 +46,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  redis:
+    command: redis-server
+    image: redis
+    env_file:
+      - .env
 
 volumes:
   dbmock:
