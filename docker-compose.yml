@@ -1,14 +1,51 @@
-# version: "3.9"
-# services:
-#   web:
-#     build: .
+services:
+  web:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8000
+    command: /bin/bash -c "
+        cd /application/getmybeats && source venv/bin/activate && pip3 install -r requirements.txt &&
+        ./manage.py runserver
+      "
+    volumes:
+      - ./:/application/getmybeats
+    env_file:
+      - .env
+    depends_on:
+      - db
+  db:
+    ports:
+      - 3307:3306
+    command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
+    image: mysql:8
+    volumes:    
+     - ./dbmock:/root/dbmock
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "getmybeats_local_old"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 5s
+        retries: 1
+  dbimport:
+    volumes:    
+      - ./dbmock:/root/dbmock
+    image: mysql:8
+    entrypoint: "sh /root/dbmock/import_db.sh"
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "getmybeats_local_old"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+      MYSQL_HOST: "db"
+    depends_on:
+      db:
+        condition: service_healthy
 
-#     ports:
-#       - "8000:8080"
-
-#     entrypoint: "/bin/bash -c /application/getmybeats/dev/start_dev_servers.sh"
-
-#     image: gmb-dev:Dockerfile
-
-#     volumes:
-#       - ./:/application/getmybeats
+volumes:
+  dbmock:

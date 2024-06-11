@@ -1,4 +1,5 @@
 getmybeats/__pycache__/
+*.sql
 *.pyc
 *.txt
 venv/
