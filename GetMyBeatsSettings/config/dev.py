@@ -62,7 +62,7 @@ LOGGING = {
     'handlers': {
         'general': {
             'class': 'logging.FileHandler',
-            'filename': 'general.log',
+            'filename': '/var/log/django/general.log',
             'level': 'INFO',
             'formatter': 'verbose',
         },

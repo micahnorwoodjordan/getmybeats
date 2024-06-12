@@ -6,7 +6,6 @@ services:
     ports:
     - 8000:8000
     command: /bin/bash -c "
-      sudo mkdir -p /var/log/gunicorn/ && touch /var/log/gunicorn/error.log &&
       cd /application/getmybeats &&
       echo 'starting gunicorn' &&
       gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi
