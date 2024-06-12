@@ -1,12 +1,15 @@
 services:
-  web:
+  api:
     build:
-      dockerfile: Dockerfile
+      dockerfile: dev/Dockerfile.dev
+      context: ./..
     ports:
-      - 8001:8000
+    - 8000:8000
     command: /bin/bash -c "
-        cd /application/getmybeats && source venv/bin/activate && pip3 install -r requirements.txt &&
-        ./manage.py runserver
+      sudo mkdir -p /var/log/gunicorn/ && touch /var/log/gunicorn/error.log &&
+      cd /application/getmybeats &&
+      echo 'starting gunicorn' &&
+      gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi
       "
     volumes:
       - ../:/application/getmybeats
@@ -45,12 +48,27 @@ services:
       MYSQL_HOST: "db"
     depends_on:
       db:
+        # https://stackoverflow.com/questions/42567475/docker-compose-check-if-mysql-connection-is-ready
         condition: service_healthy
   redis:
     command: redis-server
     image: redis
     env_file:
       - .env
+  web:
+    ports:
+    - 81:80
+    image: nginx
+    volumes:
+      - ./nginx/dev.nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/test.html:/etc/nginx/html/index.html
+    environment:
+      NGINX_HOST: "127.0.0.1"
+      NGINX_PORT: "80"
+    depends_on:
+      - api
+
 
 volumes:
   dbmock:
+  nginx:

@@ -7,10 +7,7 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = False
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    '192.168.0.180'
-]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
     'http://127.0.0.1:8000',  # Docker exposes nginx via port 8000
