@@ -7,10 +7,7 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = False
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    '192.168.0.180'
-]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
     'http://127.0.0.1:8000',  # Docker exposes nginx via port 8000
@@ -65,7 +62,7 @@ LOGGING = {
     'handlers': {
         'general': {
             'class': 'logging.FileHandler',
-            'filename': 'general.log',
+            'filename': '/var/log/django/general.log',
             'level': 'INFO',
             'formatter': 'verbose',
         },
@@ -77,9 +74,5 @@ LOGGING = {
         },
     }
 }
-
-STATIC_ROOT = BASE_DIR / 'static'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 
 S3_AUDIO_BUCKET = 'getmybeats-audio-dev'

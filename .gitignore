@@ -1,4 +1,5 @@
 getmybeats/__pycache__/
+*.sql
 *.pyc
 *.txt
 venv/
@@ -9,3 +10,4 @@ static/
 GetMyBeatsApp/static/js/
 frontend/node_modules/
 _dj_cache
+dev/.aws/
