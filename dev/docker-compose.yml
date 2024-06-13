@@ -14,8 +14,6 @@ services:
       /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
       tail -f /var/log/nginx/access.log"
-      # CANNOT DO AN NPM INSTALL AND NPM BUILD
-      # cd frontend && npm install && npm run build && cd .. &&
     volumes:
       - ../:/application/getmybeats
       - ./nginx/dev.nginx.conf:/etc/nginx/nginx.conf
