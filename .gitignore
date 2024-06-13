@@ -10,3 +10,4 @@ static/
 GetMyBeatsApp/static/js/
 frontend/node_modules/
 _dj_cache
+dev/.aws/

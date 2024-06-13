@@ -75,8 +75,4 @@ LOGGING = {
     }
 }
 
-STATIC_ROOT = BASE_DIR / 'static'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-
 S3_AUDIO_BUCKET = 'getmybeats-audio-dev'
