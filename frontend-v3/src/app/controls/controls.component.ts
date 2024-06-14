@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 
 
 @Component({
@@ -8,26 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class ControlsComponent implements OnInit {
-  // private audioContextualizationService = new AudioContextualizationService(
-  //   Array.from(document.getElementsByTagName("audio")),
-  //   Array.from(document.getElementsByTagName("img")).filter((image => {true})),  // embed some key into the img from in backend
-  // ); 
+  @Input() audioTrack: any;
+  public audioTrackIsPlaying: boolean = false;
 
-  public currentAudioTrackIsPlaying: boolean = false;
-  // public audioContexts = this.audioContextualizationService.getAudioContexts();
-  // public currentAudioTrack = new Audio(this.audioContexts[0].audio.src);
 
-  ngOnInit(): void {
-    // this.currentAudioTrack.load();
-  }
+  ngOnInit(): void { }
 
   onPlayPauseClick() {
-  //   if (this.currentAudioTrackIsPlaying) {
-  //     this.currentAudioTrack.pause();
-  //   } else {
-  //     this.currentAudioTrack.play();
-  //   }
-
-    this.currentAudioTrackIsPlaying = !this.currentAudioTrackIsPlaying;
+    if (this.audioTrackIsPlaying) {
+      this.audioTrack.pause();
+    } else {
+      this.audioTrack.play();
+    }
+    this.audioTrackIsPlaying = !this.audioTrackIsPlaying;
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-
+import { ApiService } from '../api-service';
 
 @Component({
   selector: 'app-player',
@@ -8,7 +8,14 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export class PlayerComponent implements OnInit {
-  constructor() {}
+  audioTrack: any;
+  audioTrackIsReady = false;
 
-  ngOnInit(): void {}
+  constructor(private apiService: ApiService) {}
+
+  ngOnInit(): void {
+    this.audioTrack = this.apiService.getAudioTrack('corporate.wav');  // wire up db for dynamic titles
+    this.audioTrack.load();
+    this.audioTrackIsReady = true;
+  }
 }

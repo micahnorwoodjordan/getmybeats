@@ -6,6 +6,7 @@
         </div>
     </div>
     <div fxLayout="column" fxLayoutAlign="center center">
-        <app-controls></app-controls>
+        <app-controls *ngIf="audioTrackIsReady" [audioTrack]="audioTrack"></app-controls>
+        <p *ngIf="!audioTrackIsReady" style="color: white; padding-top: 15vh;"> audio not yet ready</p>
     </div>
 </div>
