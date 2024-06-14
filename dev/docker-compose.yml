@@ -1,17 +1,27 @@
 services:
+  frontend:
+    image: node:22.3.0
+    ports:
+      - 4200:4200
+    volumes:
+      - ../:/application/getmybeats
+    command: bash -c "
+      npm install -g @angular/cli && cd /application/getmybeats/frontend-v3 && ng serve"
+    depends_on:
+      - api-web
   api-web:
     build:
       dockerfile: dev/Dockerfile.dev
       context: ./..
     ports:
       - 8000:8000
-      - 81:80
+      - 80:80
     command: /bin/bash -c "
       cd /application/getmybeats &&
       . /opt/venvs/getmybeats/bin/activate && ./manage.py download_missing_audio &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
-      /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon &&
+      /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon --reload &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
       tail -f /var/log/nginx/access.log"
     volumes:
@@ -60,7 +70,3 @@ services:
     image: redis
     env_file:
       - .env
-
-volumes:
-  dbmock:
-  nginx:

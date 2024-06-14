@@ -2,10 +2,11 @@
     /* border: 1px solid blue; */
     width: 60vw;
     height: 15vh;
+    /* padding-bottom: 3vh; */
 }
 
 .control-buttons {
-    margin-top: 27vh;
+    margin-top: 5vh;
 }
 
 .left-control-arrow {

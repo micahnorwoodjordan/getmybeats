@@ -3,8 +3,7 @@ import logging
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.http import HttpResponse
-
-from GetMyBeatsApp.db.utilities import get_main_audio_context
+from GetMyBeatsApp.data_access.utilities import get_main_audio_context
 
 
 logger = logging.getLogger(__name__)
