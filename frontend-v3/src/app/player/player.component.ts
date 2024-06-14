@@ -12,19 +12,27 @@ export class PlayerComponent implements OnInit {
   audioTrackIsReady = false;
   audioFilenamesData: any;
   selectedAudioIndex = 0;
+  numberOfTracks: any;
 
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    this.loadData();
+    this.setInitialAudioState();
   }
 
-  async loadData() {
+  async setInitialAudioState() {
     // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
     this.audioFilenamesData = await this.apiService.getAudioFilenames();
+    this.numberOfTracks = this.audioFilenamesData.filenames.length;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
     this.audioTrack = this.apiService.getAudioTrack(audioFilename);
     this.audioTrack.load();
     this.audioTrackIsReady = true;
+  }
+  onSelectedAudioIndexChange(newIndex: number) {
+    this.selectedAudioIndex = newIndex;
+    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
+    this.audioTrack = this.apiService.getAudioTrack(audioFilename);
+    console.log(audioFilename);
   }
 }
