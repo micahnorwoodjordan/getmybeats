@@ -19,7 +19,7 @@ services:
       . /opt/venvs/getmybeats/bin/activate && ./manage.py download_missing_audio &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
-      /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon &&
+      /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon --reload &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
       tail -f /var/log/nginx/access.log"
     volumes:
