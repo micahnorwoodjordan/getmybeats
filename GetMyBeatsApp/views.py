@@ -1,9 +1,10 @@
+import json
 import logging
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.http import HttpResponse
-from GetMyBeatsApp.data_access.utilities import get_main_audio_context
+from GetMyBeatsApp.data_access.utilities import get_main_audio_context, get_audio_filenames
 
 
 logger = logging.getLogger(__name__)
@@ -32,3 +33,16 @@ def health_check(request):
 def home(request):  # TODO: capture web traffic in database
     context = get_main_audio_context(request.META['HTTP_X_FORWARDED_FOR'])
     return render(request, 'home.html', context=context)
+
+
+# TODO: add auth: access only from node app
+@api_view(['GET'])
+def audio_filenames(request):
+    data = dict()
+    try:
+        data = {
+            'filenames': get_audio_filenames()
+        }
+        return HttpResponse(content=json.dumps(data))
+    except:
+        return HttpResponse(status=500, reason='unknown server error')

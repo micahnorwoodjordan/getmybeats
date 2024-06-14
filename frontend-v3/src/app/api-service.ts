@@ -14,6 +14,12 @@ export class ApiService {
 
   constructor(private httpClient: HttpClient) { }
 
+  getAudioFilenames() {
+    let location = '/audio-filenames';
+    let url = environment.apiHost + location;
+    return this.httpClient.get(url).toPromise();
+  }
+
   getAudioTrack(audioTitle: string) {
     let url = this.baseMediaUrl + audioTitle;
     return new Audio(url);
