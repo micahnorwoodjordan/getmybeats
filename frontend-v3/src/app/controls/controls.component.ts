@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 
 @Component({
@@ -9,10 +9,18 @@ import { Component, OnInit, Input } from '@angular/core';
 
 export class ControlsComponent implements OnInit {
   @Input() audioTrack: any;
+  @Input() audioFilenamesData: any;
+  @Input() selectedAudioIndex: any;
+  @Input() numberOfTracks: any;
+  @Output() selectedAudioIndexChange: EventEmitter<number> = new EventEmitter<number>();
+
+
   public audioTrackIsPlaying: boolean = false;
 
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    let numberOfTracks = this.audioFilenamesData.filenames.length;
+  }
 
   onPlayPauseClick() {
     if (this.audioTrackIsPlaying) {
@@ -21,5 +29,32 @@ export class ControlsComponent implements OnInit {
       this.audioTrack.play();
     }
     this.audioTrackIsPlaying = !this.audioTrackIsPlaying;
+  }
+
+  pauseOnCycleThrough() {
+    this.audioTrack.pause();
+    this.audioTrackIsPlaying = false;
+  }
+
+  onNext() {
+    this.pauseOnCycleThrough();
+
+    if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
+      this.selectedAudioIndex += 1;
+    } else {
+      this.selectedAudioIndex = 0;
+    }
+    this.selectedAudioIndexChange.emit(this.selectedAudioIndex);
+  }
+
+  onPrevious() {
+    this.pauseOnCycleThrough();
+
+    if (this.selectedAudioIndex - 1 >= 0) {
+      this.selectedAudioIndex -= 1;
+    } else {
+      this.selectedAudioIndex = this.numberOfTracks - 1;
+    }
+    this.selectedAudioIndexChange.emit(this.selectedAudioIndex);
   }
 }

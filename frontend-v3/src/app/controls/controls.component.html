@@ -2,11 +2,10 @@
     <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
         <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
         <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
-        <mat-icon class="left-control-arrow">skip_previous</mat-icon>
-    
+        <mat-icon class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
         <mat-icon *ngIf="!audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">play_arrow</mat-icon>
         <mat-icon *ngIf="audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">pause</mat-icon>
-        <mat-icon class="right-control-arrow">skip_next</mat-icon>
+        <mat-icon class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
         <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
         <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
     </div>

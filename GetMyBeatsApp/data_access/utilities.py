@@ -20,6 +20,10 @@ def b64encode_file_upload(filepath):
     return base64.b64encode(open(filepath, "rb").read())
 
 
+def get_audio_filenames():
+    return [name for name in Audio.objects.all().values_list('file_upload', flat=True)]
+
+
 def get_main_audio_context(client_address):
     """
     fetch Audio objects from the site cache or database, and organize object attributes for client-side processing
