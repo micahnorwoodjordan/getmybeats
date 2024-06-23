@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 NEW_AUDIO_UPLOAD_CACHE_KEY = f'NEW-UPLOAD-{now().strftime("%Y.%m.%d")}'
+NEW_SITE_VISIT_REQUEST_CACHE_KEY_PREFIX = 'user-site-audio-context-'
 
 
 def b64encode_file_upload(filepath):
@@ -36,7 +37,7 @@ def get_main_audio_context(client_address):
     :return dict
     """
     fields = ['id', 'uploaded_at', 'title', 'length', 'file_upload', 'status']
-    cache_key = 'user-site-audio-context-' + client_address
+    cache_key = NEW_SITE_VISIT_REQUEST_CACHE_KEY_PREFIX + client_address
     audios = cache.get(cache_key)
 
     if audios is None:
@@ -66,22 +67,24 @@ def record_request_information(request):
     body = {k: v for k, v in request.POST.items()}
     user_agent = headers['User-Agent']
     method = request.method
+    site_vist_request_cache_key = NEW_SITE_VISIT_REQUEST_CACHE_KEY_PREFIX + remote_ip_address
 
-    try:
-        with transaction.atomic():
-            recorded_site_visit = SiteVisitRequest.objects.create(
-                ip=remote_ip_address,
-                params=params,
-                headers=headers,
-                method=method,
-                user_agent=user_agent,
-                body=str(body)
-            )
-    except IntegrityError as err:
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-        logger.error('record request data FAILURE', extra=extra)
-    except Exception as err:
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-        logger.error('record request data FAILURE', extra=extra)
+    if not cache.get(site_vist_request_cache_key):
+        try:
+            with transaction.atomic():
+                recorded_site_visit = SiteVisitRequest.objects.create(
+                    ip=remote_ip_address,
+                    params=params,
+                    headers=headers,
+                    method=method,
+                    user_agent=user_agent,
+                    body=str(body)
+                )
+        except IntegrityError as err:
+            extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+            logger.error('record request data FAILURE', extra=extra)
+        except Exception as err:
+            extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+            logger.error('record request data FAILURE', extra=extra)
 
     return recorded_site_visit

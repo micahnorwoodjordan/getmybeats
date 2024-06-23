@@ -58,7 +58,7 @@ TEMPLATES = [
 ]
 
 
-AUDIO_CACHE_EXPIRY_SECONDS = 60 * 60 * 24  # 24 hours
+AUDIO_CACHE_EXPIRY_SECONDS = 60 * 30  # 30 minutes
 
 LOGGER_EXTRA_DATA_KEY = 'DATA'  # MUST mesh with custom key specified in VERBOSE_LOGGING_FORMAT; in all caps for clarity
 DEFAULT_LOGGING_FORMAT = '{levelname} | {name} | {asctime} | MESSAGE: {message} >>> {DATA}'
