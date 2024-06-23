@@ -63,7 +63,7 @@ def record_request_information(request):
     remote_ip_address = request.META['HTTP_X_FORWARDED_FOR']
     params = request.META['QUERY_STRING']
     headers = {k: v for k, v in request.headers.items()}
-    body = dict()
+    body = {k: v for k, v in request.POST.items()}
     user_agent = headers['User-Agent']
     method = request.method
 
