@@ -1,5 +1,5 @@
 
-#!/bin/sh
+#!/bin/zsh
 
 
 brew services stop redis  # just stop in case. a refresh wont hurt
