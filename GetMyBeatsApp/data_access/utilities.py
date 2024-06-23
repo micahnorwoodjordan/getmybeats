@@ -1,11 +1,16 @@
 import base64
+import logging
 
 from django.conf import settings
+from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.utils.timezone import now
 
-from GetMyBeatsApp.models import Audio
+from GetMyBeatsApp.models import Audio, SiteVisitRequest
 from GetMyBeatsApp.serializers import AudioSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 NEW_AUDIO_UPLOAD_CACHE_KEY = f'NEW-UPLOAD-{now().strftime("%Y.%m.%d")}'
@@ -50,3 +55,33 @@ def get_main_audio_context(client_address):
                 song_collection.append(dict(audio))
 
     return context
+
+
+def record_request_information(request):
+    recorded_site_visit = None
+
+    remote_ip_address = request.META['HTTP_X_FORWARDED_FOR']
+    params = request.META['QUERY_STRING']
+    headers = {k: v for k, v in request.headers.items()}
+    body = {k: v for k, v in request.POST.items()}
+    user_agent = headers['User-Agent']
+    method = request.method
+
+    try:
+        with transaction.atomic():
+            recorded_site_visit = SiteVisitRequest.objects.create(
+                ip=remote_ip_address,
+                params=params,
+                headers=headers,
+                method=method,
+                user_agent=user_agent,
+                body=str(body)
+            )
+    except IntegrityError as err:
+        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+        logger.error('record request data FAILURE', extra=extra)
+    except Exception as err:
+        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+        logger.error('record request data FAILURE', extra=extra)
+
+    return recorded_site_visit

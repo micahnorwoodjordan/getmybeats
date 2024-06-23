@@ -100,3 +100,16 @@ class RenewedSSLConfiguration(models.Model):
     class Meta:
         managed = True
         db_table = 'renewed_ssl_configuration'
+
+
+class SiteVisitRequest(models.Model):
+    ip = models.CharField(max_length=15)
+    params = models.CharField(max_length=100)
+    headers = models.JSONField()
+    body = models.JSONField()
+    user_agent = models.CharField(max_length=100)
+    method = models.CharField(max_length=10)
+
+    class Meta:
+        managed = True
+        db_table = 'site_visit_request'
