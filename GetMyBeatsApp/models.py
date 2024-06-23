@@ -107,7 +107,7 @@ class SiteVisitRequest(models.Model):
     params = models.CharField(max_length=100)
     headers = models.JSONField()
     body = models.JSONField()
-    user_agent = models.CharField(max_length=100)
+    user_agent = models.CharField(max_length=200)
     method = models.CharField(max_length=10)
 
     class Meta:
