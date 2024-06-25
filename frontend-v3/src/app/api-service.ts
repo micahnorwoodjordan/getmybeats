@@ -10,7 +10,8 @@ import { environment } from 'src/environments/environment';
 
 export class ApiService {
 
-  private baseMediaUrl = environment.apiHost + environment.apiMediaPath;
+  private baseApiMediaUrl = environment.apiHost + environment.apiMediaPath;
+  private baseLocalMediaPath = environment.localMediaPath;
 
   constructor(private httpClient: HttpClient) { }
 
@@ -21,7 +22,7 @@ export class ApiService {
   }
 
   getAudioTrack(audioTitle: string) {
-    let url = this.baseMediaUrl + audioTitle;
+    let url = this.baseLocalMediaPath + audioTitle
     return new Audio(url);
   }
 }
