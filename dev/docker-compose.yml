@@ -8,7 +8,11 @@ services:
     volumes:
       - ../:/application/getmybeats
     command: bash -c "
-      npm install -g @angular/cli && cd /application/getmybeats/frontend-v3 && ng serve"
+      cd && aws s3 sync s3://getmybeats-audio-dev /application/getmybeats/frontend-v3/src/assets/ &&
+      cd /application/getmybeats/frontend-v3/src &&
+      npm install -g @angular/cli &&
+      npm install package.json &&
+      ng serve"
     depends_on:
       - api-web
   api-web:
@@ -21,7 +25,6 @@ services:
     command: /bin/bash -c "
       cd /application/getmybeats &&
       . /opt/venvs/getmybeats/bin/activate &&
-      ./manage.py migrate GetMyBeatsApp &&
       ./manage.py download_missing_audio &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 

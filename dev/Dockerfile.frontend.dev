@@ -28,7 +28,3 @@ RUN cp "$application_directory"/dev/.aws/config /root/.aws
 RUN cd && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 RUN cd && unzip awscliv2.zip
 RUN cd && sudo ./aws/install
-
-
-# install media files into assets dir
-RUN cd && aws s3 sync s3://getmybeats-audio-dev "$application_directory"/frontend-v3/src/assets/

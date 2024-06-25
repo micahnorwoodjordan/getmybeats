@@ -11,6 +11,7 @@ import { ControlsComponent } from './controls/controls.component';
 import { FooterComponent } from './footer/footer.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HttpClientModule } from '@angular/common/http';
+import { MatSliderModule } from '@angular/material/slider';
 
 
 @NgModule({
@@ -26,7 +27,8 @@ import { HttpClientModule } from '@angular/common/http';
     AppRoutingModule,
     FlexLayoutModule,
     MatIconModule,
-    HttpClientModule
+    HttpClientModule,
+    MatSliderModule
   ],
   providers: [
     provideAnimationsAsync()
