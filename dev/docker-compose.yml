@@ -25,6 +25,7 @@ services:
     command: /bin/bash -c "
       cd /application/getmybeats &&
       . /opt/venvs/getmybeats/bin/activate &&
+      ./manage.py migrate GetMyBeatsApp &&
       ./manage.py download_missing_audio &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
