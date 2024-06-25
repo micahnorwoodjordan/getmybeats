@@ -1,6 +1,8 @@
 services:
   frontend:
-    image: node:22.3.0
+    build:
+        dockerfile: dev/Dockerfile.frontend.dev
+        context: ./..
     ports:
       - 4200:4200
     volumes:
@@ -11,7 +13,7 @@ services:
       - api-web
   api-web:
     build:
-      dockerfile: dev/Dockerfile.dev
+      dockerfile: dev/Dockerfile.backend.dev
       context: ./..
     ports:
       - 8000:8000
