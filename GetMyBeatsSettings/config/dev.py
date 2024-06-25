@@ -10,9 +10,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
-    'http://127.0.0.1:8000',  # Docker exposes nginx via port 8000
-    'http://192.168.0.180:8000'
-    'https://*.127.0.0.1',
+    'http://127.0.0.1',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = False

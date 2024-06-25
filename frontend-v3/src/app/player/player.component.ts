@@ -25,11 +25,13 @@ export class PlayerComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.setInitialAudioState();
+    this.updateAudioMetadataState();
+  }
 
+  updateAudioMetadataState() {
     // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
-    // the below onInit logic blocks are borrowed from the above github project
+    // the below logic blocks are borrowed from the above github project
     // these blocks are instrumental in getting the audio seeking logic to work correctly
-
     this.audioTrack.ondurationchange = () => {
       const totalSeconds = Math.floor(this.audioTrack.duration), duration = moment.duration(totalSeconds, 'seconds');
       this.musicLength = duration.seconds() < 10 ? 
@@ -63,7 +65,7 @@ export class PlayerComponent implements OnInit {
     this.selectedAudioIndex = newIndex;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
     this.audioTrack = this.apiService.getAudioTrack(audioFilename);
-    console.log(audioFilename);
+    this.updateAudioMetadataState();
   }
 
   onPlayPauseClick() {
