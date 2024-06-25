@@ -17,10 +17,15 @@
                 <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
                 <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
             </div>
-            <mat-toolbar>
+            <mat-toolbar *ngIf="audioTrackIsReady">
                 {{ currentTime }}&nbsp;/&nbsp;{{ musicLength }}
-                <mat-slider (input)="onSliderChange($event)" class="control-slider" color="primary" min="0" max="{{ duration }}">
-                    <input value="{{ audioTrack.readyState === 0 ? 0 : audioTrack.currentTime }}" />
+                <mat-slider
+                        (input)="onSliderChange($event)"
+                        step="0.05"
+                        class="control-slider"
+                        min="0" max="{{ duration }}"
+                >
+                    <input matSliderThumb value="{{ audioTrack.currentTime }}" />
                 </mat-slider>
             </mat-toolbar>
         </div>

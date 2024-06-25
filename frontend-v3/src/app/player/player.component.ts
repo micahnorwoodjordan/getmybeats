@@ -23,8 +23,12 @@ export class PlayerComponent implements OnInit {
 
   constructor(private apiService: ApiService) {}
 
-  ngOnInit(): void {
-    this.setInitialAudioState();
+  async ngOnInit(): Promise<void> {
+    await this.setInitialAudioState();
+
+    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+    // the below onInit logic blocks are borrowed from the above github project
+    // these blocks are instrumental in getting the audio seeking logic to work correctly
 
     this.audioTrack.ondurationchange = () => {
       const totalSeconds = Math.floor(this.audioTrack.duration), duration = moment.duration(totalSeconds, 'seconds');
@@ -52,9 +56,9 @@ export class PlayerComponent implements OnInit {
     this.numberOfTracks = this.audioFilenamesData.filenames.length;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
     this.audioTrack = this.apiService.getAudioTrack(audioFilename);
-    this.audioTrack.load();
     this.audioTrackIsReady = true;
   }
+
   onSelectedAudioIndexChange(newIndex: number) {
     this.selectedAudioIndex = newIndex;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
@@ -74,6 +78,11 @@ export class PlayerComponent implements OnInit {
   pauseOnCycleThrough() {
     this.audioTrack.pause();
     this.audioTrackIsPlaying = false;
+  }
+
+  playOnCycleThrough() {
+    this.audioTrack.play();
+    this.audioTrackIsPlaying = true;
   }
 
   onNext() {
@@ -99,6 +108,8 @@ export class PlayerComponent implements OnInit {
   }
 
   onSliderChange(event: any) {
-    this.audioTrack.currentTime = event.value;
+    this.audioTrack.currentTime = event.target.value;
+    this.audioTrack.play()
+    this.audioTrackIsPlaying = true;
   }
 }
