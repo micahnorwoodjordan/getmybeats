@@ -6,7 +6,29 @@
         </div>
     </div>
     <div fxLayout="column" fxLayoutAlign="center center">
-        <app-controls *ngIf="audioTrackIsReady" [audioTrack]="audioTrack" [audioFilenamesData]="audioFilenamesData" [selectedAudioIndex]="selectedAudioIndex" [numberOfTracks]="numberOfTracks" (selectedAudioIndexChange)="onSelectedAudioIndexChange($event)"></app-controls>
+        <div class="controls">
+            <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
+                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+                <mat-icon class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
+                <mat-icon *ngIf="!audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">play_arrow</mat-icon>
+                <mat-icon *ngIf="audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">pause</mat-icon>
+                <mat-icon class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
+                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
+            </div>
+            <mat-toolbar *ngIf="audioTrackIsReady">
+                {{ currentTime }}&nbsp;/&nbsp;{{ musicLength }}
+                <mat-slider
+                        (input)="onSliderChange($event)"
+                        step="0.05"
+                        class="control-slider"
+                        min="0" max="{{ duration }}"
+                >
+                    <input matSliderThumb value="{{ audioTrack.currentTime }}" />
+                </mat-slider>
+            </mat-toolbar>
+        </div>
         <p *ngIf="!audioTrackIsReady" style="color: white; padding-top: 15vh;"> audio not yet ready</p>
     </div>
 </div>

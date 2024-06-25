@@ -7,10 +7,11 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './header/header.component';
 import { PlayerComponent } from './player/player.component';
-import { ControlsComponent } from './controls/controls.component';
 import { FooterComponent } from './footer/footer.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HttpClientModule } from '@angular/common/http';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 
 @NgModule({
@@ -18,7 +19,6 @@ import { HttpClientModule } from '@angular/common/http';
     AppComponent,
     HeaderComponent,
     PlayerComponent,
-    ControlsComponent,
     FooterComponent
   ],
   imports: [
@@ -26,7 +26,9 @@ import { HttpClientModule } from '@angular/common/http';
     AppRoutingModule,
     FlexLayoutModule,
     MatIconModule,
-    HttpClientModule
+    HttpClientModule,
+    MatSliderModule,
+    MatToolbarModule
   ],
   providers: [
     provideAnimationsAsync()
