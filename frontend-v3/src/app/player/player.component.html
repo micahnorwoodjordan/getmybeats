@@ -21,9 +21,6 @@
             </div>
             <div class="toolbar-div">
                 <mat-toolbar *ngIf="audioTrackIsReady" class="toolbar">
-                    <p class="current-time-text">
-                        {{ currentTime }}&nbsp; - &nbsp;{{ musicLength }}
-                    </p>
                     <div fxLayout="row" fxLayoutAlign="space-evenly center">
                         <mat-slider
                             (input)="onSliderChange($event)"
@@ -37,6 +34,8 @@
                 </mat-toolbar>
             </div>
         </div>
-        <p *ngIf="!audioTrackIsReady" style="color: white; padding-top: 15vh;"> audio not yet ready</p>
+    </div>
+    <div fxLayout="column" fxLayoutAlign="space-evenly center">
+        <p class="current-time-text">{{ currentTime }}&nbsp; - &nbsp;{{ musicLength }}</p>
     </div>
 </div>

@@ -1,15 +1,12 @@
 .player {
-    /* border: 1px solid red; */
     width: 75vw;
     height: 50vh;
     padding-top: 7vh;
 }
 
 .backdrop {
-    /* border: 1px solid red; */
     width: 40vw;
     height: 35vh;
-    /* padding-top: 5vh; */
     background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
     backdrop-filter: drop-shadow(4px 4px 10px blue);
     
@@ -30,10 +27,8 @@
 }
 
 .controls {
-    /* border: 1px solid blue; */
     width: 60vw;
     height: 15vh;
-    /* padding-bottom: 3vh; */
 }
 
 .control-buttons {
@@ -65,7 +60,6 @@
     cursor: pointer;
     transform: scale(2);
     transition: 0.5s;
-    /* color: white; */
 }
 
 .right-control-arrow {
@@ -81,14 +75,9 @@
     transition: 0.5s;
 }
 
-.control-slider {
-    width: 30vw;
-    margin-top: 4vh;
-}
-
 .toolbar-div {
     width: 40vw;
-    padding-left: 10vw;
+    padding-left: 14vw;
     padding-top: 4vh;
     background-color: rgb(20, 19, 19)
 }
@@ -112,4 +101,102 @@
 
 .songArtist {
     color: white;
+}
+
+@media
+(width: 430px),  /* iPhone 14 Pro Max, iPhone 15 Plus and iPhone 15 Pro Max */
+(width: 428px),  /* iPhone 12 Pro Max, iPhone 13 Pro Max, and iPhone 14 Plus */
+(width: 414px),  /* iPhone Xs Max, and iPhone 11 Pro Max */
+(width: 414px),  /* iPhone XR, and iPhone 11 */
+(width: 393px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
+(width: 390px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
+(width: 375px),  /* iPhone X, iPhone Xs, iPhone 11 Pro, iPhone 12 Mini, and iPhone 13 Mini */
+(width: 375px) {  /* iphone SE */
+    .slider {
+        width: 60vw;
+    }
+
+    .current-time-text {
+        color: red;
+        padding-right: 1vw;
+    }
+
+    .toolbar-div {
+        width: 40vw;
+        padding-left: 0vw;
+        padding-top: 4vh;
+        background-color: rgb(20, 19, 19)
+    }
+
+    .headset-backdrop-icon {
+        color: rgb(53, 55, 55);
+        transform: scale(5);
+        padding-bottom: 4vh;
+    }
+
+    .controls {
+        width: 60vw;
+        height: 15vh;
+    }
+
+    .control-buttons {
+        margin-top: 5vh;
+    }
+
+    .player {
+        width: 75vw;
+        height: 50vh;
+        padding-top: 7vh;
+    }
+
+    .backdrop {
+        width: 40vw;
+        height: 20vh;
+        background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
+        backdrop-filter: drop-shadow(4px 4px 10px blue);        
+    }
+
+    .left-control-arrow {
+        padding-right: 10vw;
+        cursor: pointer;
+        transform: scale(1.5);
+        transition: 0.5s;
+        color: white;
+    }
+
+    .left-control-arrow:hover {
+        padding-right: 10vw;
+        cursor: pointer;
+        transform: scale(2);
+        transition: 0.5s;
+        color: white;
+    }
+
+    .play-pause-control {
+        cursor: pointer;
+        transform: scale(1.5);
+        transition: 0.5s;
+        color: white;
+    }
+
+    .play-pause-control:hover {
+        cursor: pointer;
+        transform: scale(2);
+        transition: 0.5s;
+    }
+
+    .right-control-arrow {
+        padding-left: 10vw;
+        cursor: pointer;
+        transform: scale(1.5);
+        transition: 0.5s;
+        color: white;
+    }
+
+    .right-control-arrow:hover {
+        padding-left: 10vw;
+        cursor: pointer;
+        transform: scale(2);
+        transition: 0.5s;
+    }
 }
