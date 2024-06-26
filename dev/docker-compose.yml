@@ -12,9 +12,7 @@ services:
       cd /application/getmybeats/frontend-v3/src &&
       npm install -g @angular/cli &&
       npm install package.json &&
-      ng serve"
-    depends_on:
-      - api-web
+      ng build --verbose --output-hashing none"
   api-web:
     build:
       dockerfile: dev/Dockerfile.backend.dev
@@ -28,6 +26,7 @@ services:
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py download_missing_audio &&
       ./manage.py collectstatic --no-input &&
+      mv /application/static/js/bundle/styles.css /application/static/ &&
       echo 'starting gunicorn' && 
       /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon --reload &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
