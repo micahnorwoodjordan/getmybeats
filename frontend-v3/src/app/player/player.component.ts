@@ -20,6 +20,7 @@ export class PlayerComponent implements OnInit {
   musicLength: string = '0:00';
   duration: number = 1;
   currentTime: string = '0:00';
+  title: string = "null";
 
   constructor(private apiService: ApiService) {}
 
@@ -34,21 +35,17 @@ export class PlayerComponent implements OnInit {
     // these blocks are instrumental in getting the audio seeking logic to work correctly
     this.audioTrack.ondurationchange = () => {
       const totalSeconds = Math.floor(this.audioTrack.duration), duration = moment.duration(totalSeconds, 'seconds');
-      this.musicLength = duration.seconds() < 10 ? 
-        `${Math.floor(duration.asMinutes())}:
-        0${duration.seconds()}` : 
-        `${Math.floor(duration.asMinutes())}:
-        ${duration.seconds()}`;
+      this.musicLength = duration.seconds() < 10 ?
+        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
       this.duration = totalSeconds;
     }
 
     this.audioTrack.ontimeupdate = () => {
       const duration = moment.duration(Math.floor(this.audioTrack.currentTime), 'seconds');
       this.currentTime = duration.seconds() < 10 ? 
-          `${Math.floor(duration.asMinutes())}:
-          0${duration.seconds()}` : 
-          `${Math.floor(duration.asMinutes())}:
-          ${duration.seconds()}`;
+          `${Math.floor(duration.asMinutes())}:0${duration.seconds()}`:
+            `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
     }
   }
 
@@ -58,6 +55,7 @@ export class PlayerComponent implements OnInit {
     this.numberOfTracks = this.audioFilenamesData.filenames.length;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
     this.audioTrack = this.apiService.getAudioTrack(audioFilename);
+    this.title = this.sanitizeFilename(audioFilename);
     this.audioTrackIsReady = true;
   }
 
@@ -65,6 +63,7 @@ export class PlayerComponent implements OnInit {
     this.selectedAudioIndex = newIndex;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
     this.audioTrack = this.apiService.getAudioTrack(audioFilename);
+    this.title = this.sanitizeFilename(audioFilename);
     this.updateAudioMetadataState();
   }
 
@@ -113,5 +112,9 @@ export class PlayerComponent implements OnInit {
     this.audioTrack.currentTime = event.target.value;
     this.audioTrack.play()
     this.audioTrackIsPlaying = true;
+  }
+
+  sanitizeFilename(filename: string): string {
+    return filename.split('.').slice(0, -1).join('.');
   }
 }

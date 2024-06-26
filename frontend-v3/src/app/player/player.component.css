@@ -2,7 +2,7 @@
     /* border: 1px solid red; */
     width: 75vw;
     height: 50vh;
-    padding-top: 10vh;
+    padding-top: 7vh;
 }
 
 .backdrop {
@@ -84,4 +84,32 @@
 .control-slider {
     width: 30vw;
     margin-top: 4vh;
+}
+
+.toolbar-div {
+    width: 40vw;
+    padding-left: 10vw;
+    padding-top: 4vh;
+    background-color: rgb(20, 19, 19)
+}
+
+.current-time-text {
+    color: white;
+    padding-right: 1vw;
+}
+
+.toolbar {
+    background-color: rgb(20, 19, 19)
+}
+
+.slider {
+    width: 30vw;
+}
+
+.songTitle {
+    color: white;
+}
+
+.songArtist {
+    color: white;
 }
