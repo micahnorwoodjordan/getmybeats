@@ -9,8 +9,8 @@ services:
       - ../:/application/getmybeats
     command: bash -c "
       cd /application/getmybeats/frontend-v3/src &&
-      npm install -g @angular/cli &&
-      npm install --package-lock-only &&
+      npm install -g @angular/cli && npm install --package-lock-only &&
+      npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
       ng build --verbose"
   api-web:
     build:
@@ -37,6 +37,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      frontend:
+        condition: service_completed_successfully
   db:
     ports:
       - 3307:3306
