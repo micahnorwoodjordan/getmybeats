@@ -1,15 +1,17 @@
-.player {
-    width: 75vw;
-    height: 50vh;
-    padding-top: 7vh;
-}
+.controls { width: 60vw; height: 15vh; }
+.control-buttons { margin-top: 5vh; }
+.current-time-text { color: white; padding-right: 1vw; }
+.toolbar { background-color: rgb(20, 19, 19) }
+.slider { width: 30vw; }
+.songTitle { color: white; }
+.songArtist { color: white; }
+.player { width: 75vw; height: 50vh; padding-top: 7vh; }
+.headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); padding-top: 6vh; }
 
 .backdrop {
     width: 40vw;
     height: 35vh;
     background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
-    backdrop-filter: drop-shadow(4px 4px 10px blue);
-    
 }
 
 /* .backdrop img{
@@ -19,21 +21,6 @@
     box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.3);
     filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3));
 } */
-
-.headset-backdrop-icon {
-    color: rgb(53, 55, 55);
-    transform: scale(5);
-    padding-top: 6vh;
-}
-
-.controls {
-    width: 60vw;
-    height: 15vh;
-}
-
-.control-buttons {
-    margin-top: 5vh;
-}
 
 .left-control-arrow {
     cursor: pointer;
@@ -82,27 +69,6 @@
     background-color: rgb(20, 19, 19)
 }
 
-.current-time-text {
-    color: white;
-    padding-right: 1vw;
-}
-
-.toolbar {
-    background-color: rgb(20, 19, 19)
-}
-
-.slider {
-    width: 30vw;
-}
-
-.songTitle {
-    color: white;
-}
-
-.songArtist {
-    color: white;
-}
-
 @media
 (width: 430px),  /* iPhone 14 Pro Max, iPhone 15 Plus and iPhone 15 Pro Max */
 (width: 428px),  /* iPhone 12 Pro Max, iPhone 13 Pro Max, and iPhone 14 Plus */
@@ -112,41 +78,18 @@
 (width: 390px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
 (width: 375px),  /* iPhone X, iPhone Xs, iPhone 11 Pro, iPhone 12 Mini, and iPhone 13 Mini */
 (width: 375px) {  /* iphone SE */
-    .slider {
-        width: 60vw;
-    }
-
-    .current-time-text {
-        color: red;
-        padding-right: 1vw;
-    }
+    .slider { width: 60vw; position: absolute; left: 20vw;}
+    .toolbar { width: 100%; }
+    .headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); padding-bottom: 4vh; }
+    .controls { width: 60vw; height: 15vh; }
+    .control-buttons { margin-top: 5vh; }
+    .player { width: 75vw; height: 50vh; padding-top: 7vh; }
+    .current-time-text { color: white; padding-right: 1vw; }
 
     .toolbar-div {
-        width: 40vw;
-        padding-left: 0vw;
-        padding-top: 4vh;
-        background-color: rgb(20, 19, 19)
-    }
-
-    .headset-backdrop-icon {
-        color: rgb(53, 55, 55);
-        transform: scale(5);
-        padding-bottom: 4vh;
-    }
-
-    .controls {
         width: 60vw;
-        height: 15vh;
-    }
-
-    .control-buttons {
-        margin-top: 5vh;
-    }
-
-    .player {
-        width: 75vw;
-        height: 50vh;
-        padding-top: 7vh;
+        padding-top: 4vh;
+        background-color: rgb(20, 19, 19);
     }
 
     .backdrop {
@@ -157,7 +100,8 @@
     }
 
     .left-control-arrow {
-        padding-right: 10vw;
+        position: absolute;
+        left: 30vw;
         cursor: pointer;
         transform: scale(1.5);
         transition: 0.5s;
@@ -165,7 +109,6 @@
     }
 
     .left-control-arrow:hover {
-        padding-right: 10vw;
         cursor: pointer;
         transform: scale(2);
         transition: 0.5s;
@@ -186,7 +129,8 @@
     }
 
     .right-control-arrow {
-        padding-left: 10vw;
+        position: absolute;
+        right: 30vw;
         cursor: pointer;
         transform: scale(1.5);
         transition: 0.5s;
@@ -194,7 +138,6 @@
     }
 
     .right-control-arrow:hover {
-        padding-left: 10vw;
         cursor: pointer;
         transform: scale(2);
         transition: 0.5s;
