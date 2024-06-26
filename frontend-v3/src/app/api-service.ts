@@ -9,10 +9,6 @@ import { environment } from 'src/environments/environment';
 })
 
 export class ApiService {
-
-  private baseApiMediaUrl = environment.apiHost + environment.apiMediaPath;
-  private baseLocalMediaPath = environment.localMediaPath;
-
   constructor(private httpClient: HttpClient) { }
 
   getAudioFilenames() {
@@ -22,7 +18,7 @@ export class ApiService {
   }
 
   getAudioTrack(audioTitle: string) {
-    let url = this.baseLocalMediaPath + audioTitle
+    let url = environment.apiMediaPath + audioTitle
     return new Audio(url);
   }
 }
