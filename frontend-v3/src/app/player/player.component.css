@@ -6,7 +6,14 @@
 .songTitle { color: white; }
 .songArtist { color: white; }
 .player { width: 75vw; height: 50vh; padding-top: 7vh; }
-.headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); padding-top: 6vh; }
+
+.headset-backdrop-icon { 
+    color: rgb(53, 55, 55);
+    transform: scale(5);
+    position: absolute;
+    top: 33vh;
+    left: 49.5vw;
+}
 
 .backdrop {
     width: 40vw;
@@ -80,11 +87,18 @@
 (width: 375px) {  /* iphone SE */
     .slider { width: 60vw; position: absolute; left: 20vw;}
     .toolbar { width: 100%; }
-    .headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); padding-bottom: 4vh; }
     .controls { width: 60vw; height: 15vh; }
     .control-buttons { margin-top: 5vh; }
     .player { width: 75vw; height: 50vh; padding-top: 7vh; }
     .current-time-text { color: white; padding-right: 1vw; }
+
+    .headset-backdrop-icon { 
+        color: rgb(53, 55, 55);
+        transform: scale(5);
+        position: absolute;
+        top: 10vh;
+        left: 17vw;
+    }
 
     .toolbar-div {
         width: 60vw;
