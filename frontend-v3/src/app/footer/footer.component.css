@@ -1,14 +1,1 @@
-/* LARGE SCREENS */
-@media only screen and (min-width: 1000px) {
-    .footer { position: absolute; bottom: 5vh; left: 43vw; }
-}
-
-/* MEDIUM SCREENS */
-@media only screen and (min-width: 450px) and (max-width: 1000px) {
-    .footer { position: absolute; bottom: 5vh; left: 40vw; }
-}
-
-/* SMALL SCREENS */
-@media only screen and (max-width: 450px) {
-    .footer { position: absolute; bottom: 5vh; left: 33vw; }
-}
+.footer { position: absolute; bottom: 5vh; }
