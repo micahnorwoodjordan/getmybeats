@@ -1,52 +1,27 @@
-.controls { width: 60vw; height: 15vh; }
-.control-buttons { margin-top: 5vh; }
-.current-time-text { color: white; padding-right: 1vw; }
-.toolbar { background-color: rgb(20, 19, 19) }
-.slider { width: 30vw; }
 .songTitle { color: white; }
 .songArtist { color: white; }
-.player { width: 75vw; height: 50vh; padding-top: 7vh; }
-.headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); padding-top: 6vh; }
+.slider { width: 40vw; margin-top: 3vh; margin-bottom: 1vh; }
+.control-buttons { margin-top: 2vh; }
+.current-time-text { color: white; }
+.right-control-arrow:hover { cursor: pointer; transform: scale(2); transition: 0.5s; }
+.left-control-arrow:hover { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
+.play-pause-control { cursor: pointer; transform: scale(1.5); transition: 0.5s; color: white; }
+.play-pause-control:hover { cursor: pointer; transform: scale(2); transition: 0.5s; }
+.headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); }
 
 .backdrop {
+    margin-top: 10vh;
     width: 40vw;
     height: 35vh;
     background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
 }
-
-/* .backdrop img{
-    border: 1px solid red;
-    width: 60vw;
-    height: auto;
-    box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.3);
-    filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3));
-} */
 
 .left-control-arrow {
     cursor: pointer;
     transform: scale(1.5);
     transition: 0.5s;
     color: white;
-}
-
-.left-control-arrow:hover {
-    cursor: pointer;
-    transform: scale(2);
-    transition: 0.5s;
-    color: white;
-}
-
-.play-pause-control {
-    cursor: pointer;
-    transform: scale(1.5);
-    transition: 0.5s;
-    color: white;
-}
-
-.play-pause-control:hover {
-    cursor: pointer;
-    transform: scale(2);
-    transition: 0.5s;
+    margin-right: 5vw;
 }
 
 .right-control-arrow {
@@ -54,92 +29,5 @@
     transform: scale(1.5);
     transition: 0.5s;
     color: white;
-}
-
-.right-control-arrow:hover {
-    cursor: pointer;
-    transform: scale(2);
-    transition: 0.5s;
-}
-
-.toolbar-div {
-    width: 40vw;
-    padding-left: 14vw;
-    padding-top: 4vh;
-    background-color: rgb(20, 19, 19)
-}
-
-@media
-(width: 430px),  /* iPhone 14 Pro Max, iPhone 15 Plus and iPhone 15 Pro Max */
-(width: 428px),  /* iPhone 12 Pro Max, iPhone 13 Pro Max, and iPhone 14 Plus */
-(width: 414px),  /* iPhone Xs Max, and iPhone 11 Pro Max */
-(width: 414px),  /* iPhone XR, and iPhone 11 */
-(width: 393px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
-(width: 390px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
-(width: 375px),  /* iPhone X, iPhone Xs, iPhone 11 Pro, iPhone 12 Mini, and iPhone 13 Mini */
-(width: 375px) {  /* iphone SE */
-    .slider { width: 60vw; position: absolute; left: 20vw;}
-    .toolbar { width: 100%; }
-    .headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); padding-bottom: 4vh; }
-    .controls { width: 60vw; height: 15vh; }
-    .control-buttons { margin-top: 5vh; }
-    .player { width: 75vw; height: 50vh; padding-top: 7vh; }
-    .current-time-text { color: white; padding-right: 1vw; }
-
-    .toolbar-div {
-        width: 60vw;
-        padding-top: 4vh;
-        background-color: rgb(20, 19, 19);
-    }
-
-    .backdrop {
-        width: 40vw;
-        height: 20vh;
-        background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
-        backdrop-filter: drop-shadow(4px 4px 10px blue);        
-    }
-
-    .left-control-arrow {
-        position: absolute;
-        left: 30vw;
-        cursor: pointer;
-        transform: scale(1.5);
-        transition: 0.5s;
-        color: white;
-    }
-
-    .left-control-arrow:hover {
-        cursor: pointer;
-        transform: scale(2);
-        transition: 0.5s;
-        color: white;
-    }
-
-    .play-pause-control {
-        cursor: pointer;
-        transform: scale(1.5);
-        transition: 0.5s;
-        color: white;
-    }
-
-    .play-pause-control:hover {
-        cursor: pointer;
-        transform: scale(2);
-        transition: 0.5s;
-    }
-
-    .right-control-arrow {
-        position: absolute;
-        right: 30vw;
-        cursor: pointer;
-        transform: scale(1.5);
-        transition: 0.5s;
-        color: white;
-    }
-
-    .right-control-arrow:hover {
-        cursor: pointer;
-        transform: scale(2);
-        transition: 0.5s;
-    }
+    margin-left: 5vw;
 }

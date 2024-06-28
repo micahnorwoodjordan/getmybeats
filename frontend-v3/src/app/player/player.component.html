@@ -1,41 +1,27 @@
 <div class="player">
     <div fxLayout="column" fxLayoutAlign="center center">
-        <div class="backdrop">
-            <!-- <img src="assets/megatron.jpeg" style="background-repeat: no-repeat;"> -->
+        <div class="backdrop" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
         </div>
-        <h1 class="songTitle"> {{ title }}</h1>
-        <h3 class="songArtist"> micah </h3>
-    </div>
-    <div fxLayout="column" fxLayoutAlign="center center">
-        <div class="controls">
-            <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
-                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
-                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
-                <mat-icon class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
-                <mat-icon *ngIf="!audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">play_arrow</mat-icon>
-                <mat-icon *ngIf="audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">pause</mat-icon>
-                <mat-icon class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
-                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
-                <mat-icon></mat-icon>  <!-- hack to reduce space between icons -->
-            </div>
-            <div class="toolbar-div">
-                <mat-toolbar *ngIf="audioTrackIsReady" class="toolbar">
-                    <div fxLayout="row" fxLayoutAlign="space-evenly center">
-                        <mat-slider
-                            (input)="onSliderChange($event)"
-                            step="0.05"
-                            min="0" max="{{ duration }}"
-                            class="slider"
-                        >
-                            <input matSliderThumb value="{{ audioTrack.currentTime }}"/>
-                        </mat-slider>
-                    </div>
-                </mat-toolbar>
-            </div>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <h1 class="songTitle"> {{ title }}</h1>
         </div>
-    </div>
-    <div fxLayout="column" fxLayoutAlign="space-evenly center">
-        <p class="current-time-text">{{ currentTime }}&nbsp; - &nbsp;{{ musicLength }}</p>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <h3 class="songArtist"> micah </h3>
+        </div>
+        <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
+            <mat-icon class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
+            <mat-icon *ngIf="!audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">play_arrow</mat-icon>
+            <mat-icon *ngIf="audioTrackIsPlaying" class="play-pause-control" (click)="onPlayPauseClick()">pause</mat-icon>
+            <mat-icon class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <mat-slider (input)="onSliderChange($event)" step="0.05" min="0" max="{{ duration }}" class="slider">
+                <input matSliderThumb value="{{ audioTrack.currentTime }}"/>
+            </mat-slider>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <p class="current-time-text">{{ currentTime }}&nbsp; - &nbsp;{{ musicLength }}</p>
+        </div>
     </div>
 </div>
