@@ -11,16 +11,17 @@ import { ApiService } from '../api-service';
 })
 
 export class PlayerComponent implements OnInit {
-  audioTrack: any;
+  audioTrack: HTMLAudioElement = new Audio();
   audioTrackIsReady = false;
   audioFilenamesData: any;
   selectedAudioIndex = 0;
-  numberOfTracks: any;
+  numberOfTracks: number = 0;
   audioTrackIsPlaying: boolean = false;
   musicLength: string = '0:00';
   duration: number = 1;
   currentTime: string = '0:00';
   title: string = "null";
+  sliderValue: number = 0;
 
   constructor(private apiService: ApiService) {}
 
@@ -54,7 +55,7 @@ export class PlayerComponent implements OnInit {
     this.audioFilenamesData = await this.apiService.getAudioFilenames();
     this.numberOfTracks = this.audioFilenamesData.filenames.length;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    this.audioTrack = this.apiService.getAudioTrack(audioFilename);
+    this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
     this.title = this.sanitizeFilename(audioFilename);
     this.audioTrackIsReady = true;
   }
@@ -109,7 +110,7 @@ export class PlayerComponent implements OnInit {
   }
 
   onSliderChange(event: any) {
-    this.audioTrack.currentTime = event.target.value;
+    this.audioTrack.currentTime = this.sliderValue;
     this.audioTrack.play()
     this.audioTrackIsPlaying = true;
   }

@@ -27,7 +27,7 @@ def b64encode_file_upload(filepath):
 
 
 def get_audio_filenames():
-    return [name for name in Audio.objects.all().values_list('file_upload', flat=True)]
+    return [name for name in Audio.objects.all().values_list('file_upload', flat=True).order_by('-id')]
 
 
 def get_main_audio_context(client_address):

@@ -32,11 +32,13 @@
           },
           "configurations": {
             "production": {
+              "buildOptimizer": false,
+              "optimization": false,
               "budgets": [
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumError": "5mb"
                 },
                 {
                   "type": "anyComponentStyle",

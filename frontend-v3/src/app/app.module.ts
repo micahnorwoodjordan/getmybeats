@@ -12,6 +12,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { HttpClientModule } from '@angular/common/http';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { FormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -28,7 +29,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatIconModule,
     HttpClientModule,
     MatSliderModule,
-    MatToolbarModule
+    MatToolbarModule,
+    FormsModule
   ],
   providers: [
     provideAnimationsAsync()
