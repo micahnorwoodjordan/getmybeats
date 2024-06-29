@@ -16,6 +16,7 @@ services:
       context: .
     ports:
       - 80:80
+      - 443:443
     command: /bin/bash -c "
       cd /application/media && aws s3 sync s3://getmybeats-audio ./ &&
       cd /application/getmybeats &&
