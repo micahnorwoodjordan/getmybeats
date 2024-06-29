@@ -5,7 +5,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.http import HttpResponse
 
-from GetMyBeatsApp.data_access.utilities import get_main_audio_context, get_audio_filenames, record_request_information
+from GetMyBeatsApp.data_access.utilities import get_audio_filenames, record_request_information
 
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,7 @@ def health_check(request):
 @api_view(['GET'])
 def home(request):
     recorded_site_visit = record_request_information(request)
-    context = get_main_audio_context(request.META['HTTP_X_FORWARDED_FOR'])
-    return render(request, 'home.html', context=context)
+    return render(request, 'home.html')
 
 
 # TODO: add auth: access only from node app
