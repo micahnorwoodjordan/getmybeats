@@ -22,5 +22,7 @@ cd
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 
+
+systemctl stop nginx
 cd $APPLICATION_DIR/dev
 docker compose up
