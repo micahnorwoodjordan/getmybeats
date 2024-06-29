@@ -20,11 +20,19 @@ services:
       cd /application/media && aws s3 sync s3://getmybeats-audio ./ &&
       cd /application/getmybeats &&
       . /opt/venvs/getmybeats/bin/activate &&
+      ssl_certificate_filename=$(./manage.py manage_ssl_configuration install_current) && mv $ssl_certificate_filename /etc &&
+      cd /etc && tar -xzvf $ssl_certificate_filename &&
+      (crontab -l 2>/dev/null; echo "0 22 01 */3 * /usr/bin/bash -c 'cd /application/getmybeats/GetMyBeatsApp/scripts/ssl/ && sh renew.sh'") | crontab - &&
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
       /opt/venvs/getmybeats/bin/gunicorn -c GetMyBeatsApp/digitalocean/gunicorn/gunicorn_config.py GetMyBeatsSettings.wsgi --daemon &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
+      touch infrastructure-update-results.txt &&
+      echo $(./manage.py auto_scale_load_balancer) >> infrastructure-update-results.txt &&
+      echo $(./manage.py auto_refresh_firewall) >> infrastructure-update-results.txt &&
+      echo 'END' >> infrastructure-update-results.txt &&
+      ./manage.py record_production_release &&
       tail -f /var/log/nginx/access.log"
     volumes:
       - ../:/application/getmybeats
