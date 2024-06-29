@@ -1,7 +1,7 @@
 services:
   frontend:
     build:
-        dockerfile: Dockerfile.frontend.dev
+        dockerfile: Dockerfile.frontend
         context: .
     volumes:
       - ../:/application/getmybeats
@@ -12,66 +12,24 @@ services:
       ng build --verbose"
   api-web:
     build:
-      dockerfile: Dockerfile.backend.dev
+      dockerfile: Dockerfile.backend
       context: .
     ports:
-      - 8000:8000
       - 80:80
     command: /bin/bash -c "
-      cd /application/media && aws s3 sync s3://getmybeats-audio-dev ./ &&
+      cd /application/media && aws s3 sync s3://getmybeats-audio ./ &&
       cd /application/getmybeats &&
       . /opt/venvs/getmybeats/bin/activate &&
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
-      /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon --reload &&
+      /opt/venvs/getmybeats/bin/gunicorn -c GetMyBeatsApp/digitalocean/gunicorn/gunicorn_config.py GetMyBeatsSettings.wsgi --daemon &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
       tail -f /var/log/nginx/access.log"
     volumes:
       - ../:/application/getmybeats
-      - ./nginx/dev.nginx.conf:/etc/nginx/nginx.conf
-    env_file:
-      .env
+      - ./GetMyBeatsApp/digitalocean/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /etc/environment:/etc/environment
     depends_on:
-      db:
-        condition: service_healthy
       frontend:
         condition: service_completed_successfully
-  db:
-    ports:
-      - 3307:3306
-    command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
-    image: mysql:8
-    volumes:    
-      - ./db:/root/db
-    environment:
-      MYSQL_USER: "mysql"
-      MYSQL_DATABASE: "getmybeats_local_old"
-      MYSQL_PASSWORD: "Password1!"
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_ROOT_PASSWORD: "Password1!"
-    healthcheck:
-        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-        timeout: 5s
-        retries: 1
-  dbimport:
-    volumes:    
-      - ./db:/root/db
-    image: mysql:8
-    entrypoint: "sh /root/db/import_db.sh"
-    environment:
-      MYSQL_USER: "mysql"
-      MYSQL_DATABASE: "getmybeats_local_old"
-      MYSQL_PASSWORD: "Password1!"
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_ROOT_PASSWORD: "Password1!"
-      MYSQL_HOST: "db"
-    depends_on:
-      db:
-        # https://stackoverflow.com/questions/42567475/docker-compose-check-if-mysql-connection-is-ready
-        condition: service_healthy
-  redis:
-    command: redis-server
-    image: redis
-    env_file:
-      - .env
