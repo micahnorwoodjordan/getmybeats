@@ -4,7 +4,7 @@ services:
         dockerfile: Dockerfile.frontend
         context: .
     volumes:
-      - ../:/application/getmybeats
+      - ./:/application/getmybeats
     command: bash -c "
       cd /application/getmybeats/frontend-v3/src &&
       npm install -g @angular/cli && npm install --package-lock-only &&
@@ -35,7 +35,7 @@ services:
       ./manage.py record_production_release &&
       tail -f /var/log/nginx/access.log"
     volumes:
-      - ../:/application/getmybeats
+      - ./:/application/getmybeats
       - ./GetMyBeatsApp/digitalocean/nginx/nginx.conf:/etc/nginx/nginx.conf
       - /etc/environment:/etc/environment
     depends_on:
