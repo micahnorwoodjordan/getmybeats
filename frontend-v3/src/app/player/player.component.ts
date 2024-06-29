@@ -15,7 +15,7 @@ export class PlayerComponent implements OnInit {
   audioTrackIsReady = false;
   audioFilenamesData: any;
   selectedAudioIndex = 0;
-  numberOfTracks: any;
+  numberOfTracks: number = 0;
   audioTrackIsPlaying: boolean = false;
   musicLength: string = '0:00';
   duration: number = 1;

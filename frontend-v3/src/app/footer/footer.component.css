@@ -1,1 +1,5 @@
-.footer { position: absolute; bottom: 5vh; }
+.footer { color: white; padding-top: 10vh; }
+
+@media (max-width: 750px) {
+    .footer { color: white; padding-top: 5vh; }
+}
