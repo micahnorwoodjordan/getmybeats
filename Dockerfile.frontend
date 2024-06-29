@@ -22,12 +22,6 @@ RUN mkdir -p /root/.aws
 # set up core files
 COPY ./ "$application_directory"
 
-
-# configure awscli auth
-RUN cp "$application_directory"/dev/.aws/credentials /root/.aws
-RUN cp "$application_directory"/dev/.aws/config /root/.aws
-
-
 # install awscli
 RUN cd && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 RUN cd && unzip awscliv2.zip
