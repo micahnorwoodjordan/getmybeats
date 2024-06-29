@@ -1,0 +1,46 @@
+FROM ubuntu:22.04
+
+
+# https://stackoverflow.com/questions/71040681/qemu-x86-64-could-not-open-lib64-ld-linux-x86-64-so-2-no-such-file-or-direc
+# uncomment when running on mac m1
+# FROM --platform=linux/amd64 ubuntu:22.04
+
+
+ARG application_directory="/application/getmybeats"
+ARG venv_directory="/opt/venvs/getmybeats"
+
+
+# first things first
+RUN apt update
+RUN apt install -y sudo curl iputils-ping nginx redis-tools \
+    python3 python3-pip mysql-client net-tools python3.10-venv unzip systemctl
+
+
+# set up directories
+RUN mkdir -p "$application_directory"
+RUN mkdir -p /var/log/django/
+RUN mkdir -p /var/log/gunicorn/
+RUN mkdir -p /application/media
+RUN mkdir -p "$venv_directory"
+RUN mkdir -p /root/.aws
+
+
+# set up core files
+RUN touch /var/log/gunicorn/error.log
+RUN touch /var/log/django/general.log
+RUN python3 -m venv "$venv_directory"
+COPY ./ "$application_directory"
+
+
+# configure awscli auth
+RUN cp "$application_directory"/dev/.aws/credentials /root/.aws
+RUN cp "$application_directory"/dev/.aws/config /root/.aws
+
+
+# install awscli
+RUN cd && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN cd && unzip awscliv2.zip
+RUN cd && sudo ./aws/install
+
+
+RUN cd "$application_directory" && . /opt/venvs/getmybeats/bin/activate && pip3 install -r requirements.txt
