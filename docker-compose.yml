@@ -22,7 +22,7 @@ services:
       . /opt/venvs/getmybeats/bin/activate &&
       ssl_certificate_filename=$(./manage.py manage_ssl_configuration install_current) && mv $ssl_certificate_filename /etc &&
       cd /etc && tar -xzvf $ssl_certificate_filename &&
-      (crontab -l 2>/dev/null; echo "0 22 01 */3 * /usr/bin/bash -c 'cd /application/getmybeats/GetMyBeatsApp/scripts/ssl/ && sh renew.sh'") | crontab - &&
+      (crontab -l 2>/dev/null; echo \"0 22 01 */3 * /usr/bin/bash -c 'cd /application/getmybeats/GetMyBeatsApp/scripts/ssl/ && sh renew.sh'\") | crontab - &&
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
@@ -38,6 +38,19 @@ services:
       - ./:/application/getmybeats
       - ./GetMyBeatsApp/digitalocean/nginx/nginx.conf:/etc/nginx/nginx.conf
       - /etc/environment:/etc/environment
+      - /root/.aws:/root/.aws
+    environment:
+      - REDIS_SETTINGS=${REDIS_SETTINGS}
+      - DIGITALOCEAN_SETTINGS=${DIGITALOCEAN_SETTINGS}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - CODE_BRANCH=${CODE_BRANCH}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DATABASE_SETTINGS=${DATABASE_SETTINGS}
+      - S3_RELEASE_PROVISIONING_BUCKET=${S3_RELEASE_PROVISIONING_BUCKET}
+      - S3_RELEASE_PROVISIONING_SCRIPT_NAME=${S3_RELEASE_PROVISIONING_SCRIPT_NAME}
+      - S3_AUDIO_BUCKET=${S3_AUDIO_BUCKET}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     depends_on:
       frontend:
         condition: service_completed_successfully
