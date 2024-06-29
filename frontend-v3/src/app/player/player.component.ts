@@ -39,8 +39,16 @@ export class PlayerComponent implements OnInit {
   playOnCycleThrough() { this.audioTrack.play(); }
   sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
   onSliderChange(event: any) {
+    setTimeout(() => {}, 200);
     this.sliderValueProxy = this.sliderValue;
     this.audioTrack.currentTime = this.sliderValueProxy;
+    this.audioTrack.play();
+  }
+
+  async getAndLoadAudioTrack(audioFilename: string) {
+    this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
+    this.audioTrack.load();
+    console.log('audio ready');
   }
 
   updateAudioMetadataState() {
@@ -70,14 +78,14 @@ export class PlayerComponent implements OnInit {
     this.audioFilenamesData = await this.apiService.getAudioFilenames();
     this.numberOfTracks = this.audioFilenamesData.filenames.length;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
+    await this.getAndLoadAudioTrack(audioFilename);
     this.title = this.sanitizeFilename(audioFilename);
   }
 
-  onSelectedAudioIndexChange(newIndex: number) {
+  async onSelectedAudioIndexChange(newIndex: number) {
     this.selectedAudioIndex = newIndex;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    this.audioTrack = this.apiService.getAudioTrack(audioFilename);
+    await this.getAndLoadAudioTrack(audioFilename);
     this.title = this.sanitizeFilename(audioFilename);
     this.updateAudioMetadataState();
   }
@@ -90,7 +98,7 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  onNext() {
+  async onNext() {
     this.pauseOnCycleThrough();
 
     if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
@@ -98,11 +106,11 @@ export class PlayerComponent implements OnInit {
     } else {
       this.selectedAudioIndex = 0;
     }
-    this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
 
-  onPrevious() {
+  async onPrevious() {
     this.pauseOnCycleThrough();
 
     if (this.selectedAudioIndex - 1 >= 0) {
@@ -110,7 +118,7 @@ export class PlayerComponent implements OnInit {
     } else {
       this.selectedAudioIndex = this.numberOfTracks - 1;
     }
-    this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
 }
