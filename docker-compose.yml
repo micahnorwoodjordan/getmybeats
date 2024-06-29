@@ -29,6 +29,7 @@ services:
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
       /opt/venvs/getmybeats/bin/gunicorn -c GetMyBeatsApp/digitalocean/gunicorn/gunicorn_config.py GetMyBeatsSettings.wsgi --daemon &&
+      apt install -y nginx &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
       touch infrastructure-update-results.txt &&
       echo $$(./manage.py auto_scale_load_balancer) >> infrastructure-update-results.txt &&
