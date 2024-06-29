@@ -16,8 +16,16 @@
             <mat-icon class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
         </div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
-            <mat-slider (input)="onSliderChange($event)" step="0.05" min="0" max="{{ duration }}" class="slider">
-                <input matSliderThumb value="{{ audioTrack.currentTime }}"/>
+            <mat-slider
+                (input)="onSliderChange($event)"
+                (onpointerdown)="onSliderChange($event)"
+                (onpointerup)="onSliderChange($event)"
+                (onmousebegin)="onSliderChange($event)"
+                (onmouseend)="onSliderChange($event)"
+                (change)="onSliderChange($event)"
+                step="0.05" min="0" max="{{ duration }}" class="slider"
+            >
+                <input matSliderThumb value="{{ sliderValue }}" [(ngModel)]="sliderValue"/>
             </mat-slider>
         </div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">

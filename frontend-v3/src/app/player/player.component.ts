@@ -21,6 +21,7 @@ export class PlayerComponent implements OnInit {
   duration: number = 1;
   currentTime: string = '0:00';
   title: string = "null";
+  sliderValue: number = 0;
 
   constructor(private apiService: ApiService) {}
 
@@ -109,7 +110,7 @@ export class PlayerComponent implements OnInit {
   }
 
   onSliderChange(event: any) {
-    this.audioTrack.currentTime = event.target.value;
+    this.audioTrack.currentTime = this.sliderValue;
     this.audioTrack.play()
     this.audioTrackIsPlaying = true;
   }
