@@ -20,6 +20,8 @@ export class PlayerComponent implements OnInit {
   currentTime: string = '0:00';
   title: string = "null";
   sliderValue: number = 0;
+  shuffleEnabled: boolean = false;
+  repeatEnabled: boolean = false;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -121,4 +123,7 @@ export class PlayerComponent implements OnInit {
     await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
+
+  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
+  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
 }

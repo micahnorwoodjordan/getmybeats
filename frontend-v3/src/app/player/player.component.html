@@ -21,7 +21,17 @@
             </mat-slider>
         </div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
-            <p class="current-time-text">{{ currentTime }} - {{ musicLength }}</p>
+            <div fxLayout="column" fxLayoutAlign="center center">
+                <mat-icon *ngIf="shuffleEnabled" class="shuffle-icon-enabled" (click)="onClickShuffle()">shuffle</mat-icon>
+                <mat-icon  *ngIf="!shuffleEnabled" class="shuffle-icon-disabled" (click)="onClickShuffle()">shuffle</mat-icon>
+            </div>
+            <div fxLayout="column" fxLayoutAlign="center center">
+                <p class="current-time-text">{{ currentTime }} - {{ musicLength }}</p>
+            </div>
+            <div fxLayout="column" fxLayoutAlign="center center">
+                <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()">autorenew</mat-icon>
+                <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()">autorenew</mat-icon>
+            </div>
         </div>
     </div>
 </div>
