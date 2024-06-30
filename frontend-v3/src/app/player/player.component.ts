@@ -20,6 +20,8 @@ export class PlayerComponent implements OnInit {
   currentTime: string = '0:00';
   title: string = "null";
   sliderValue: number = 0;
+  shuffleEnabled: boolean = false;
+  repeatEnabled: boolean = false;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -30,25 +32,110 @@ export class PlayerComponent implements OnInit {
 
   constructor(private apiService: ApiService) {}
 
-  async ngOnInit(): Promise<void> {
-    await this.setInitialAudioState();
-    this.updateAudioMetadataState();
-  }
 
+  // small methods
   pauseOnCycleThrough() { this.audioTrack.pause(); }
   playOnCycleThrough() { this.audioTrack.play(); }
   sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
-  onSliderChange(event: any) {
-    setTimeout(() => {}, 200);
-    this.sliderValueProxy = this.sliderValue;
-    this.audioTrack.currentTime = this.sliderValueProxy;
-    this.audioTrack.play();
+  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
+  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
+
+
+  // async methods
+  async ngOnInit(): Promise<void> {
+    await this.setInitialAudioState();
+    this.updateAudioMetadataState();
   }
 
   async getAndLoadAudioTrack(audioFilename: string) {
     this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
     this.audioTrack.load();
     console.log('audio ready');
+  }
+
+  async setInitialAudioState() {
+    // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
+    this.audioFilenamesData = await this.apiService.getAudioFilenames();
+    this.numberOfTracks = this.audioFilenamesData.filenames.length;
+    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
+    await this.getAndLoadAudioTrack(audioFilename);
+    this.title = this.sanitizeFilename(audioFilename);
+  }
+
+  async onSelectedAudioIndexChange(newIndex: number) {
+    this.selectedAudioIndex = newIndex;
+    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
+    await this.getAndLoadAudioTrack(audioFilename);
+    this.title = this.sanitizeFilename(audioFilename);
+    this.updateAudioMetadataState();
+  }
+
+  async onNext() {
+    if (this.shuffleEnabled) {
+      await this.onSongChangeShuffle(this.selectedAudioIndex); 
+    } else {
+      if (this.repeatEnabled) {
+        this.onSongChangeRepeatTrue();
+      } else {
+        this.onNextRepeatFalse();
+      }
+    }
+  }
+
+  async onNextRepeatFalse() {
+    this.pauseOnCycleThrough();
+
+    if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
+      this.selectedAudioIndex += 1;
+    } else {
+      this.selectedAudioIndex = 0;
+    }
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    this.playOnCycleThrough();
+  }
+
+  async onPreviousRepeatFalse() {
+    this.pauseOnCycleThrough();
+    if (this.selectedAudioIndex - 1 >= 0) {
+      this.selectedAudioIndex -= 1;
+    } else {
+      this.selectedAudioIndex = this.numberOfTracks - 1;
+    }
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    this.playOnCycleThrough();
+  }
+
+  async onPrevious() {
+    if (this.repeatEnabled) {
+      this.onSongChangeRepeatTrue();
+    } else {
+      this.onPreviousRepeatFalse();
+    }
+  }
+
+  async onSongChangeShuffle(badIndex: number): Promise<number> {
+    if (this.repeatEnabled) { this.repeatEnabled = !this.repeatEnabled; }
+    let lowerBound: number = 0;
+    let upperBound: number = this.numberOfTracks;
+    let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
+
+    if (randomTrackIndex === badIndex) {
+      console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
+      return this.onSongChangeShuffle(badIndex);
+    }
+    this.pauseOnCycleThrough()
+    await this.onSelectedAudioIndexChange(randomTrackIndex);
+    this.playOnCycleThrough();
+    return -1
+  }
+
+
+  // synchronous methods
+  onSliderChange(event: any) {
+    setTimeout(() => {}, 200);
+    this.sliderValueProxy = this.sliderValue;
+    this.audioTrack.currentTime = this.sliderValueProxy;
+    this.audioTrack.play();
   }
 
   updateAudioMetadataState() {
@@ -73,23 +160,6 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  async setInitialAudioState() {
-    // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
-    this.audioFilenamesData = await this.apiService.getAudioFilenames();
-    this.numberOfTracks = this.audioFilenamesData.filenames.length;
-    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    await this.getAndLoadAudioTrack(audioFilename);
-    this.title = this.sanitizeFilename(audioFilename);
-  }
-
-  async onSelectedAudioIndexChange(newIndex: number) {
-    this.selectedAudioIndex = newIndex;
-    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    await this.getAndLoadAudioTrack(audioFilename);
-    this.title = this.sanitizeFilename(audioFilename);
-    this.updateAudioMetadataState();
-  }
-
   onPlayPauseClick() {
     if (this.audioTrack.paused) {
       this.audioTrack.play();
@@ -98,27 +168,10 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  async onNext() {
+  onSongChangeRepeatTrue() {
     this.pauseOnCycleThrough();
-
-    if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
-      this.selectedAudioIndex += 1;
-    } else {
-      this.selectedAudioIndex = 0;
-    }
-    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
-    this.playOnCycleThrough();
-  }
-
-  async onPrevious() {
-    this.pauseOnCycleThrough();
-
-    if (this.selectedAudioIndex - 1 >= 0) {
-      this.selectedAudioIndex -= 1;
-    } else {
-      this.selectedAudioIndex = this.numberOfTracks - 1;
-    }
-    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    this.audioTrack.currentTime = 0;
+    this.audioTrack.load();
     this.playOnCycleThrough();
   }
 }
