@@ -38,8 +38,8 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "buildOptimizer": false,
-              "optimization": false,
+              "buildOptimizer": true,
+              "optimization": true,
               "budgets": [
                 {
                   "type": "initial",
