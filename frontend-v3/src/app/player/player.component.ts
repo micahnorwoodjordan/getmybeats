@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import * as moment from 'moment';
+import { duration as momentDuration } from 'moment';
 
 import { ApiService } from '../api-service';
 
@@ -22,6 +22,8 @@ export class PlayerComponent implements OnInit {
   sliderValue: number = 0;
   shuffleEnabled: boolean = false;
   repeatEnabled: boolean = false;
+  loading: boolean = false;
+  lowBandwidthMode: boolean = false;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -37,8 +39,8 @@ export class PlayerComponent implements OnInit {
   pauseOnCycleThrough() { this.audioTrack.pause(); }
   playOnCycleThrough() { this.audioTrack.play(); }
   sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
-  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
-  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
+  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false; }
+  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; this.shuffleEnabled = false; }
 
 
   // async methods
@@ -144,7 +146,7 @@ export class PlayerComponent implements OnInit {
     // these blocks are instrumental in getting the audio seeking logic to work correctly
     this.audioTrack.ondurationchange = () => {
       const totalSeconds = Math.floor(this.audioTrack.duration);
-      const duration = moment.duration(totalSeconds, 'seconds');
+      const duration = momentDuration(totalSeconds, 'seconds');
       this.musicLength = duration.seconds() < 10 ?
         `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
           `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
@@ -152,12 +154,26 @@ export class PlayerComponent implements OnInit {
     }
 
     this.audioTrack.ontimeupdate = () => {
-      const duration = moment.duration(Math.floor(this.audioTrack.currentTime), 'seconds');
+      const duration = momentDuration(Math.floor(this.audioTrack.currentTime), 'seconds');
       this.currentTime = duration.seconds() < 10 ? 
       `${Math.floor(duration.asMinutes())}:0${duration.seconds()}`:
         `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
       this.sliderValue = this.audioTrack.currentTime;
     }
+
+    this.audioTrack.onended = () => { this.loading = true; this.onNext(); }
+    this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
+    this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
+    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
+
+    this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
+    this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
+    this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
+    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
+
+    this.audioTrack.onstalled = () => { console.log('onstalled'); this.lowBandwidthMode = true; }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.lowBandwidthMode = true; }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.lowBandwidthMode = false; }
   }
 
   onPlayPauseClick() {
