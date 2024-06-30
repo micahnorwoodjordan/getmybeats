@@ -22,6 +22,7 @@ export class PlayerComponent implements OnInit {
   sliderValue: number = 0;
   shuffleEnabled: boolean = false;
   repeatEnabled: boolean = false;
+  loading: boolean = false;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -47,8 +48,10 @@ export class PlayerComponent implements OnInit {
     this.updateAudioMetadataState();
   }
 
-  async getAndLoadAudioTrack(audioFilename: string) {
-    this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
+  getAndLoadAudioTrack(audioFilename: string) {
+    this.loading = true;
+    this.audioTrack = this.apiService.getAudioTrack(audioFilename);
+    this.loading = false
     this.audioTrack.load();
     console.log('audio ready');
   }
@@ -58,21 +61,21 @@ export class PlayerComponent implements OnInit {
     this.audioFilenamesData = await this.apiService.getAudioFilenames();
     this.numberOfTracks = this.audioFilenamesData.filenames.length;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    await this.getAndLoadAudioTrack(audioFilename);
+    this.getAndLoadAudioTrack(audioFilename);
     this.title = this.sanitizeFilename(audioFilename);
   }
 
-  async onSelectedAudioIndexChange(newIndex: number) {
+  onSelectedAudioIndexChange(newIndex: number) {
     this.selectedAudioIndex = newIndex;
     let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    await this.getAndLoadAudioTrack(audioFilename);
+    this.getAndLoadAudioTrack(audioFilename);
     this.title = this.sanitizeFilename(audioFilename);
     this.updateAudioMetadataState();
   }
 
-  async onNext() {
+  onNext() {
     if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex); 
+      this.onSongChangeShuffle(this.selectedAudioIndex); 
     } else {
       if (this.repeatEnabled) {
         this.onSongChangeRepeatTrue();
@@ -82,7 +85,7 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  async onNextRepeatFalse() {
+  onNextRepeatFalse() {
     this.pauseOnCycleThrough();
 
     if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
@@ -90,22 +93,22 @@ export class PlayerComponent implements OnInit {
     } else {
       this.selectedAudioIndex = 0;
     }
-    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    this.onSelectedAudioIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
 
-  async onPreviousRepeatFalse() {
+  onPreviousRepeatFalse() {
     this.pauseOnCycleThrough();
     if (this.selectedAudioIndex - 1 >= 0) {
       this.selectedAudioIndex -= 1;
     } else {
       this.selectedAudioIndex = this.numberOfTracks - 1;
     }
-    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    this.onSelectedAudioIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
 
-  async onPrevious() {
+  onPrevious() {
     if (this.repeatEnabled) {
       this.onSongChangeRepeatTrue();
     } else {
@@ -113,7 +116,7 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  async onSongChangeShuffle(badIndex: number): Promise<number> {
+  onSongChangeShuffle(badIndex: number):  number {
     if (this.repeatEnabled) { this.repeatEnabled = !this.repeatEnabled; }
     let lowerBound: number = 0;
     let upperBound: number = this.numberOfTracks;
@@ -124,7 +127,7 @@ export class PlayerComponent implements OnInit {
       return this.onSongChangeShuffle(badIndex);
     }
     this.pauseOnCycleThrough()
-    await this.onSelectedAudioIndexChange(randomTrackIndex);
+    this.onSelectedAudioIndexChange(randomTrackIndex);
     this.playOnCycleThrough();
     return -1
   }
