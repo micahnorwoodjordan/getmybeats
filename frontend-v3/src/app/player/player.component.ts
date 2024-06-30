@@ -169,9 +169,11 @@ export class PlayerComponent implements OnInit {
     this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
     this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
     this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
+    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
 
     this.audioTrack.onstalled = () => { console.log('onstalled'); this.lowBandwidthMode = true; }
     this.audioTrack.onerror = () => { console.log('onerror'); this.lowBandwidthMode = true; }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.lowBandwidthMode = false; }
   }
 
   onPlayPauseClick() {
