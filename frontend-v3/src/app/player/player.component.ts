@@ -23,6 +23,7 @@ export class PlayerComponent implements OnInit {
   shuffleEnabled: boolean = false;
   repeatEnabled: boolean = false;
   loading: boolean = false;
+  lowBandwidthMode: boolean = false;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -164,10 +165,13 @@ export class PlayerComponent implements OnInit {
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
     this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
+
     this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
     this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
-    this.audioTrack.onseeked = () => { console.log('sought'); this.loading = false; }
-    this.audioTrack.oncanplay = () => {  }  // lower bandwidth; maybe toggle an icon to let user know about this
+    this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
+
+    this.audioTrack.onstalled = () => { console.log('onstalled'); this.lowBandwidthMode = true; }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.lowBandwidthMode = true; }
   }
 
   onPlayPauseClick() {

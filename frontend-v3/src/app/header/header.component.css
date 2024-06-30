@@ -1,18 +1,12 @@
-.header-box {
-    padding-top: 2vh;
-    color: white;
+.header-primary { padding-top: 2vh; color: white; }
+
+.header-bandwidth-status {
+    width: 100vw;
+    height: 5vh;
+    color: black;
+    background-color: rgb(223, 132, 28);
 }
 
-@media
-(width: 430px),  /* iPhone 14 Pro Max, iPhone 15 Plus and iPhone 15 Pro Max */
-(width: 428px),  /* iPhone 12 Pro Max, iPhone 13 Pro Max, and iPhone 14 Plus */
-(width: 414px),  /* iPhone Xs Max, and iPhone 11 Pro Max */
-(width: 414px),  /* iPhone XR, and iPhone 11 */
-(width: 393px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
-(width: 390px),  /* iPhone 14 Pro, iPhone 15 and iPhone 15 Pro */
-(width: 375px),  /* iPhone X, iPhone Xs, iPhone 11 Pro, iPhone 12 Mini, and iPhone 13 Mini */
-(width: 375px) {  /* iphone SE */
-    .header-box {
-        color: white;
-    }
+@media (max-width: 750px) {
+    .header-primary { color: white; }
 }
