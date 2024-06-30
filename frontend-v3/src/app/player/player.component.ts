@@ -32,50 +32,25 @@ export class PlayerComponent implements OnInit {
 
   constructor(private apiService: ApiService) {}
 
-  async ngOnInit(): Promise<void> {
-    await this.setInitialAudioState();
-    this.updateAudioMetadataState();
-  }
 
+  // small methods
   pauseOnCycleThrough() { this.audioTrack.pause(); }
   playOnCycleThrough() { this.audioTrack.play(); }
   sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
   onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
   onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
 
-  onSliderChange(event: any) {
-    setTimeout(() => {}, 200);
-    this.sliderValueProxy = this.sliderValue;
-    this.audioTrack.currentTime = this.sliderValueProxy;
-    this.audioTrack.play();
+
+  // async methods
+  async ngOnInit(): Promise<void> {
+    await this.setInitialAudioState();
+    this.updateAudioMetadataState();
   }
 
   async getAndLoadAudioTrack(audioFilename: string) {
     this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
     this.audioTrack.load();
     console.log('audio ready');
-  }
-
-  updateAudioMetadataState() {
-    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
-    // the below logic blocks are borrowed from the above github project
-    // these blocks are instrumental in getting the audio seeking logic to work correctly
-    this.audioTrack.ondurationchange = () => {
-      const totalSeconds = Math.floor(this.audioTrack.duration);
-      const duration = moment.duration(totalSeconds, 'seconds');
-      this.musicLength = duration.seconds() < 10 ?
-        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
-          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
-      this.duration = totalSeconds;
-    }
-
-    this.audioTrack.ontimeupdate = () => {
-      const duration = moment.duration(Math.floor(this.audioTrack.currentTime), 'seconds');
-      this.currentTime = duration.seconds() < 10 ? 
-      `${Math.floor(duration.asMinutes())}:0${duration.seconds()}`:
-        `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
-      this.sliderValue = this.audioTrack.currentTime;
-    }
   }
 
   async setInitialAudioState() {
@@ -93,14 +68,6 @@ export class PlayerComponent implements OnInit {
     await this.getAndLoadAudioTrack(audioFilename);
     this.title = this.sanitizeFilename(audioFilename);
     this.updateAudioMetadataState();
-  }
-
-  onPlayPauseClick() {
-    if (this.audioTrack.paused) {
-      this.audioTrack.play();
-    } else {
-      this.audioTrack.pause();
-    }
   }
 
   async onNext() {
@@ -139,6 +106,45 @@ export class PlayerComponent implements OnInit {
       this.onSongChangeRepeatTrue();
     } else {
       this.onPreviousRepeatFalse();
+    }
+  }
+
+
+  // synchronous methods
+  onSliderChange(event: any) {
+    setTimeout(() => {}, 200);
+    this.sliderValueProxy = this.sliderValue;
+    this.audioTrack.currentTime = this.sliderValueProxy;
+    this.audioTrack.play();
+  }
+
+  updateAudioMetadataState() {
+    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+    // the below logic blocks are borrowed from the above github project
+    // these blocks are instrumental in getting the audio seeking logic to work correctly
+    this.audioTrack.ondurationchange = () => {
+      const totalSeconds = Math.floor(this.audioTrack.duration);
+      const duration = moment.duration(totalSeconds, 'seconds');
+      this.musicLength = duration.seconds() < 10 ?
+        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+      this.duration = totalSeconds;
+    }
+
+    this.audioTrack.ontimeupdate = () => {
+      const duration = moment.duration(Math.floor(this.audioTrack.currentTime), 'seconds');
+      this.currentTime = duration.seconds() < 10 ? 
+      `${Math.floor(duration.asMinutes())}:0${duration.seconds()}`:
+        `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+      this.sliderValue = this.audioTrack.currentTime;
+    }
+  }
+
+  onPlayPauseClick() {
+    if (this.audioTrack.paused) {
+      this.audioTrack.play();
+    } else {
+      this.audioTrack.pause();
     }
   }
 
