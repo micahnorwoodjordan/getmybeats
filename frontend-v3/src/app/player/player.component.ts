@@ -71,10 +71,14 @@ export class PlayerComponent implements OnInit {
   }
 
   async onNext() {
-    if (this.repeatEnabled) {
-      this.onSongChangeRepeatTrue();
+    if (this.shuffleEnabled) {
+      await this.onSongChangeShuffle(this.selectedAudioIndex); 
     } else {
-      this.onNextRepeatFalse();
+      if (this.repeatEnabled) {
+        this.onSongChangeRepeatTrue();
+      } else {
+        this.onNextRepeatFalse();
+      }
     }
   }
 
@@ -107,6 +111,22 @@ export class PlayerComponent implements OnInit {
     } else {
       this.onPreviousRepeatFalse();
     }
+  }
+
+  async onSongChangeShuffle(badIndex: number): Promise<number> {
+    if (this.repeatEnabled) { this.repeatEnabled = !this.repeatEnabled; }
+    let lowerBound: number = 0;
+    let upperBound: number = this.numberOfTracks;
+    let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
+
+    if (randomTrackIndex === badIndex) {
+      console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
+      return this.onSongChangeShuffle(badIndex);
+    }
+    this.pauseOnCycleThrough()
+    await this.onSelectedAudioIndexChange(randomTrackIndex);
+    this.playOnCycleThrough();
+    return -1
   }
 
 
