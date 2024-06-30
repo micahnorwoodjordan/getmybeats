@@ -26,6 +26,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('health-check', views.health_check, name='health_check'),
     path('audio-filenames', views.audio_filenames),
+    path('releases/<str:release_id>/', views.get_release)
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
