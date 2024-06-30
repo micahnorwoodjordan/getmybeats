@@ -3,12 +3,21 @@ import logging
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
-from GetMyBeatsApp.data_access.utilities import get_audio_filenames, record_request_information
+from GetMyBeatsApp.serializers import ProductionReleaseSerializer
+from GetMyBeatsApp.data_access.utilities import get_audio_filenames, record_request_information, get_release_by_id
 
 
 logger = logging.getLogger(__name__)
+
+
+GENERIC_200_MSG = 'SUCCESS'
+GENERIC_400_MSG = 'BAD_REQUEST'
+GENERIC_404_MSG = 'RESOURCE_NOT_FOUND'
+GENERIC_500_MSG = 'UNKNOWN_SERVER_ERROR'
 
 
 def handler404(request, exception, template_name="404.html"):
@@ -46,4 +55,28 @@ def audio_filenames(request):
         }
         return HttpResponse(content=json.dumps(data))
     except:
-        return HttpResponse(status=500, reason='unknown server error')
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)
+
+
+@api_view(['GET'])
+def get_release(request, release_id):
+    try:
+        release_id = int(release_id)
+        release = get_release_by_id(release_id)
+        serializer = ProductionReleaseSerializer(release)
+        return JsonResponse(serializer.data)
+
+    except ValueError as err:
+        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+        logger.exception('get_release', extra=extra)
+        return HttpResponse(status=400, reason=GENERIC_400_MSG)
+
+    except ObjectDoesNotExist as err:
+        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+        logger.exception('get_release', extra=extra)
+        return HttpResponse(status=404, reason=GENERIC_404_MSG)
+
+    except Exception as err:
+        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
+        logger.exception('get_release', extra=extra)
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)

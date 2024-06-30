@@ -18,7 +18,13 @@ export class ApiService {
   }
 
   getAudioTrack(audioTitle: string) {
-    let url = environment.apiMediaPath + audioTitle
+    let url = environment.apiMediaPath + audioTitle;
     return new Audio(url);
+  }
+
+  getLastRelease() {
+    let location = '/releases/-1/';
+    let url = environment.apiHost + location;
+    return this.httpClient.get(url).toPromise();
   }
 }

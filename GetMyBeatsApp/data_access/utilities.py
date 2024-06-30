@@ -6,7 +6,7 @@ from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.utils.timezone import now
 
-from GetMyBeatsApp.models import Audio, SiteVisitRequest
+from GetMyBeatsApp.models import Audio, SiteVisitRequest, ProductionRelease
 from GetMyBeatsApp.serializers import AudioSerializer
 
 
@@ -63,3 +63,9 @@ def record_request_information(request):
         cache.add(site_vist_request_cache_key, remote_ip_address)
 
     return recorded_site_visit
+
+
+def get_release_by_id(release_id):
+    if release_id == -1:
+        return ProductionRelease.objects.last()
+    return ProductionRelease.objects.get(id=release_id)
