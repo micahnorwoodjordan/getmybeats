@@ -9,7 +9,7 @@ services:
       cd /application/getmybeats/frontend-v3/src &&
       npm install -g @angular/cli && npm install --package-lock-only &&
       npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
-      ng build --verbose"
+      ng build --configuration production"
   api-web:
     build:
       dockerfile: Dockerfile.backend
