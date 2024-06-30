@@ -18,15 +18,15 @@
     background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
 }
 
-.repeat-icon-enabled { color: rgb(158, 94, 242); transform: scale(2.3); transition: 2s; margin-left: 10vh; cursor: pointer; }
-.repeat-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(2.5); margin-left: 10vh; transition: 2s; cursor: pointer; }
-.repeat-icon-disabled { color: white; transform: scale(1.5); transition: 2s; margin-left: 10vh; cursor: pointer; }
-.repeat-icon-disabled:hover { color: white; transform: scale(2.5); margin-left: 10vh; transition: 2s; cursor: pointer; }
+.repeat-icon-enabled { color: rgb(158, 94, 242); transform: scale(2.3); transition: 1s; margin-left: 10vh; cursor: pointer; }
+.repeat-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(2.5); margin-left: 10vh; transition: 1s; cursor: pointer; }
+.repeat-icon-disabled { color: white; transform: scale(1.5); transition: 1s; margin-left: 10vh; cursor: pointer; }
+.repeat-icon-disabled:hover { color: white; transform: scale(2.5); margin-left: 10vh; transition: 1s; cursor: pointer; }
 
-.shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(2.3); transition: 2s; margin-right: 10vh; cursor: pointer; }
-.shuffle-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(2.5); margin-right: 10vh; transition: 2s; cursor: pointer; }
-.shuffle-icon-disabled { color: white; transform: scale(1.5); transition: 2s; margin-right: 10vh; cursor: pointer; }
-.shuffle-icon-disabled:hover { color: white; transform: scale(2.5); margin-right: 10vh; transition: 2s; cursor: pointer; }
+.shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(2.3); transition: 1s; margin-right: 10vh; cursor: pointer; }
+.shuffle-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(2.5); margin-right: 10vh; transition: 1s; cursor: pointer; }
+.shuffle-icon-disabled { color: white; transform: scale(1.5); transition: 1s; margin-right: 10vh; cursor: pointer; }
+.shuffle-icon-disabled:hover { color: white; transform: scale(2.5); margin-right: 10vh; transition: 1s; cursor: pointer; }
 
 
 @media (max-width: 750px) {
@@ -39,13 +39,13 @@
         background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
     }
 
-    .repeat-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 2s; margin-left: 10vh; cursor: pointer; }
-    .repeat-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(1.5); margin-left: 10vh; transition: 2s; cursor: pointer; }
-    .repeat-icon-disabled { color: white; transform: scale(1.0); transition: 2s; margin-left: 10vh; cursor: pointer; }
-    .repeat-icon-disabled:hover { color: white; transform: scale(1.0); margin-left: 10vh; transition: 2s; cursor: pointer; }
+    .repeat-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; margin-left: 10vh; cursor: pointer; }
+    .repeat-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(1.5); margin-left: 10vh; transition: 1s; cursor: pointer; }
+    .repeat-icon-disabled { color: white; transform: scale(1.0); transition: 1s; margin-left: 10vh; cursor: pointer; }
+    .repeat-icon-disabled:hover { color: white; transform: scale(1.0); margin-left: 10vh; transition: 1s; cursor: pointer; }
     
-    .shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 2s; margin-right: 10vh; cursor: pointer; }
-    .shuffle-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(1.5); margin-right: 10vh; transition: 2s; cursor: pointer; }
-    .shuffle-icon-disabled { color: white; transform: scale(1.0); transition: 2s; margin-right: 10vh; cursor: pointer; }
-    .shuffle-icon-disabled:hover { color: white; transform: scale(1.0); margin-right: 10vh; transition: 2s; cursor: pointer; }    
+    .shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; margin-right: 10vh; cursor: pointer; }
+    .shuffle-icon-enabled:hover { color: rgb(158, 94, 242); transform: scale(1.5); margin-right: 10vh; transition: 1s; cursor: pointer; }
+    .shuffle-icon-disabled { color: white; transform: scale(1.0); transition: 1s; margin-right: 10vh; cursor: pointer; }
+    .shuffle-icon-disabled:hover { color: white; transform: scale(1.0); margin-right: 10vh; transition: 1s; cursor: pointer; }    
 }
