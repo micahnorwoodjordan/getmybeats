@@ -40,6 +40,9 @@ export class PlayerComponent implements OnInit {
   pauseOnCycleThrough() { this.audioTrack.pause(); }
   playOnCycleThrough() { this.audioTrack.play(); }
   sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
+  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
+  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
+
   onSliderChange(event: any) {
     setTimeout(() => {}, 200);
     this.sliderValueProxy = this.sliderValue;
@@ -101,6 +104,14 @@ export class PlayerComponent implements OnInit {
   }
 
   async onNext() {
+    if (this.repeatEnabled) {
+      this.onSongChangeRepeatTrue();
+    } else {
+      this.onNextRepeatFalse();
+    }
+  }
+
+  async onNextRepeatFalse() {
     this.pauseOnCycleThrough();
 
     if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
@@ -112,9 +123,8 @@ export class PlayerComponent implements OnInit {
     this.playOnCycleThrough();
   }
 
-  async onPrevious() {
+  async onPreviousRepeatFalse() {
     this.pauseOnCycleThrough();
-
     if (this.selectedAudioIndex - 1 >= 0) {
       this.selectedAudioIndex -= 1;
     } else {
@@ -124,6 +134,18 @@ export class PlayerComponent implements OnInit {
     this.playOnCycleThrough();
   }
 
-  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
-  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
+  async onPrevious() {
+    if (this.repeatEnabled) {
+      this.onSongChangeRepeatTrue();
+    } else {
+      this.onPreviousRepeatFalse();
+    }
+  }
+
+  onSongChangeRepeatTrue() {
+    this.pauseOnCycleThrough();
+    this.audioTrack.currentTime = 0;
+    this.audioTrack.load();
+    this.playOnCycleThrough();
+  }
 }
