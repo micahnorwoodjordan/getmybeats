@@ -10,7 +10,7 @@
 .headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); }
 .left-control-arrow { cursor: pointer; transform: scale(1.5); transition: 0.5s; color: white; margin-right: 5vw; }
 .right-control-arrow { cursor: pointer; transform: scale(1.5); transition: 0.5s; color: white; margin-left: 5vw; }
-.progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); }
+.progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 
 .backdrop {
     margin-top: 10vh;
@@ -34,7 +34,7 @@
     .slider { width: 80vw; margin-top: 3vh; margin-bottom: 1vh; }
     .left-control-arrow { cursor: pointer; transform: scale(1.5); transition: 0.5s; color: white; margin-right: 15vw; }
     .right-control-arrow { cursor: pointer; transform: scale(1.5); transition: 0.5s; color: white; margin-left: 15vw; }
-    .progress-spinner { z-index: 1; position: absolute; top: 51vh; }
+    .progress-spinner { z-index: 1; position: absolute; top: 51vh; opacity: 0.3; }
 
     .backdrop {
         margin-top: 5vh; width: 70vw; height: 40vh;

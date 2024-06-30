@@ -159,6 +159,14 @@ export class PlayerComponent implements OnInit {
         `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
       this.sliderValue = this.audioTrack.currentTime;
     }
+
+    this.audioTrack.onended = () => { this.loading = true; this.onNext(); }
+    this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
+    this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.loading = false; }
+    this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
+    this.audioTrack.onplaying = () => { console.log('onplaying'); this.loading = false; }
+    this.audioTrack.onseeked = () => { console.log('sought'); this.loading = false; }
   }
 
   onPlayPauseClick() {
