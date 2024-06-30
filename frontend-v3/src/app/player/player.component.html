@@ -9,7 +9,7 @@
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
             <h3 class="songArtist"> micah </h3>
         </div>
-        <mat-spinner *ngIf="!loading" class="progress-spinner"></mat-spinner>
+        <mat-spinner *ngIf="loading" class="progress-spinner"></mat-spinner>
         <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
             <mat-icon *ngIf="audioTrack.paused" class="play-pause-control" (click)="onPlayPauseClick()">play_arrow</mat-icon>
