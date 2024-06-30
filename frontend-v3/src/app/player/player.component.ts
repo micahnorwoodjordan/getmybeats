@@ -38,8 +38,8 @@ export class PlayerComponent implements OnInit {
   pauseOnCycleThrough() { this.audioTrack.pause(); }
   playOnCycleThrough() { this.audioTrack.play(); }
   sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
-  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; }
-  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; }
+  onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false; }
+  onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; this.shuffleEnabled = false; }
 
 
   // async methods
@@ -163,10 +163,11 @@ export class PlayerComponent implements OnInit {
     this.audioTrack.onended = () => { this.loading = true; this.onNext(); }
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
-    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.loading = false; }
+    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
+    this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
     this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
-    this.audioTrack.onplaying = () => { console.log('onplaying'); this.loading = false; }
     this.audioTrack.onseeked = () => { console.log('sought'); this.loading = false; }
+    this.audioTrack.oncanplay = () => {  }  // lower bandwidth; maybe toggle an icon to let user know about this
   }
 
   onPlayPauseClick() {
