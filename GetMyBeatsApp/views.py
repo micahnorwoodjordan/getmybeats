@@ -1,3 +1,4 @@
+import uuid
 import json
 import logging
 
@@ -42,10 +43,15 @@ def health_check(request):
 
 @api_view(['GET'])
 def player_private_access(request, access_key, access_secret):
-    recorded_site_visit = record_request_information(request)
-    if access_key == settings.API_ACCESS_KEY and access_secret == settings.API_SECRET_KEY:
-        return render(request, 'player_private_access.html')
-    return HttpResponse(401, reason=GENERIC_401_MSG)
+    # not forcing uuid as constraint on url slug; seems less susceptible to brute force guessing attempts
+    try:
+        uuid.UUID(access_key)
+        uuid.UUID(access_secret)
+        recorded_site_visit = record_request_information(request)
+        if access_key == settings.API_ACCESS_KEY and access_secret == settings.API_SECRET_KEY:
+            return render(request, 'player_private_access.html')
+    except:
+         return HttpResponse(404, reason=GENERIC_404_MSG)  # 404 because public shouldnt even know about this
 
 
 @api_view(['GET'])

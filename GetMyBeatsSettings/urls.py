@@ -26,7 +26,7 @@ urlpatterns = [
 
 player_patterns = [
     path('player/', views.player_public_access),
-    path('player/internal/<str:access_key>/<uuid:access_secret>', views.player_private_access),
+    path('player/internal/<str:access_key>/<str:access_secret>', views.player_private_access),
 ]
 
 internal_patterns = [
