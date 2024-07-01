@@ -27,6 +27,10 @@ services:
       ./manage.py collectstatic --no-input &&
       echo 'starting gunicorn' && 
       /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon --reload &&
+      cp /etc/nginx/nginx.conf /etc/nginx/temp.conf &&
+      sed -i \"s/noodles/${API_AUDIO_ACCESS_TOKEN}/\" /etc/nginx/temp.conf &&
+      cat /etc/nginx/temp.conf > /etc/nginx/nginx.conf &&
+      cat /etc/nginx/nginx.conf &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&
       tail -f /var/log/nginx/access.log"
     volumes:

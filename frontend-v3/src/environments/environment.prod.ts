@@ -5,5 +5,6 @@ export const environment = {
     apiAccessKey: "",
     apiAccessSecret: "",
     apiMediaPath: "/media/",
+    apiAudioAccessToken: "",
     localMediaPath: "/assets/"
 }

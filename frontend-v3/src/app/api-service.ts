@@ -18,7 +18,7 @@ export class ApiService {
   }
 
   getAudioTrack(audioTitle: string) {
-    let url = environment.apiMediaPath + audioTitle;
+    let url = environment.apiMediaPath + audioTitle + '?' + 'audio_access_token=' + environment.apiAudioAccessToken;
     return new Audio(url);
   }
 
