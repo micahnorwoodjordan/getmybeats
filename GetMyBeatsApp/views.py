@@ -8,6 +8,7 @@ from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
+from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
     get_audio_filenames, record_request_information, get_release_by_id,
@@ -92,10 +93,14 @@ def get_site_audio_context(request):
 
 
 def get_audio_by_hash(request, filename_hash):
-    audio = get_audio_by_filename_hash(filename_hash)
-    content_file = ContentFile(open(audio.file_upload.path, 'rb').read())
-    response = HttpResponse(content_file, content_type='text/plain')
-    response['Content-Length'] = content_file.size
-    response['Content-Disposition'] = f'attachment; filename={filename_hash}'
-    response['Range'] = 'bytes=0-'
-    return response
+    try:
+        audio = get_audio_by_filename_hash(filename_hash)
+        content_file = ContentFile(open(audio.file_upload.path, 'rb').read())
+        response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file), content_type='audio/mpeg')
+        response['Content-Length'] = content_file.size
+        response['Content-Disposition'] = f'attachment; filename={filename_hash}'
+        response['Range'] = 'bytes=0-'
+        return response
+    except Exception as e:
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+    return HttpResponse(500)

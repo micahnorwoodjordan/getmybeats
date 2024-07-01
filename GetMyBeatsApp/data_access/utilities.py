@@ -7,7 +7,6 @@ from django.core.cache import cache
 from django.utils.timezone import now
 
 from GetMyBeatsApp.models import Audio, SiteVisitRequest, ProductionRelease
-from GetMyBeatsApp.serializers import AudioSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -84,7 +83,7 @@ def get_audio_by_filename_hash(filename_hash):
 
 def get_audio_context():
     context_array = []
-    for a in Audio.objects.all().order_by('-id'):
+    for a in Audio.objects.filter(filename_hash__isnull=False).order_by('-id'):
         context_array.append({
             'filename_hash': a.filename_hash,
             'title': a.title

@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
-from GetMyBeatsApp.helpers.db.utilities import get_hashed_audio_filename
+from GetMyBeatsApp.helpers.db_utilities import get_hashed_audio_filename
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
 
 
