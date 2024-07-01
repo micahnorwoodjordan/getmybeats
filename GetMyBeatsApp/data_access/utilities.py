@@ -69,3 +69,14 @@ def get_release_by_id(release_id):
     if release_id == -1:
         return ProductionRelease.objects.last()
     return ProductionRelease.objects.get(id=release_id)
+
+
+def get_all_audio_filename_hashes():
+    hashes = []
+    for audio in Audio.objects.all():
+        hashes.append(audio.filename_hash)
+    return hashes
+
+
+def get_audio_by_filename_hash(filename_hash):
+    return Audio.objects.get(filename_hash=filename_hash)

@@ -3,12 +3,16 @@ import logging
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from django.http import HttpResponse, JsonResponse
+from django.core.files.base import ContentFile
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
-from GetMyBeatsApp.data_access.utilities import get_audio_filenames, record_request_information, get_release_by_id
+from GetMyBeatsApp.data_access.utilities import (
+    get_audio_filenames, record_request_information, get_release_by_id,
+    get_all_audio_filename_hashes, get_audio_by_filename_hash
+)
 
 
 logger = logging.getLogger(__name__)
@@ -80,3 +84,18 @@ def get_release(request, release_id):
         extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
         logger.exception('get_release', extra=extra)
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
+
+
+def get_filename_hashes(request):
+    hashes = get_all_audio_filename_hashes()
+    return HttpResponse(content=json.dumps(hashes))
+
+
+def get_audio_by_hash(request, filename_hash):
+    audio = get_audio_by_filename_hash(filename_hash)
+    content_file = ContentFile(open(audio.file_upload.path, 'rb').read())
+    response = HttpResponse(content_file, content_type='text/plain')
+    response['Content-Length'] = content_file.size
+    response['Content-Disposition'] = f'attachment; filename={filename_hash}'
+    response['Range'] = 'bytes=0-'
+    return response
