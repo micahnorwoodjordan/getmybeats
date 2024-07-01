@@ -11,7 +11,7 @@ from django.conf import settings
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
     get_audio_filenames, record_request_information, get_release_by_id,
-    get_all_audio_filename_hashes, get_audio_by_filename_hash
+    get_audio_context, get_audio_by_filename_hash
 )
 
 
@@ -86,9 +86,9 @@ def get_release(request, release_id):
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
-def get_filename_hashes(request):
-    hashes = get_all_audio_filename_hashes()
-    return HttpResponse(content=json.dumps(hashes))
+def get_site_audio_context(request):
+    context_array = get_audio_context()
+    return HttpResponse(content=json.dumps(context_array))
 
 
 def get_audio_by_hash(request, filename_hash):

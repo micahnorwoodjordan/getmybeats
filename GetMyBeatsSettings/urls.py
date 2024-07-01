@@ -27,7 +27,7 @@ urlpatterns = [
     path('health-check', views.health_check, name='health_check'),
     path('audio-filenames', views.audio_filenames),
     path('media/hash/<str:filename_hash>', views.get_audio_by_hash),
-    path('media/context/hashes', views.get_filename_hashes),
+    path('media/context/', views.get_site_audio_context),
     path('releases/<str:release_id>/', views.get_release)
 ]
 

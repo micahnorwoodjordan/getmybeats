@@ -80,3 +80,13 @@ def get_all_audio_filename_hashes():
 
 def get_audio_by_filename_hash(filename_hash):
     return Audio.objects.get(filename_hash=filename_hash)
+
+
+def get_audio_context():
+    context_array = []
+    for a in Audio.objects.all().order_by('-id'):
+        context_array.append({
+            'filename_hash': a.filename_hash,
+            'title': a.title
+        })
+    return context_array
