@@ -40,9 +40,21 @@ def health_check(request):
 
 
 @api_view(['GET'])
-def home(request):
+def player_private_access(request):
     recorded_site_visit = record_request_information(request)
-    return render(request, 'home.html')
+    return render(request, 'player_private_access.html')
+
+
+@api_view(['GET'])
+def player_public_access(request):
+    recorded_site_visit = record_request_information(request)
+    return render(request, 'player_public_access.html')
+
+
+@api_view(['GET'])
+def public_landing_page(request):
+    recorded_site_visit = record_request_information(request)
+    return render(request, 'public_landing_page.html')
 
 
 # TODO: add auth: access only from node app
