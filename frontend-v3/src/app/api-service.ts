@@ -11,14 +11,15 @@ import { environment } from 'src/environments/environment';
 export class ApiService {
   constructor(private httpClient: HttpClient) { }
 
-  getAudioFilenames() {
-    let location = '/audio-filenames';
+  getMediaContext() {
+    let location = '/media/context/';
     let url = environment.apiHost + location;
     return this.httpClient.get(url).toPromise();
   }
 
-  getAudioTrack(audioTitle: string) {
-    let url = environment.apiMediaPath + audioTitle;
+  getMaskedAudioTrack(filenameHash: string) {
+    let location = '/media/hash/' + filenameHash;
+    let url = environment.apiHost + location;
     return new Audio(url);
   }
 
