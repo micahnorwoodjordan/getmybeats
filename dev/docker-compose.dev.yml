@@ -108,6 +108,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
+      dbimport:
+        condition: service_started
   frontend-testing:
     build:
         dockerfile: dev/Dockerfile.frontend.dev
