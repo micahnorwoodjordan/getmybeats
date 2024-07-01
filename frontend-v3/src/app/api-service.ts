@@ -13,7 +13,7 @@ export class ApiService {
 
   getAudioFilenames() {
     let location = '/audio-filenames';
-    let url = environment.apiHost + location;
+    let url = environment.apiHost + environment.apiPath + location;
     return this.httpClient.get(url).toPromise();
   }
 
@@ -24,7 +24,7 @@ export class ApiService {
 
   getLastRelease() {
     let location = '/releases/-1/';
-    let url = environment.apiHost + location;
+    let url = environment.apiHost + environment.apiPath + location;
     return this.httpClient.get(url).toPromise();
   }
 }

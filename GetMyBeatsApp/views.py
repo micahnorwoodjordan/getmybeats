@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 GENERIC_200_MSG = 'SUCCESS'
 GENERIC_400_MSG = 'BAD_REQUEST'
+GENERIC_401_MSG = 'UNAUTHORIZED'
 GENERIC_404_MSG = 'RESOURCE_NOT_FOUND'
 GENERIC_500_MSG = 'UNKNOWN_SERVER_ERROR'
 
@@ -40,9 +41,11 @@ def health_check(request):
 
 
 @api_view(['GET'])
-def player_private_access(request):
+def player_private_access(request, access_key, access_secret):
     recorded_site_visit = record_request_information(request)
-    return render(request, 'player_private_access.html')
+    if access_key == settings.API_ACCESS_KEY and access_secret == settings.API_SECRET_KEY:
+        return render(request, 'player_private_access.html')
+    return HttpResponse(401, reason=GENERIC_401_MSG)
 
 
 @api_view(['GET'])
