@@ -1,3 +1,4 @@
+import uuid
 import json
 import logging
 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 GENERIC_200_MSG = 'SUCCESS'
 GENERIC_400_MSG = 'BAD_REQUEST'
+GENERIC_401_MSG = 'UNAUTHORIZED'
 GENERIC_404_MSG = 'RESOURCE_NOT_FOUND'
 GENERIC_500_MSG = 'UNKNOWN_SERVER_ERROR'
 
@@ -40,9 +42,28 @@ def health_check(request):
 
 
 @api_view(['GET'])
-def home(request):
+def player_private_access(request, access_key, access_secret):
+    # not forcing uuid as constraint on url slug; seems less susceptible to brute force guessing attempts
+    try:
+        uuid.UUID(access_key)
+        uuid.UUID(access_secret)
+        recorded_site_visit = record_request_information(request)
+        if access_key == settings.API_ACCESS_KEY and access_secret == settings.API_SECRET_KEY:
+            return render(request, 'player_private_access.html')
+    except:
+         return HttpResponse(404, reason=GENERIC_404_MSG)  # 404 because public shouldnt even know about this
+
+
+@api_view(['GET'])
+def player_public_access(request):
     recorded_site_visit = record_request_information(request)
-    return render(request, 'home.html')
+    return render(request, 'player_public_access.html')
+
+
+@api_view(['GET'])
+def public_landing_page(request):
+    recorded_site_visit = record_request_information(request)
+    return render(request, 'public_landing_page.html')
 
 
 # TODO: add auth: access only from node app

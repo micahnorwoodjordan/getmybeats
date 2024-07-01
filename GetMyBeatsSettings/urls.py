@@ -21,14 +21,27 @@ from django.conf.urls.static import static
 from GetMyBeatsApp import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('home/', views.home, name='home'),
-    path('', views.home, name='home'),
-    path('health-check', views.health_check, name='health_check'),
-    path('audio-filenames', views.audio_filenames),
-    path('releases/<str:release_id>/', views.get_release)
+    path('', views.public_landing_page),
 ]
 
+player_patterns = [
+    path('player/', views.player_public_access),
+    path('player/internal/<str:access_key>/<str:access_secret>', views.player_private_access),
+]
+
+internal_patterns = [
+    path('internal/sys/admin/', admin.site.urls),
+]
+
+v2_api_patterns = [
+    path('api/v2/health-check/', views.health_check, name='health_check'),
+    path('api/v2/audio-filenames/', views.audio_filenames),
+    path('api/v2/releases/<str:release_id>/', views.get_release)
+]
+
+urlpatterns += player_patterns
+urlpatterns += internal_patterns
+urlpatterns += v2_api_patterns
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 from django.db import transaction, IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 from django.utils.timezone import now
 
@@ -67,5 +68,9 @@ def record_request_information(request):
 
 def get_release_by_id(release_id):
     if release_id == -1:
-        return ProductionRelease.objects.last()
-    return ProductionRelease.objects.get(id=release_id)
+        release = ProductionRelease.objects.last()
+        if release is None:
+            raise ObjectDoesNotExist
+    else:
+        release = ProductionRelease.objects.get(id=release_id)
+    return release

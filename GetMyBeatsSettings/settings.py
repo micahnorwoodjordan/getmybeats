@@ -94,3 +94,6 @@ MEDIA_ROOT = '/application/media/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+API_ACCESS_KEY = os.environ['API_ACCESS_KEY']
+API_SECRET_KEY = os.environ['API_SECRET_KEY']
