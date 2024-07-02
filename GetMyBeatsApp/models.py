@@ -52,6 +52,7 @@ class Audio(models.Model):
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
     status = models.SmallIntegerField()
     filename_hash = models.CharField(max_length=300, null=True, blank=True)
+    filename_hash_updated_at = models.DateTimeField(null=True, blank=True)
 
     def delete(self, *args, **kwargs):
         # NOTE: this is an Audio instance method, meaning that it can't be called on QuerySets
