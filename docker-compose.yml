@@ -25,7 +25,6 @@ services:
       . /opt/venvs/getmybeats/bin/activate &&
       export ssl_certificate_filename=$$(./manage.py manage_ssl_configuration install_current) && mv $$ssl_certificate_filename /etc &&
       cd /etc && tar -xzvf $$ssl_certificate_filename &&
-      (crontab -l 2>/dev/null; echo \"0 22 01 */3 * /usr/bin/bash -c 'cd /application/getmybeats/GetMyBeatsApp/scripts/ssl/ && sh renew.sh'\") | crontab - &&
       cd /application/getmybeats &&
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py collectstatic --no-input &&
