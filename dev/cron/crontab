@@ -1,0 +1,1 @@
+*/15 * * * * root bash -c 'cd /application/getmybeats && source dev/cron/env.cron && source /opt/venvs/getmybeats/bin/activate && python3 manage.py rotate_audio_filename_hashes' > /var/log/cron.log 2>&1
