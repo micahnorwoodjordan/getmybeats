@@ -1,0 +1,1 @@
+0 30 * * * /bin/bash -c "cd /application/getmybeats && source /opt/venvs/getmybeats/bin/activate && python3 manage.py rotate_audio_filename_hashes"
