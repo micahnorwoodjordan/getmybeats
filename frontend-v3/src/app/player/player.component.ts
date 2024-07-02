@@ -11,6 +11,7 @@ import { ApiService } from '../api-service';
 })
 
 export class PlayerComponent implements OnInit {
+  context: any;
   audioTrack: HTMLAudioElement = new Audio();
   audioFilenamesData: any;
   selectedAudioIndex = 0;
@@ -38,7 +39,6 @@ export class PlayerComponent implements OnInit {
   // small methods
   pauseOnCycleThrough() { this.audioTrack.pause(); }
   playOnCycleThrough() { this.audioTrack.play(); }
-  sanitizeFilename(filename: string): string { return filename.split('.').slice(0, -1).join('.'); }
   onClickShuffle() { this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false; }
   onClickRepeat() { this.repeatEnabled = !this.repeatEnabled; this.shuffleEnabled = false; }
 
@@ -49,26 +49,26 @@ export class PlayerComponent implements OnInit {
     this.updateAudioMetadataState();
   }
 
-  async getAndLoadAudioTrack(audioFilename: string) {
-    this.audioTrack = await this.apiService.getAudioTrack(audioFilename);
-    this.audioTrack.load();
+  async getAndLoadAudioTrack(filenameHash: string) {
+    this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
+      this.audioTrack.load();
     console.log('audio ready');
   }
 
   async setInitialAudioState() {
     // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
-    this.audioFilenamesData = await this.apiService.getAudioFilenames();
-    this.numberOfTracks = this.audioFilenamesData.filenames.length;
-    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    await this.getAndLoadAudioTrack(audioFilename);
-    this.title = this.sanitizeFilename(audioFilename);
+    this.context = await this.apiService.getMediaContext();
+    this.numberOfTracks = this.context.length;
+    let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
+    await this.getAndLoadAudioTrack(audioFilenameHash);
+    this.title = this.context[this.selectedAudioIndex].title;
   }
 
   async onSelectedAudioIndexChange(newIndex: number) {
     this.selectedAudioIndex = newIndex;
-    let audioFilename = this.audioFilenamesData.filenames[this.selectedAudioIndex];
-    await this.getAndLoadAudioTrack(audioFilename);
-    this.title = this.sanitizeFilename(audioFilename);
+    let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
+    await this.getAndLoadAudioTrack(audioFilenameHash);
+    this.title = this.context[this.selectedAudioIndex].title;
     this.updateAudioMetadataState();
   }
 
