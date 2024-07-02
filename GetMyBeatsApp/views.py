@@ -96,10 +96,15 @@ def get_audio_by_hash(request, filename_hash):
     try:
         audio = get_audio_by_filename_hash(filename_hash)
         content_file = ContentFile(open(audio.file_upload.path, 'rb').read())
-        response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file), content_type='audio/mpeg')
+        response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file))
+
+        # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
+        # must NEVER forget that Google Chrome bugs out when headers aren't properly set
+        # prone to error when implementing custom server-side streaming logic
+        response['Content-Type'] = 'audio/mpeg'
         response['Content-Length'] = content_file.size
         response['Content-Disposition'] = f'attachment; filename={filename_hash}'
-        response['Range'] = 'bytes=0-'
+        response['Accept-Ranges'] = 'bytes'
         return response
     except Exception as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
