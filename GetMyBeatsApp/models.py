@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
-from GetMyBeatsApp.helpers.db_utilities import get_hashed_audio_filename
+from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
 
 
@@ -66,7 +66,7 @@ class Audio(models.Model):
         super().save(*args, **kwargs)
 
         if self.filename_hash is None:
-            self.filename_hash = get_hashed_audio_filename(os.path.basename(self.file_upload.path))
+            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(self.file_upload.path))
 
         extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
         filepath = self.get_sanitized_path_for_s3()
