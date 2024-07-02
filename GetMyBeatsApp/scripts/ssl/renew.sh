@@ -17,5 +17,5 @@ aws s3 cp $updated_filename $s3_path
 
 # use database to keep state
 cd $APPLICATION_DIR
-. ../getmybeatsvenv/bin/activate
+. /opt/venvs/getmybeats/bin/activate
 ./manage.py manage_ssl_configuration record_new --s3-path $s3_path
