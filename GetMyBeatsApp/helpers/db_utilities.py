@@ -13,8 +13,6 @@ def sanitize_audio_title(title):
 
 
 def get_file_upload_path_pre_save(instance, filename):  # madatory construct to work around the FileField limitations
-    if os.path.exists(filename):
-        os.remove(filename)
     ext = filename.split('.')[-1]
     result = f"{sanitize_audio_title(instance.title)}.{ext}"
     return result
