@@ -23,10 +23,9 @@ RUN touch /var/log/cron.log
 
 
 # set up directories
-RUN mkdir -p "$application_directory"
 RUN mkdir -p /var/log/django/
 RUN mkdir -p /var/log/gunicorn/
-RUN mkdir -p /application/media
+RUN mkdir -p "$application_directory"/media
 RUN mkdir -p "$venv_directory"
 RUN mkdir -p /root/.aws
 
