@@ -5,12 +5,9 @@ from enum import Enum
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
-from django.conf import settings
-from django.core.cache import cache
 
-from GetMyBeatsApp.services.s3_service import S3AudioService
+from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
 from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
-from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename, get_file_upload_path_pre_save
 
 
 logger = logging.getLogger(__name__)
@@ -43,38 +40,23 @@ class Audio(models.Model):
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     updated_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=True, null=False, unique=True)
-    file_upload = models.FileField(upload_to=get_file_upload_path_pre_save)  # specifying `upload_to` will nest the filepath argument. this is not wanted.
+    file = models.FileField()
     filename_hash = models.CharField(max_length=300, null=True, blank=True)  # TODO: flip blank/null and re-migrate
     filename_hash_updated_at = models.DateTimeField(null=True, blank=True)  # TODO: flip blank/null and re-migrate
     #   the two fields above temporarily allow null to avoid having to manually provide values for older audio objects
     #   flip and re-migrate after all existing audio objects have this field populated
     s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
-
-    def delete(self, *args, **kwargs):
-        cache.clear()
-        super(Audio, self).delete()
+    ext = models.CharField(max_length=20, blank=True, null=False)
 
     def save(self, *args, **kwargs):
-        upload = self.file_upload
-        filename = space_to_charx(upload.name, UNDERSCORE).lower()
-        self.title = filename.split('.')[0]
-
-        if self.filename_hash is None:
+        print('before signals')
+        if not self.id:
+            filename = space_to_charx(self.file.name, UNDERSCORE).lower()
+            fp = self.file.path
+            self.ext = '.' + fp.split('.')[-1]
+            self.title = filename.replace(self.ext, '')
             self.filename_hash_updated_at = now()
-            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(upload.path))
-
-        if not self.s3_upload_path:
-            with open(filename, 'wb') as file:
-                file.write(upload.read())
-            try:
-                s3 = S3AudioService()
-                s3.upload(filename, filename)
-                self.s3_upload_path = f's3://{settings.S3_AUDIO_BUCKET}/{filename}'
-                print(f's3 upload success: {self.s3_upload_path}')
-            except Exception as e:
-                logger.exception('EXCEPTION saving Audio instance', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
-                raise
-        cache.clear()
+            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
         return super().save(*args, **kwargs)
 
     class Status(Enum):
