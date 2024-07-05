@@ -49,7 +49,6 @@ class Audio(models.Model):
     ext = models.CharField(max_length=20, blank=True, null=False)
 
     def save(self, *args, **kwargs):
-        print('before signals')
         if not self.id:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
