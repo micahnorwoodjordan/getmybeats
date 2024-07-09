@@ -27,6 +27,7 @@ export class PlayerComponent implements OnInit {
   repeatEnabled: boolean = false;
   loading: boolean = false;
   lowBandwidthMode: boolean = false;
+  filenameHashesByIndex: any;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -48,12 +49,16 @@ export class PlayerComponent implements OnInit {
   // async methods
   async ngOnInit(): Promise<void> {
     await this.setInitialAudioState();
+    this.filenameHashesByIndex = {};
+    this.context.forEach((element: any, idx: number) => {
+      this.filenameHashesByIndex[element.filename_hash] = idx;
+    })
     this.updateAudioMetadataState();
   }
 
   async getAndLoadAudioTrack(filenameHash: string) {
     this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
-      this.audioTrack.load();
+    this.audioTrack.load();
     console.log('audio ready');
   }
 
@@ -193,8 +198,19 @@ export class PlayerComponent implements OnInit {
     this.playOnCycleThrough();
   }
 
-  openBottomSheet(): void {
-    this._bottomSheet.open(BottomSheetOverviewExampleSheet);
+  async openBottomSheet(): Promise<void> {
+    // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
+    const _bottomSheetRef = this._bottomSheet.open(BottomSheetOverviewExampleSheet);
+    _bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
+      if (songHashAndTitleDict !== undefined ) {
+        this.pauseOnCycleThrough();
+        await this.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
+        this.selectedAudioIndex = this.filenameHashesByIndex[songHashAndTitleDict.filename_hash];
+        this.title = this.context[this.selectedAudioIndex].title;
+        this.playOnCycleThrough();
+        this.updateAudioMetadataState();
+      }
+    });
   }
 }
  
@@ -204,7 +220,7 @@ export class PlayerComponent implements OnInit {
   imports: [MatListModule, CommonModule],
   template: `
     <mat-nav-list>
-        <mat-list-item *ngFor="let song of context">
+        <mat-list-item *ngFor="let song of context" class="bottomsheet-item" (click)="getSelectedSong(song, $event)">
             <span matListItemTitle>{{ song.title }}</span>
         </mat-list-item>
     </mat-nav-list>
@@ -213,15 +229,17 @@ export class PlayerComponent implements OnInit {
 
 export class BottomSheetOverviewExampleSheet {
   context: any;
+  song: any;
 
   constructor(private apiService: ApiService, private _bottomSheetRef: MatBottomSheetRef<BottomSheetOverviewExampleSheet>) {}
 
   async ngOnInit(): Promise<void> {
       this.context = await this.apiService.getMediaContext();
   }
-  
-  openLink(event: MouseEvent): void {
-    this._bottomSheetRef.dismiss();
+
+  getSelectedSong(song: any, event: MouseEvent) {
+    this.song = song;
+    this._bottomSheetRef.dismiss(this.song);
     event.preventDefault();
   }
 }
