@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+// https://stackoverflow.com/questions/45928423/get-rid-of-white-space-around-angular-material-modal-dialog
+// i attempted to remvoe whitespace around the bottom sheet (did not succeed) and stumbled upon the ViewEncapsulation meta property
+
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 import {MatListModule} from '@angular/material/list';
 import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
@@ -200,7 +203,7 @@ export class PlayerComponent implements OnInit {
 
   async openBottomSheet(): Promise<void> {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
-    const _bottomSheetRef = this._bottomSheet.open(BottomSheetOverviewExampleSheet, { panelClass: 'bottomsheet-item' });
+    const _bottomSheetRef = this._bottomSheet.open(BottomSheetOverviewExampleSheet, { panelClass: 'bottomsheet-container' });
     _bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
       if (songHashAndTitleDict !== undefined ) {
         this.pauseOnCycleThrough();
@@ -215,16 +218,20 @@ export class PlayerComponent implements OnInit {
 }
  
 @Component({
-  selector: 'bottom-sheet',
   standalone: true,
   imports: [MatListModule, CommonModule],
+  encapsulation: ViewEncapsulation.None,
   template: `
-    <mat-nav-list>
-        <mat-list-item *ngFor="let song of context" (click)="getSelectedSong(song, $event)">
-            <span matListItemTitle>{{ song.title }}</span>
-        </mat-list-item>
-    </mat-nav-list>
-  `
+      <mat-nav-list>
+          <mat-list-item *ngFor="let song of context" (click)="getSelectedSong(song, $event)">
+              <span matListItemTitle>{{ song.title }}</span>
+          </mat-list-item>
+      </mat-nav-list>
+  `,
+  styles: [
+      `mat-list-item:hover { background-color: rgb(158, 94, 242); }`,
+      `span { text-align: center; color: rgb(0, 0, 0); }`,
+  ]
 })
 
 export class BottomSheetOverviewExampleSheet {

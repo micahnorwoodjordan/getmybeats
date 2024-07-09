@@ -14,7 +14,6 @@
 .left-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .right-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
-/* .bottomsheet-item { color:rgb(158, 94, 242); } */
 
 .backdrop {
     margin-top: 10vh;
