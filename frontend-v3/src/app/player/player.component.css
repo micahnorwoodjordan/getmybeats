@@ -4,13 +4,15 @@
 .control-buttons { margin-top: 7vh; }
 .current-time-text { color: white; }
 .duration-time-text { color: white; }
-.right-control-arrow:hover { cursor: pointer; transform: scale(2); transition: 0.5s; }
-.left-control-arrow:hover { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
-.play-pause-control { cursor: pointer; transform: scale(2.7); transition: 0.5s; margin-left: 5vw; margin-right: 5vw; color: white; }
-.play-pause-control:hover { cursor: pointer; transform: scale(); margin-left: 5vw; margin-right: 5vw; transition: 0.5s; }
+.bottom-sheet-expand-icon { color: white; transform: scale(2); transition: 0.5s; }
+.bottom-sheet-expand-icon:hover { color: white; transform: scale(2.2); transition: 1s; cursor: pointer;}
+.play-pause-control { cursor: pointer; transform: scale(2.5); transition: 0.5s; margin-left: 5vw; margin-right: 5vw; color: white; }
+.play-pause-control:hover { cursor: pointer; transform: scale(2.7); margin-left: 5vw; margin-right: 5vw; transition: 0.5s; }
 .headset-backdrop-icon { color: rgb(53, 55, 55); transform: scale(5); }
-.left-control-arrow { cursor: pointer; transform: scale(2.3); transition: 0.5s; color: white; }
-.right-control-arrow { cursor: pointer; transform: scale(2.3); transition: 0.5s; color: white; }
+.right-control-arrow:hover { cursor: pointer; transform: scale(2.3); transition: 0.5s; }
+.left-control-arrow:hover { cursor: pointer; transform: scale(2.3); transition: 0.5s; color: white; }
+.left-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
+.right-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 
 .backdrop {
@@ -34,6 +36,7 @@
 @media (max-width: 750px) {
     .current-time-text { color: white; }
     .duration-time-text { color: white; }
+    .bottom-sheet-expand-icon { color: white; transform: scale(1.5); }
     .slider { width: 70vw; margin-top: 3vh; margin-bottom: 1vh; }
     .left-control-arrow { cursor: pointer; transform: scale(1.7); transition: 0.5s; color: white; }
     .right-control-arrow { cursor: pointer; transform: scale(1.7); transition: 0.5s; color: white; }
