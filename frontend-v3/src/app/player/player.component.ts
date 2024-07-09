@@ -224,6 +224,7 @@ export class PlayerComponent implements OnInit {
   imports: [MatListModule, CommonModule],
   encapsulation: ViewEncapsulation.None,
   template: `
+      <h1>tracks</h1>
       <mat-nav-list>
           <mat-list-item *ngFor="let songDict of context" (click)="getSelectedSong(songDict, $event)">
               <span matListItemTitle>{{ songDict.title }}</span>
@@ -231,8 +232,10 @@ export class PlayerComponent implements OnInit {
       </mat-nav-list>
   `,
   styles: [
+      `html { font-family: Inconsolata, Roboto, "Helvetica Neue", sans-serif;  }`,
       `mat-list-item:hover { background-color: rgb(158, 94, 242); }`,
       `span { text-align: center; color: rgb(0, 0, 0); }`,
+      `h1 { text-align: center; color: rgb(0, 0, 0); }`,
   ]
 })
 
