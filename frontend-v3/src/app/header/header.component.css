@@ -1,0 +1,12 @@
+.header-primary { padding-top: 2vh; color: white; }
+
+.header-bandwidth-status {
+    width: 100vw;
+    height: 5vh;
+    color: black;
+    background-color: rgb(223, 132, 28);
+}
+
+@media (max-width: 750px) {
+    .header-primary { color: white; }
+}

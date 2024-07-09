@@ -4,9 +4,11 @@ import logging
 
 from django.conf import settings
 
+
 logger = logging.getLogger(__name__)
 
 
+# TODO: `S3AudioService` to become a generic S3 wrapper (`S3Service`) with some audio-specifc methods
 class S3AudioService:
     def __init__(self, bucket=None):
         self.resource = boto3.resource('s3')

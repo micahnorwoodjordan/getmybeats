@@ -24,10 +24,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders'
 ]
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,7 +58,7 @@ TEMPLATES = [
 ]
 
 
-AUDIO_CACHE_EXPIRY_SECONDS = 60 * 60 * 24  # 24 hours
+AUDIO_CACHE_EXPIRY_SECONDS = 60 * 30  # 30 minutes
 
 LOGGER_EXTRA_DATA_KEY = 'DATA'  # MUST mesh with custom key specified in VERBOSE_LOGGING_FORMAT; in all caps for clarity
 DEFAULT_LOGGING_FORMAT = '{levelname} | {name} | {asctime} | MESSAGE: {message} >>> {DATA}'
@@ -84,6 +86,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+
+STATIC_ROOT = '/application/static/'
+MEDIA_ROOT = '/application/media/'
 
 
 # Default primary key field type

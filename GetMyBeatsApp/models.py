@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
+from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
 from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
 
 
@@ -48,9 +49,10 @@ class Audio(models.Model):
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     uploaded_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=False, null=False, unique=True)
-    length = models.CharField(max_length=50, blank=True, null=True)  # TODO: look into django types that might be better to store audio duration data
     file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
     status = models.SmallIntegerField()
+    filename_hash = models.CharField(max_length=300, null=True, blank=True)
+    filename_hash_updated_at = models.DateTimeField(null=True, blank=True)
 
     def delete(self, *args, **kwargs):
         # NOTE: this is an Audio instance method, meaning that it can't be called on QuerySets
@@ -63,6 +65,9 @@ class Audio(models.Model):
         """
         # TODO: look into NamedTemporaryFiles; inefficient, but file doesn't get written on disk until committed to db
         super().save(*args, **kwargs)
+
+        if self.filename_hash is None:
+            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(self.file_upload.path))
 
         extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
         filepath = self.get_sanitized_path_for_s3()
@@ -92,3 +97,24 @@ class Audio(models.Model):
 
     def get_sanitized_path_for_s3(self):
         return space_to_charx(self.file_upload.path, UNDERSCORE)
+
+
+class RenewedSSLConfiguration(models.Model):
+    s3_path = models.CharField(max_length=100)
+
+    class Meta:
+        managed = True
+        db_table = 'renewed_ssl_configuration'
+
+
+class SiteVisitRequest(models.Model):
+    ip = models.CharField(max_length=15)
+    params = models.CharField(max_length=100)
+    headers = models.JSONField()
+    body = models.JSONField()
+    user_agent = models.CharField(max_length=200)
+    method = models.CharField(max_length=10)
+
+    class Meta:
+        managed = True
+        db_table = 'site_visit_request'

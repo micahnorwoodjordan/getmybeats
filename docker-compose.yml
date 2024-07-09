@@ -1,14 +1,75 @@
-# version: "3.9"
-# services:
-#   web:
-#     build: .
-
-#     ports:
-#       - "8000:8080"
-
-#     entrypoint: "/bin/bash -c /application/getmybeats/dev/start_dev_servers.sh"
-
-#     image: gmb-dev:Dockerfile
-
-#     volumes:
-#       - ./:/application/getmybeats
+services:
+  frontend:
+    build:
+        dockerfile: Dockerfile.frontend
+        context: .
+    volumes:
+      - ./:/application/getmybeats
+    command: bash -c "
+      cd /application/getmybeats/frontend-v3/src &&
+      npm install -g @angular/cli && npm install --package-lock-only &&
+      npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
+      ng build --configuration production"
+  api-web:
+    build:
+      dockerfile: Dockerfile.backend
+      context: .
+    ports:
+      - 80:80
+      - 443:443
+    command: /bin/bash -c "
+      systemctl start cron &&
+      cd /application/media && aws s3 sync s3://getmybeats-audio ./ &&
+      cd /application/getmybeats &&
+      python3 cron/prepare_env.py &&
+      . /opt/venvs/getmybeats/bin/activate &&
+      export ssl_certificate_filename=$$(./manage.py manage_ssl_configuration install_current) && mv $$ssl_certificate_filename /etc &&
+      cd /etc && tar -xzvf $$ssl_certificate_filename &&
+      cd /application/getmybeats &&
+      ./manage.py migrate GetMyBeatsApp &&
+      ./manage.py collectstatic --no-input &&
+      echo 'starting gunicorn' && 
+      /opt/venvs/getmybeats/bin/gunicorn -c GetMyBeatsApp/digitalocean/gunicorn/gunicorn_config.py GetMyBeatsSettings.wsgi --daemon &&
+      apt install -y nginx &&
+      sudo cp GetMyBeatsApp/digitalocean/nginx/nginx.conf /etc/nginx/nginx.conf &&
+      echo 'echo starting nginx' && sudo systemctl restart nginx &&
+      touch infrastructure-update-results.txt &&
+      echo $$(./manage.py auto_scale_load_balancer) >> infrastructure-update-results.txt &&
+      echo $$(./manage.py auto_refresh_firewall) >> infrastructure-update-results.txt &&
+      echo 'END' >> infrastructure-update-results.txt &&
+      ./manage.py record_production_release &&
+      tail -f /var/log/nginx/access.log"
+    volumes:
+      - ./:/application/getmybeats
+      - /etc/environment:/etc/environment
+      - /root/.aws:/root/.aws
+    environment:
+      - REDIS_SETTINGS=${REDIS_SETTINGS}
+      - DIGITALOCEAN_SETTINGS=${DIGITALOCEAN_SETTINGS}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - CODE_BRANCH=${CODE_BRANCH}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DATABASE_SETTINGS=${DATABASE_SETTINGS}
+      - S3_RELEASE_PROVISIONING_BUCKET=${S3_RELEASE_PROVISIONING_BUCKET}
+      - S3_RELEASE_PROVISIONING_SCRIPT_NAME=${S3_RELEASE_PROVISIONING_SCRIPT_NAME}
+      - S3_AUDIO_BUCKET=${S3_AUDIO_BUCKET}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      frontend:
+        condition: service_completed_successfully
+  redis:
+    command: redis-server
+    image: redis
+    environment:
+      - REDIS_SETTINGS=${REDIS_SETTINGS}
+      - DIGITALOCEAN_SETTINGS=${DIGITALOCEAN_SETTINGS}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - CODE_BRANCH=${CODE_BRANCH}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DATABASE_SETTINGS=${DATABASE_SETTINGS}
+      - S3_RELEASE_PROVISIONING_BUCKET=${S3_RELEASE_PROVISIONING_BUCKET}
+      - S3_RELEASE_PROVISIONING_SCRIPT_NAME=${S3_RELEASE_PROVISIONING_SCRIPT_NAME}
+      - S3_AUDIO_BUCKET=${S3_AUDIO_BUCKET}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}

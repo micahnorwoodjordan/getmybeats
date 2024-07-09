@@ -7,6 +7,8 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = True
 DEBUG = False
 
+CSRF_TRUSTED_ORIGINS = ['https://getmybeats.com']
+
 ALLOWED_HOSTS = [
     '.getmybeats.com',
     'cloud.digitalocean.com'
@@ -31,6 +33,7 @@ DATABASES = {
         'PORT': DATABASE_SETTINGS['DBPORT']
     }
 }
+del DATABASE_SETTINGS
 
 REDIS_SETTINGS = json.loads(os.environ['REDIS_SETTINGS'])
 CACHES = {
@@ -44,6 +47,7 @@ CACHES = {
         ),
     }
 }
+del REDIS_SETTINGS
 
 LOGGING = {
     'version': 1,  # the dictConfig format version
@@ -69,8 +73,5 @@ LOGGING = {
         },
     }
 }
-
-STATIC_ROOT = '/application/static/'
-MEDIA_ROOT = '/application/media/'
 
 S3_AUDIO_BUCKET = 'getmybeats-audio'

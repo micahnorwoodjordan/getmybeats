@@ -7,16 +7,15 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = False
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    '192.168.0.180'
-]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
-    'http://127.0.0.1:8000',  # Docker exposes nginx via port 8000
-    'http://192.168.0.180:8000'
-    'https://*.127.0.0.1',
+    'http://127.0.0.1',
+    'http://192.168.0.180'
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = ['*']
 
 DIGITALOCEAN_SETTINGS = json.loads(os.environ['DIGITALOCEAN_SETTINGS'])
 DIGITALOCEAN_API_HOST = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_API_HOST']
@@ -26,23 +25,32 @@ DIGITALOCEAN_FIREWALL_ID = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_FIREWALL_ID']
 del DIGITALOCEAN_SETTINGS
 
 
+DATABASE_SETTINGS = json.loads(os.environ['DATABASE_SETTINGS'])
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'getmybeats_local',
-        'HOST': '127.0.0.1',
-        'USER': 'root',
-        'PASSWORD': 'Password1!',
-        'PORT': 3306
+        'NAME': DATABASE_SETTINGS['DBNAME'],
+        'HOST': DATABASE_SETTINGS['DBHOST'],
+        'USER': DATABASE_SETTINGS['DBUSER'],
+        'PASSWORD': DATABASE_SETTINGS['DBPASSWORD'],
+        'PORT': DATABASE_SETTINGS['DBPORT']
     }
 }
+del DATABASE_SETTINGS
 
+REDIS_SETTINGS = json.loads(os.environ['REDIS_SETTINGS'])
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://default:Password1!@127.0.0.1:6379",
+        "LOCATION": "redis://{user}:{password}@{host}:{port}".format(
+            user=REDIS_SETTINGS['USER'],
+            password=REDIS_SETTINGS['PASSWORD'],
+            host=REDIS_SETTINGS['HOST'],
+            port=REDIS_SETTINGS['PORT']
+        ),
     }
 }
+del REDIS_SETTINGS
 
 LOGGING = {
     'version': 1,  # the dictConfig format version
@@ -56,7 +64,7 @@ LOGGING = {
     'handlers': {
         'general': {
             'class': 'logging.FileHandler',
-            'filename': 'general.log',
+            'filename': '/var/log/django/general.log',
             'level': 'INFO',
             'formatter': 'verbose',
         },
@@ -68,9 +76,5 @@ LOGGING = {
         },
     }
 }
-
-STATIC_ROOT = BASE_DIR / 'static'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 
 S3_AUDIO_BUCKET = 'getmybeats-audio-dev'
