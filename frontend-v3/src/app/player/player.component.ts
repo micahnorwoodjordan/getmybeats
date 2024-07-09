@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { duration as momentDuration } from 'moment';
+import {MatListModule} from '@angular/material/list';
+import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 import { ApiService } from '../api-service';
 
@@ -32,7 +34,7 @@ export class PlayerComponent implements OnInit {
   // becuase the event handler runs between 4 and 66hz
   sliderValueProxy: number = 0;
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private _bottomSheet: MatBottomSheet) {}
 
 
   // small methods
@@ -188,5 +190,32 @@ export class PlayerComponent implements OnInit {
     this.audioTrack.currentTime = 0;
     this.audioTrack.load();
     this.playOnCycleThrough();
+  }
+
+  openBottomSheet(): void {
+    this._bottomSheet.open(BottomSheetOverviewExampleSheet);
+  }
+}
+
+@Component({
+  selector: 'app-footer-bottom-sheet',
+  styleUrl: './player.component.css',
+  imports: [MatListModule],
+  standalone: true,
+  template: `
+  <mat-nav-list>
+    <a href="https://keep.google.com/" mat-list-item>
+        <span matListItemTitle>Google Keep</span>
+        <span matLine>Add to a note</span>
+    </a>
+  </mat-nav-list>
+  `
+})
+export class BottomSheetOverviewExampleSheet {
+  constructor(private _bottomSheetRef: MatBottomSheetRef<BottomSheetOverviewExampleSheet>) {}
+
+  openLink(event: MouseEvent): void {
+    this._bottomSheetRef.dismiss();
+    event.preventDefault();
   }
 }
