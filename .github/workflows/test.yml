@@ -29,8 +29,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run Tests
-        uses: docker://micahnorwoodjordan/dev-api-testing
+        uses: addnab/docker-run-action@v3
         with:
-          args: >-
-            -v ${{ github.workspace }}:/application/getmybeats
-            /bin/sh -c "cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate && ./manage.py test"
+          image: micahnorwoodjordan/dev-api-testing:latest
+          options: -v ${{ github.workspace }}:/application/getmybeats
+          run: |
+            cd /application/getmybeats
+            . /opt/venvs/getmybeats/bin/activate && ./manage.py test
