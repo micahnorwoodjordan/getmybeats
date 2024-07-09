@@ -200,7 +200,7 @@ export class PlayerComponent implements OnInit {
 
   async openBottomSheet(): Promise<void> {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
-    const _bottomSheetRef = this._bottomSheet.open(BottomSheetOverviewExampleSheet);
+    const _bottomSheetRef = this._bottomSheet.open(BottomSheetOverviewExampleSheet, { panelClass: 'bottomsheet-item' });
     _bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
       if (songHashAndTitleDict !== undefined ) {
         this.pauseOnCycleThrough();
@@ -220,7 +220,7 @@ export class PlayerComponent implements OnInit {
   imports: [MatListModule, CommonModule],
   template: `
     <mat-nav-list>
-        <mat-list-item *ngFor="let song of context" class="bottomsheet-item" (click)="getSelectedSong(song, $event)">
+        <mat-list-item *ngFor="let song of context" (click)="getSelectedSong(song, $event)">
             <span matListItemTitle>{{ song.title }}</span>
         </mat-list-item>
     </mat-nav-list>
