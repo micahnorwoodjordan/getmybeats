@@ -39,7 +39,7 @@ export class PlayerComponent implements OnInit {
   // becuase the event handler runs between 4 and 66hz
   sliderValueProxy: number = 0;
 
-  constructor(private apiService: ApiService, private _bottomSheet: MatBottomSheet) {}
+  constructor(private apiService: ApiService, private bottomSheet: MatBottomSheet) {}
 
 
   // small methods
@@ -203,8 +203,8 @@ export class PlayerComponent implements OnInit {
 
   async openBottomSheet(): Promise<void> {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
-    const _bottomSheetRef = this._bottomSheet.open(BottomSheetOverviewExampleSheet, { panelClass: 'bottomsheet-container' });
-    _bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
+    const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
+    bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
       if (songHashAndTitleDict !== undefined ) {
         this.pauseOnCycleThrough();
         await this.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
@@ -212,6 +212,8 @@ export class PlayerComponent implements OnInit {
         this.title = this.context[this.selectedAudioIndex].title;
         this.playOnCycleThrough();
         this.updateAudioMetadataState();
+      } else {
+        console.log('no data was returned from TrackSelectorBottomSheet');
       }
     });
   }
@@ -223,8 +225,8 @@ export class PlayerComponent implements OnInit {
   encapsulation: ViewEncapsulation.None,
   template: `
       <mat-nav-list>
-          <mat-list-item *ngFor="let song of context" (click)="getSelectedSong(song, $event)">
-              <span matListItemTitle>{{ song.title }}</span>
+          <mat-list-item *ngFor="let songDict of context" (click)="getSelectedSong(songDict, $event)">
+              <span matListItemTitle>{{ songDict.title }}</span>
           </mat-list-item>
       </mat-nav-list>
   `,
@@ -234,19 +236,19 @@ export class PlayerComponent implements OnInit {
   ]
 })
 
-export class BottomSheetOverviewExampleSheet {
+export class TrackSelectorBottomSheet {
   context: any;
-  song: any;
+  songDict: any;
 
-  constructor(private apiService: ApiService, private _bottomSheetRef: MatBottomSheetRef<BottomSheetOverviewExampleSheet>) {}
+  constructor(private apiService: ApiService, private bottomSheetRef: MatBottomSheetRef<TrackSelectorBottomSheet>) {}
 
   async ngOnInit(): Promise<void> {
       this.context = await this.apiService.getMediaContext();
   }
 
   getSelectedSong(song: any, event: MouseEvent) {
-    this.song = song;
-    this._bottomSheetRef.dismiss(this.song);
+    this.songDict = song;
+    this.bottomSheetRef.dismiss(this.songDict);
     event.preventDefault();
   }
 }
