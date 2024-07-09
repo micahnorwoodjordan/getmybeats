@@ -4,6 +4,7 @@ import {MatListModule} from '@angular/material/list';
 import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 import { ApiService } from '../api-service';
+import { CommonModule } from '@angular/common';
 
 
 @Component({
@@ -196,24 +197,29 @@ export class PlayerComponent implements OnInit {
     this._bottomSheet.open(BottomSheetOverviewExampleSheet);
   }
 }
-
+ 
 @Component({
-  selector: 'app-footer-bottom-sheet',
-  styleUrl: './player.component.css',
-  imports: [MatListModule],
+  selector: 'bottom-sheet',
   standalone: true,
+  imports: [MatListModule, CommonModule],
   template: `
-  <mat-nav-list>
-    <a href="https://keep.google.com/" mat-list-item>
-        <span matListItemTitle>Google Keep</span>
-        <span matLine>Add to a note</span>
-    </a>
-  </mat-nav-list>
+    <mat-nav-list>
+        <mat-list-item *ngFor="let song of context">
+            <span matListItemTitle>{{ song.title }}</span>
+        </mat-list-item>
+    </mat-nav-list>
   `
 })
-export class BottomSheetOverviewExampleSheet {
-  constructor(private _bottomSheetRef: MatBottomSheetRef<BottomSheetOverviewExampleSheet>) {}
 
+export class BottomSheetOverviewExampleSheet {
+  context: any;
+
+  constructor(private apiService: ApiService, private _bottomSheetRef: MatBottomSheetRef<BottomSheetOverviewExampleSheet>) {}
+
+  async ngOnInit(): Promise<void> {
+      this.context = await this.apiService.getMediaContext();
+  }
+  
   openLink(event: MouseEvent): void {
     this._bottomSheetRef.dismiss();
     event.preventDefault();
