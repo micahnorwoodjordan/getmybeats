@@ -5,6 +5,13 @@ FROM ubuntu:22.04
 # uncomment when running on mac m1
 # FROM --platform=linux/amd64 ubuntu:22.04
 
+# for github actions
+ENV DJANGO_SETTINGS_MODULE='GetMyBeatsSettings.config.dev'
+ENV DJANGO_SECRET_KEY='noodles'
+ENV REDIS_SETTINGS='{"USER": "default", "PASSWORD": "Password1!", "HOST": "redis", "PORT": "6379"}'
+ENV DATABASE_SETTINGS='{"DBHOST": "db", "DBNAME": "getmybeats_local_old", "DBPASSWORD": "Password1!", "DBUSER": "mysql", "DBPORT": 3306}'
+ENV DIGITALOCEAN_SETTINGS='{"DIGITALOCEAN_API_HOST": "", "DIGITALOCEAN_BEARER_TOKEN": "", "DIGITALOCEAN_LOAD_BALANCER_ID": "", "DIGITALOCEAN_FIREWALL_ID": ""}'
+
 
 ARG application_directory="/application/getmybeats"
 ARG venv_directory="/opt/venvs/getmybeats"

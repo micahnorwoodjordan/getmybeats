@@ -1,7 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+// https://stackoverflow.com/questions/45928423/get-rid-of-white-space-around-angular-material-modal-dialog
+// i attempted to remvoe whitespace around the bottom sheet (did not succeed) and stumbled upon the ViewEncapsulation meta property
+
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { duration as momentDuration } from 'moment';
+import {MatListModule} from '@angular/material/list';
+import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 import { ApiService } from '../api-service';
+import { CommonModule } from '@angular/common';
 
 
 @Component({
@@ -13,7 +19,6 @@ import { ApiService } from '../api-service';
 export class PlayerComponent implements OnInit {
   context: any;
   audioTrack: HTMLAudioElement = new Audio();
-  audioFilenamesData: any;
   selectedAudioIndex = 0;
   numberOfTracks: number = 0;
   musicLength: string = '0:00';
@@ -25,6 +30,7 @@ export class PlayerComponent implements OnInit {
   repeatEnabled: boolean = false;
   loading: boolean = false;
   lowBandwidthMode: boolean = false;
+  filenameHashesByIndex: any;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -33,7 +39,7 @@ export class PlayerComponent implements OnInit {
   // becuase the event handler runs between 4 and 66hz
   sliderValueProxy: number = 0;
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private bottomSheet: MatBottomSheet) {}
 
 
   // small methods
@@ -46,12 +52,16 @@ export class PlayerComponent implements OnInit {
   // async methods
   async ngOnInit(): Promise<void> {
     await this.setInitialAudioState();
+    this.filenameHashesByIndex = {};
+    this.context.forEach((element: any, idx: number) => {
+      this.filenameHashesByIndex[element.filename_hash] = idx;
+    })
     this.updateAudioMetadataState();
   }
 
   async getAndLoadAudioTrack(filenameHash: string) {
     this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
-      this.audioTrack.load();
+    this.audioTrack.load();
     console.log('audio ready');
   }
 
@@ -189,5 +199,59 @@ export class PlayerComponent implements OnInit {
     this.audioTrack.currentTime = 0;
     this.audioTrack.load();
     this.playOnCycleThrough();
+  }
+
+  async openBottomSheet(): Promise<void> {
+    // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
+    const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
+    bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
+      if (songHashAndTitleDict !== undefined ) {
+        this.pauseOnCycleThrough();
+        await this.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
+        this.selectedAudioIndex = this.filenameHashesByIndex[songHashAndTitleDict.filename_hash];
+        this.title = this.context[this.selectedAudioIndex].title;
+        this.playOnCycleThrough();
+        this.updateAudioMetadataState();
+      } else {
+        console.log('no data was returned from TrackSelectorBottomSheet');
+      }
+    });
+  }
+}
+ 
+@Component({
+  standalone: true,
+  imports: [MatListModule, CommonModule],
+  encapsulation: ViewEncapsulation.None,
+  template: `
+      <h1>tracks</h1>
+      <mat-nav-list>
+          <mat-list-item *ngFor="let songDict of context" (click)="getSelectedSong(songDict, $event)">
+              <span matListItemTitle>{{ songDict.title }}</span>
+          </mat-list-item>
+      </mat-nav-list>
+  `,
+  styles: [
+      `html { font-family: Inconsolata, Roboto, "Helvetica Neue", sans-serif;  }`,
+      `mat-list-item:hover { background-color: rgb(158, 94, 242); }`,
+      `span { text-align: center; color: rgb(0, 0, 0); }`,
+      `h1 { text-align: center; color: rgb(0, 0, 0); }`,
+  ]
+})
+
+export class TrackSelectorBottomSheet {
+  context: any;
+  songDict: any;
+
+  constructor(private apiService: ApiService, private bottomSheetRef: MatBottomSheetRef<TrackSelectorBottomSheet>) {}
+
+  async ngOnInit(): Promise<void> {
+      this.context = await this.apiService.getMediaContext();
+  }
+
+  getSelectedSong(song: any, event: MouseEvent) {
+    this.songDict = song;
+    this.bottomSheetRef.dismiss(this.songDict);
+    event.preventDefault();
   }
 }
