@@ -13,7 +13,6 @@ import { ApiService } from '../api-service';
 export class PlayerComponent implements OnInit {
   context: any;
   audioTrack: HTMLAudioElement = new Audio();
-  audioFilenamesData: any;
   selectedAudioIndex = 0;
   numberOfTracks: number = 0;
   musicLength: string = '0:00';
