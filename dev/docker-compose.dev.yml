@@ -132,7 +132,7 @@ services:
     command: redis-server
     image: redis
     env_file:
-      - .env
+      - .env.test
   unit-test-db:
     command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
     image: mysql:8
@@ -140,7 +140,7 @@ services:
       - ./db:/root/db
     environment:
       MYSQL_USER: "mysql"
-      MYSQL_DATABASE: "test"
+      MYSQL_DATABASE: "test_getmybeats_local_old"
       MYSQL_PASSWORD: "Password1!"
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_ROOT_PASSWORD: "Password1!"
@@ -152,14 +152,14 @@ services:
     volumes:    
       - ./db:/root/db
     image: mysql:8
-    entrypoint: "sh /root/db/import_db.sh"
+    entrypoint: "sh /root/db/import_unit-test-db.sh"
     environment:
       MYSQL_USER: "mysql"
-      MYSQL_DATABASE: "test"
+      MYSQL_DATABASE: "test_getmybeats_local_old"
       MYSQL_PASSWORD: "Password1!"
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_ROOT_PASSWORD: "Password1!"
-      MYSQL_HOST: "db"
+      MYSQL_HOST: "unit-test-db"
     depends_on:
       unit-test-db:
         condition: service_healthy
@@ -177,4 +177,6 @@ services:
         condition: service_started
       unit-test-dbimport:
         condition: service_started
+    env_file:
+      .env.test
 ################################################################ UNIT TESTS END #####################################################################
