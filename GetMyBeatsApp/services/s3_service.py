@@ -33,7 +33,7 @@ class S3AudioService:
         audio_instances = Audio.objects.all()
 
         for a in audio_instances:
-            filepath = a.file_upload.path
+            filepath = a.file.path
             filename = os.path.basename(filepath)
 
             if not os.path.exists(filepath):

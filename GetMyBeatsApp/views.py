@@ -95,9 +95,8 @@ def get_site_audio_context(request):
 def get_audio_by_hash(request, filename_hash):
     try:
         audio = get_audio_by_filename_hash(filename_hash)
-        content_file = ContentFile(open(audio.file_upload.path, 'rb').read())
+        content_file = ContentFile(open(audio.file.path, 'rb').read())
         response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file))
-
         # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
         # must NEVER forget that Google Chrome bugs out when headers aren't properly set
         # prone to error when implementing custom server-side streaming logic
@@ -108,4 +107,4 @@ def get_audio_by_hash(request, filename_hash):
         return response
     except Exception as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
-    return HttpResponse(500)
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)
