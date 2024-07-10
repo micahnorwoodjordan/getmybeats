@@ -19,7 +19,7 @@ def charx_to_space(string, charx):
 
 @register.filter
 def space_to_charx(string, charx):
-    return string.replace(SPACE, charx)
+    return string.strip().replace(SPACE, charx)
 
 
 @register.filter

@@ -3,14 +3,13 @@ import logging
 from enum import Enum
 
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
-from django.conf import settings
-from django.core.cache import cache
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
-from GetMyBeatsApp.templatetags.string_formatters import UNDERSCORE, space_to_charx
+from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
 
 
 logger = logging.getLogger(__name__)
@@ -39,48 +38,54 @@ class User(AbstractUser):
 
 
 class Audio(models.Model):
-    """
-    Title and file path naming specification:
-
-    Titles may contain space characters.
-    File names (/foo/bar/file_name.mp3) will be underscore delimited.
-    """
     id = models.AutoField(primary_key=True)
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
-    uploaded_at = models.DateTimeField(default=now)
-    title = models.CharField(max_length=200, blank=False, null=False, unique=True)
-    file_upload = models.FileField()  # specifying `upload_to` will nest the filepath argument. this is not wanted.
-    status = models.SmallIntegerField()
-    filename_hash = models.CharField(max_length=300, null=True, blank=True)
-    filename_hash_updated_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(default=now)
+    title = models.CharField(max_length=200, blank=True, null=False, unique=True)
+    file = models.FileField()
+    filename_hash = models.CharField(max_length=300, null=True, blank=True)  # TODO: flip blank/null and re-migrate
+    filename_hash_updated_at = models.DateTimeField(null=True, blank=True)  # TODO: flip blank/null and re-migrate
+    #   the two fields above temporarily allow null to avoid having to manually provide values for older audio objects
+    #   flip and re-migrate after all existing audio objects have this field populated
+    s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
+    ext = models.CharField(max_length=20, blank=True, null=False)
 
-    def delete(self, *args, **kwargs):
-        # NOTE: this is an Audio instance method, meaning that it can't be called on QuerySets
-        cache.clear()
-        super(Audio, self).delete()
+    @property
+    def _attributes(self):
+        return {
+            'title': self.title,
+            'file': self.file,
+            'filename_hash': self.filename_hash,
+            's3_upload_path': self.s3_upload_path,
+            'ext': self.ext
+        }
 
     def save(self, *args, **kwargs):
-        """
-        override django's native save() method to automatically upload audio files to S3
-        """
-        # TODO: look into NamedTemporaryFiles; inefficient, but file doesn't get written on disk until committed to db
-        super().save(*args, **kwargs)
-
-        if self.filename_hash is None:
-            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(self.file_upload.path))
-
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: None}
-        filepath = self.get_sanitized_path_for_s3()
-        s3 = S3AudioService()
-
-        try:
-            s3.upload(filepath, os.path.basename(filepath))
-        except Exception as e:
-            extra[settings.LOGGER_EXTRA_DATA_KEY] = repr(e)
-            logger.exception('EXCEPTION saving Audio instance', extra=extra)
-            return
-        cache.clear()
+        if self.id:
+            previous_file = Audio.objects.get(pk=self.id)._attributes['file']
+            if previous_file != self.file:
+                self.upload_to_s3_on_save()
+        else:
+            filename = space_to_charx(self.file.name, UNDERSCORE).lower()
+            fp = self.file.path
+            self.ext = '.' + fp.split('.')[-1]
+            self.title = filename.replace(self.ext, '')
+            self.filename_hash_updated_at = now()
+            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
+            super().save(*args, **kwargs)  # commit file to disk for s3 upload
+            self.upload_to_s3_on_save()
         return super().save(*args, **kwargs)
+
+    def upload_to_s3_on_save(self):
+        filename = self.title + self.ext
+        try:
+            S3AudioService().upload(self.file.path, filename)
+            self.s3_upload_path = f's3://{settings.S3_AUDIO_BUCKET}/{filename}'
+            logger.info('upload_to_s3_on_save success', extra={settings.LOGGER_EXTRA_DATA_KEY: filename})
+            return True
+        except Exception as err:
+            logger.exception('upload_to_s3_on_save failure', extra={settings.LOGGER_EXTRA_DATA_KEY: str(err)})
+            return False
 
     class Status(Enum):
         concept = 1
@@ -94,9 +99,6 @@ class Audio(models.Model):
 
     def __str__(self):
         return f'{Audio.__name__}: {self.id} -> {self.title} uploaded by {self.fk_uploaded_by.username}'
-
-    def get_sanitized_path_for_s3(self):
-        return space_to_charx(self.file_upload.path, UNDERSCORE)
 
 
 class RenewedSSLConfiguration(models.Model):

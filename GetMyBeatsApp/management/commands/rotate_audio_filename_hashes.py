@@ -18,7 +18,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             audios = Audio.objects.all()
             for audio in audios:
-                filename = os.path.basename(audio.file_upload.path)
+                filename = os.path.basename(audio.file.path)
                 new_hashed_filename = get_new_hashed_audio_filename(filename)
                 audio.filename_hash = new_hashed_filename
                 audio.filename_hash_updated_at = now_utc
