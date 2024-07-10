@@ -3,9 +3,11 @@ import logging
 from enum import Enum
 
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 
+from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
 from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
 
@@ -48,15 +50,42 @@ class Audio(models.Model):
     s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
     ext = models.CharField(max_length=20, blank=True, null=False)
 
+    @property
+    def _attributes(self):
+        return {
+            'title': self.title,
+            'file': self.file,
+            'filename_hash': self.filename_hash,
+            's3_upload_path': self.s3_upload_path,
+            'ext': self.ext
+        }
+
     def save(self, *args, **kwargs):
-        if not self.id:
+        if self.id:
+            previous_file = Audio.objects.get(pk=self.id)._attributes['file']
+            if previous_file != self.file:
+                self.upload_to_s3_on_save()
+        else:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
             self.title = filename.replace(self.ext, '')
             self.filename_hash_updated_at = now()
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
+            super().save(*args, **kwargs)  # commit file to disk for s3 upload
+            self.upload_to_s3_on_save()
         return super().save(*args, **kwargs)
+
+    def upload_to_s3_on_save(self):
+        filename = self.title + self.ext
+        try:
+            S3AudioService().upload(self.file.path, filename)
+            self.s3_upload_path = f's3://{settings.S3_AUDIO_BUCKET}/{filename}'
+            logger.info('upload_to_s3_on_save success', extra={settings.LOGGER_EXTRA_DATA_KEY: filename})
+            return True
+        except Exception as err:
+            logger.exception('upload_to_s3_on_save failure', extra={settings.LOGGER_EXTRA_DATA_KEY: str(err)})
+            return False
 
     class Status(Enum):
         concept = 1
