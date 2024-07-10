@@ -127,4 +127,54 @@ services:
       npm install -g @angular/cli && npm install --package-lock-only &&
       npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
       ng build --configuration development && tail -f /dev/null"
-
+################################################################ UNIT TESTS BEGIN #####################################################################
+  unit-test-redis:
+    command: redis-server
+    image: redis
+    env_file:
+      - .env
+  unit-test-db:
+    command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
+    image: mysql:8
+    volumes:    
+      - ./db:/root/db
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "test"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 5s
+        retries: 1
+  unit-test-dbimport:
+    volumes:    
+      - ./db:/root/db
+    image: mysql:8
+    entrypoint: "sh /root/db/import_db.sh"
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "test"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+      MYSQL_HOST: "db"
+    depends_on:
+      unit-test-db:
+        condition: service_healthy
+  unit-test:
+    build:
+      dockerfile: dev/Dockerfile.backend.dev
+      context: ./..
+    volumes:
+      - ../:/application/getmybeats
+    command: bash -c "cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate && ./manage.py test"
+    depends_on:
+      unit-test-db:
+        condition: service_healthy
+      unit-test-redis:
+        condition: service_started
+      unit-test-dbimport:
+        condition: service_started
+################################################################ UNIT TESTS END #####################################################################
