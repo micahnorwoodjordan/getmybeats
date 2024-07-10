@@ -31,5 +31,8 @@ urlpatterns = [
     path('releases/<str:release_id>/', views.get_release)
 ]
 
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
 handler404 = 'GetMyBeatsApp.views.handler404'
 handler500 = 'GetMyBeatsApp.views.handler500'

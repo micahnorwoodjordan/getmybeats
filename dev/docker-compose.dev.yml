@@ -21,7 +21,7 @@ services:
       - 80:80
     command: /bin/bash -c "
       systemctl start cron &&
-      cd /application/getmybeats/ && aws s3 sync s3://getmybeats-audio-dev ./ &&
+      cd /application/media && aws s3 sync s3://getmybeats-audio-dev ./ &&
       cd /application/getmybeats &&
       python3 dev/cron/prepare_env.py &&
       . /opt/venvs/getmybeats/bin/activate &&
@@ -90,7 +90,7 @@ services:
       - 80:80
     command: /bin/bash -c "
       systemctl start cron &&
-      cd /application/getmybeats/media && aws s3 sync s3://getmybeats-audio-dev ./ &&
+      cd /application/media && aws s3 sync s3://getmybeats-audio-dev ./ &&
       cd /application/getmybeats &&
       python3 dev/cron/prepare_env.py &&
       . /opt/venvs/getmybeats/bin/activate &&
@@ -102,7 +102,6 @@ services:
       tail -f /var/log/nginx/access.log"
     volumes:
       - ../:/application/getmybeats
-      - ../media:/application/getmybeats/media
       - ./nginx/dev.nginx.conf:/etc/nginx/nginx.conf
     env_file:
       .env
