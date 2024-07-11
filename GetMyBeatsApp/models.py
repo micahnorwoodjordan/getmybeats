@@ -74,6 +74,8 @@ class Audio(models.Model):
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
             super().save(*args, **kwargs)  # commit file to disk for s3 upload
             self.upload_to_s3_on_save()
+            if self.id:
+                kwargs['force_insert'] = False
         return super().save(*args, **kwargs)
 
     def upload_to_s3_on_save(self):
