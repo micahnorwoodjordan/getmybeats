@@ -22,7 +22,7 @@ jobs:
       - name: Run Tests
         uses: addnab/docker-run-action@v3
         with:
-          image: micahnorwoodjordan/dev-api-testing:latest
+          image: micahnorwoodjordan/dev-unit-test:latest
           options: -v ${{ github.workspace }}:/application/getmybeats
           run: |
             cd /application/getmybeats
