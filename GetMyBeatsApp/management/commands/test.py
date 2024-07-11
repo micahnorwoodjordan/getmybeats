@@ -8,6 +8,6 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        retcode = pytest.main(['-x', 'GetMyBeatsApp/tests'])
+        retcode = pytest.main(['-x', 'GetMyBeatsApp/tests', '-vvv', '--reuse-db'])
         if retcode != 0:
             raise Exception('failed')
