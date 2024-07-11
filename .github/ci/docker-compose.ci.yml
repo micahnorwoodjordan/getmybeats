@@ -1,4 +1,17 @@
 services:
+  db-ci:
+    command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
+    image: mysql:8
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "test_getmybeats_local_old"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 5s
+        retries: 1
   api-ci:
     build:
         dockerfile: .github/ci/Dockerfile.ci
@@ -11,3 +24,6 @@ services:
       - ../../:/application/getmybeats
     env_file:
       .env.ci
+    depends_on:
+      db-ci:
+        condition: service_healthy
