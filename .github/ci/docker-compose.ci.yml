@@ -1,0 +1,13 @@
+services:
+  api-ci:
+    build:
+        dockerfile: .github/ci/Dockerfile.ci
+        context: ./../..
+    command: /bin/bash -c "
+      cd /application/getmybeats &&
+      . /opt/venvs/getmybeats/bin/activate &&
+      ./manage.py migrate GetMyBeatsApp && ./manage.py test"
+    volumes:
+      - ../../:/application/getmybeats
+    env_file:
+      .env.ci

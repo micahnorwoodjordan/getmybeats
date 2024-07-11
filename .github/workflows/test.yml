@@ -22,10 +22,10 @@ jobs:
       - name: Run Tests
         uses: addnab/docker-run-action@v3
         with:
-          image: micahnorwoodjordan/dev-unit-test:latest
+          image: micahnorwoodjordan/ci-api-ci:latest
           options: -v ${{ github.workspace }}:/application/getmybeats
           run: |
             cd
             curl -fsSL https://get.docker.com -o get-docker.sh
             sh get-docker.sh
-            cd /application/getmybeats/dev && docker compose -f docker-compose.dev.yml run --rm --name test unit-test
+            cd /application/getmybeats/.github/ci && docker compose -f docker-compose.ci.yml run --rm --name ci api-ci
