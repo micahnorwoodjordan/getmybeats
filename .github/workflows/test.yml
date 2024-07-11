@@ -25,5 +25,4 @@ jobs:
           image: micahnorwoodjordan/dev-unit-test:latest
           options: -v ${{ github.workspace }}:/application/getmybeats
           run: |
-            cd /application/getmybeats
-            . /opt/venvs/getmybeats/bin/activate && ./manage.py test
+            cd /application/getmybeats/dev && docker compose -f docker-compose.dev.yml run --rm --name test unit-test
