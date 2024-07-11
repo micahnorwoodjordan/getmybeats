@@ -63,8 +63,10 @@ class Audio(models.Model):
     def save(self, *args, **kwargs):
         if self.id:
             previous_file = Audio.objects.get(pk=self.id)._attributes['file']
-            if previous_file != self.file:
+            # overkill to use hash, but other approaches dont evaluate object equality sufficiently
+            if previous_file.__hash__ != self.file.__hash__:
                 self.upload_to_s3_on_save()
+                self.filename_hash = get_new_hashed_audio_filename(os.path.basename(self.file.path))
         else:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
