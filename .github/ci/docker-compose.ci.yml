@@ -17,8 +17,11 @@ services:
         dockerfile: .github/ci/Dockerfile.ci
         context: ./../..
     command: /bin/bash -c "
-      echo 'noodles'
-      cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate &&./manage.py migrate GetMyBeatsApp && ./manage.py test"
+      cd /application/getmybeats &&
+      . /opt/venvs/getmybeats/bin/activate &&
+      pip3 freeze &&
+      ls &&
+      ./manage.py migrate GetMyBeatsApp && ./manage.py test"
     volumes:
       - ../../:/application/getmybeats
     env_file:
