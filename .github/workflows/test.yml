@@ -22,8 +22,8 @@ jobs:
       - name: Run Tests
         uses: addnab/docker-run-action@v3
         with:
+          working-directory: /application/getmybeats
           image: micahnorwoodjordan/ci-api-ci:latest
-          options: -v ${{ github.workspace }}:/application/getmybeats
           run: |
             cd
             curl -fsSL https://get.docker.com -o get-docker.sh
