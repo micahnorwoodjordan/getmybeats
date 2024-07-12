@@ -17,11 +17,8 @@ services:
         dockerfile: .github/ci/Dockerfile.ci
         context: ./../..
     command: /bin/bash -c "
-      cd /application/getmybeats &&
-      . /opt/venvs/getmybeats/bin/activate &&
-      pip3 freeze &&
-      ls &&
-      ./manage.py migrate GetMyBeatsApp && ./manage.py test"
+      cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate &&
+      python3 ./manage.py migrate GetMyBeatsApp && python3 ./manage.py test"
     volumes:
       - ../../:/application/getmybeats
     env_file:
