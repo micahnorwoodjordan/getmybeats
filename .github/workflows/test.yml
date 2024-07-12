@@ -28,4 +28,4 @@ jobs:
             cd
             curl -fsSL https://get.docker.com -o get-docker.sh
             sh get-docker.sh
-            cd /application/getmybeats/.github/ci && docker compose -f docker-compose.ci.yml run --rm --name ci api-ci
+            cd /application/getmybeats/ci && docker compose -f docker-compose.ci.yml run --rm --name ci api-ci

@@ -14,13 +14,13 @@ services:
         retries: 1
   api-ci:
     build:
-        dockerfile: .github/ci/Dockerfile.ci
-        context: ./../..
+        dockerfile: ci/Dockerfile.ci
+        context: ./..
     command: /bin/bash -c "
       cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate &&
       pwd && ls -ahl && whoami"
     volumes:
-      - ../../:/application/getmybeats
+      - ../:/application/getmybeats
     env_file:
       .env.ci
     depends_on:
