@@ -17,7 +17,8 @@ services:
         dockerfile: .github/ci/Dockerfile.ci
         context: ./../..
     command: /bin/bash -c "
-      pwd && ls -ahl"
+      cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate &&
+      pwd && ls -ahl && whoami"
     volumes:
       - ../../:/application/getmybeats
     env_file:
