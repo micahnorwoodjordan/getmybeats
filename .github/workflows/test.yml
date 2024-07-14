@@ -22,7 +22,6 @@ jobs:
       - name: Run Tests
         uses: addnab/docker-run-action@v3
         with:
-          working-directory: /application/getmybeats
           run: |
             cd
             curl -fsSL https://get.docker.com -o get-docker.sh
