@@ -18,6 +18,7 @@ services:
         context: ./..
     command: /bin/bash -c "
       cd /application/getmybeats && . /opt/venvs/getmybeats/bin/activate &&
+      find / -name 'manage.py' &&
       pwd && ls -ahl && whoami"
     volumes:
       - ../:/application/getmybeats
