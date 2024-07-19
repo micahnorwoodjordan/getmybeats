@@ -44,3 +44,10 @@ def python_to_titleized_js(string):
     foo_bar -> FooBar
     """
     return NULL_CHARACTER.join(nugget.capitalize() for nugget in string.split(UNDERSCORE))
+
+
+@register.filter
+def sanitized_user_experience_report_for_user(dictionary):
+    string = str(dictionary)
+    string = string.replace('{', '').replace('}', '').replace('\'', '')
+    return string
