@@ -4,8 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from GetMyBeatsApp import views
-from GetMyBeatsSettings.user.user_urls import urlpatterns as user_url_patterns
-from GetMyBeatsSettings.media.media_urls import urlpatterns as media_url_patterns
+from GetMyBeatsSettings.urlconfs.user_urls import urlpatterns as user_url_patterns
+from GetMyBeatsSettings.urlconfs.media_urls import urlpatterns as media_url_patterns
 
 
 urlpatterns = [
