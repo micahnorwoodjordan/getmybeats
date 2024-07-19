@@ -3,5 +3,7 @@ export const environment = {
     apiHost: "https://getmybeats.com",
     apiMediaPath: "/media/",
     localMediaPath: "/assets/",
-    audioContextPollIntervalSeconds: 900
+    audioContextPollIntervalSeconds: 60,
+    audioContextPollMinuteTimestamp: 15,
+    audioContextPollSecondTimestamp: 0
 }
