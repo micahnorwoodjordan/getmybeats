@@ -17,19 +17,19 @@
         <div style="padding-bottom: 10vh;">
             <h2>Known Issues</h2>
             {% for i in issues %} 
-                <h3><b>- {{ i.title|titleize }}:</b></h3><br>&emsp;&emsp;&emsp;<i>{{ i.description }}</i>
+                <h3><b>- {{ i.title|titleize }}:</b></h3><br>&emsp;&#x2022;<i>{{ i.description }}</i>
             {% endfor %}
         </div>
         <div style="padding-bottom: 10vh;">
             <h2>Upcoming Features/Fixes</h2>
             {% for u in upcoming %} 
-                <h3><b>- {{ u.title|titleize }}:</b></h3><br>&emsp;&emsp;&emsp;<i>{{ u.description }}</i>
+                <h3><b>- {{ u.title|titleize }}:</b></h3><br>&emsp;&#x2022;<i>{{ u.description }}</i>
             {% endfor %}
         </div>
         <div style="padding-bottom: 10vh;">
             <h2>Recent Features</h2>
             {% for r in recent %} 
-                <h3><b>- {{ r.title|titleize }}:</b></h3><br>&emsp;&emsp;&emsp;<i>{{ r.description }}</i>
+                <h3><b>- {{ r.title|titleize }}:</b></h3><br>&emsp;&#x2022;<i>{{ r.description }}</i>
             {% endfor %}
         </div>
     </body>

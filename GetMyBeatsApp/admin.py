@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from django.contrib import admin
 
-from .models import User, Audio
+from .models import User, Audio, UserExperienceReport
 
 
 class InvalidModelAdminOperationException(Exception):
@@ -30,3 +30,13 @@ class AudioAdmin(admin.ModelAdmin):
 
     list_display = ['id', 'title', 'fk_uploaded_by']
     actions = [delete_queryset]
+
+
+@admin.register(UserExperienceReport)
+class UserExperienceReportAdmin(admin.ModelAdmin):
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    list_display = ['issues', 'upcoming', 'recent']
