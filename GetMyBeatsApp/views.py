@@ -108,3 +108,7 @@ def get_audio_by_hash(request, filename_hash):
     except Exception as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
+
+
+def get_user_experience_report(request):
+    return HttpResponse(content=json.dumps(dict()))
