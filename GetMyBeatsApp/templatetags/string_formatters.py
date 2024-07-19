@@ -47,9 +47,7 @@ def python_to_titleized_js(string):
 
 
 @register.filter
-def sanitized_user_experience_report_for_user(dictionary):
-    string = str(dictionary)
-    for character in ['{', '}', '\'']:
-        string = string.replace(character, '')
-    string = string.replace(': ', ':\n')
-    return string
+def titleize(string):
+    tokens = string.split(' ')
+    sanitized = ' '.join([token[0].upper() + token[1:] for token in tokens])
+    return sanitized

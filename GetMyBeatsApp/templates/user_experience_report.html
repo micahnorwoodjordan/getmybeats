@@ -10,27 +10,26 @@
         <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200;400&display=swap" rel="stylesheet">
         <title>User Experience Report</title>
     </head>
-    <body style="text-align: center; color: white;">
+    <body style="color: white;">
         <div style="padding-bottom: 2vh;">
-        <!-- <div> -->
             <h1>User Experience Report</h1>
         </div>
-        <div style="padding-bottom: 15vh;">
+        <div style="padding-bottom: 10vh;">
             <h2>Known Issues</h2>
             {% for i in issues %} 
-                - <i><b>{{ i|sanitized_user_experience_report_for_user|linebreaksbr }}</b></i>
+                <h3><b>- {{ i.title|titleize }}:</b></h3><br>&emsp;&emsp;&emsp;<i>{{ i.description }}</i>
             {% endfor %}
         </div>
-        <div style="padding-bottom: 15vh;">
+        <div style="padding-bottom: 10vh;">
             <h2>Upcoming Features/Fixes</h2>
             {% for u in upcoming %} 
-                - <i><b>{{ u|sanitized_user_experience_report_for_user|linebreaksbr }}</b></i>
+                <h3><b>- {{ u.title|titleize }}:</b></h3><br>&emsp;&emsp;&emsp;<i>{{ u.description }}</i>
             {% endfor %}
         </div>
-        <div style="padding-bottom: 15vh;">
+        <div style="padding-bottom: 10vh;">
             <h2>Recent Features</h2>
             {% for r in recent %} 
-                - <i><b>{{ r|sanitized_user_experience_report_for_user|linebreaksbr }}</b></i>
+                <h3><b>- {{ r.title|titleize }}:</b></h3><br>&emsp;&emsp;&emsp;<i>{{ r.description }}</i>
             {% endfor %}
         </div>
     </body>

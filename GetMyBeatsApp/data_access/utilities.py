@@ -100,9 +100,9 @@ def get_current_user_experience_report():
     report_raw = UserExperienceReport.objects.last()
 
     for k, v in report_raw.issues.items():
-        report_for_user['issues'].append({k: v})
+        report_for_user['issues'].append({'title': k, 'description': v})
     for k, v in report_raw.upcoming.items():
-        report_for_user['upcoming'].append({k: v})
+        report_for_user['upcoming'].append({'title': k, 'description': v})
     for k, v in report_raw.recent.items():
-        report_for_user['recent'].append({k: v})
+        report_for_user['recent'].append({'title': k, 'description': v})
     return report_for_user
