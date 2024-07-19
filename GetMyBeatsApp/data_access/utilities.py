@@ -6,7 +6,7 @@ from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.utils.timezone import now
 
-from GetMyBeatsApp.models import Audio, SiteVisitRequest, ProductionRelease
+from GetMyBeatsApp.models import Audio, SiteVisitRequest, ProductionRelease, UserExperienceReport
 
 
 logger = logging.getLogger(__name__)
@@ -89,3 +89,12 @@ def get_audio_context():
             'title': a.title
         })
     return context_array
+
+
+def get_current_user_experience_report():
+    report_for_user = dict()
+    report_raw = UserExperienceReport.objects.last()
+
+    for k, v in {**report_raw.issues, **report_raw.recent, **report_raw.upcoming}.items():
+        report_for_user[k] = v
+    return report_for_user
