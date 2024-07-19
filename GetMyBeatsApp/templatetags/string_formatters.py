@@ -27,7 +27,7 @@ def title_to_py(string):
     """
     Foo Bar -> foo_bar
     """
-    return UNDERSCORE.join(nugget.lower() for nugget in string.split(SPACE))
+    return UNDERSCORE.join(token.lower() for token in string.split(SPACE))
 
 
 @register.filter
@@ -43,4 +43,11 @@ def python_to_titleized_js(string):
     """
     foo_bar -> FooBar
     """
-    return NULL_CHARACTER.join(nugget.capitalize() for nugget in string.split(UNDERSCORE))
+    return NULL_CHARACTER.join(token.capitalize() for token in string.split(UNDERSCORE))
+
+
+@register.filter
+def titleize(string):
+    tokens = string.split(' ')
+    sanitized = ' '.join([token[0].upper() + token[1:] for token in tokens])
+    return sanitized

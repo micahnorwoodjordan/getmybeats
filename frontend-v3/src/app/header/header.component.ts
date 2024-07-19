@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 
 import { ApiService } from '../api-service';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -10,6 +11,7 @@ import { ApiService } from '../api-service';
 })
 
 export class HeaderComponent implements OnInit {
+  userExperienceReportUrl = `${environment.apiHost}/user/experience`;
   @Input() lowBandwidthMode: boolean = false;
 
   lastReleaseString: string = '';

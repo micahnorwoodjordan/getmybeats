@@ -120,3 +120,13 @@ class SiteVisitRequest(models.Model):
     class Meta:
         managed = True
         db_table = 'site_visit_request'
+
+
+class UserExperienceReport(models.Model):
+    """
+    these fields all refer to features, i.e. "feature issues", "recent features", "upcoming features".
+    by simply creating a new db entry, users will stay up-to-date on the currently-known overall website functionality
+    """
+    issues = models.JSONField()
+    upcoming = models.JSONField()
+    recent = models.JSONField()
