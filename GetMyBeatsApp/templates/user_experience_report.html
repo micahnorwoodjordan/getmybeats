@@ -1,32 +1,36 @@
 {% load string_formatters %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: rgb(20, 19, 19); font-family: Inconsolata, Roboto, 'Helvetica Neue', sans-serif;">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200;400&display=swap" rel="stylesheet">
         <title>User Experience Report</title>
     </head>
-    <body style="text-align: center;">
-        <div style="padding-bottom: 7vh;">
+    <body style="text-align: center; color: white;">
+        <div style="padding-bottom: 2vh;">
+        <!-- <div> -->
             <h1>User Experience Report</h1>
         </div>
-        <div style="padding-bottom: 20vh;">
+        <div style="padding-bottom: 15vh;">
             <h2>Known Issues</h2>
             {% for i in issues %} 
-                - {{ i|sanitized_user_experience_report_for_user }}
+                - <i><b>{{ i|sanitized_user_experience_report_for_user|linebreaksbr }}</b></i>
             {% endfor %}
         </div>
-        <div style="padding-bottom: 20vh;">
-            <h2>Upcoming Features</h2>
+        <div style="padding-bottom: 15vh;">
+            <h2>Upcoming Features/Fixes</h2>
             {% for u in upcoming %} 
-                - {{ u|sanitized_user_experience_report_for_user }}
+                - <i><b>{{ u|sanitized_user_experience_report_for_user|linebreaksbr }}</b></i>
             {% endfor %}
         </div>
-        <div style="padding-bottom: 20vh;">
+        <div style="padding-bottom: 15vh;">
             <h2>Recent Features</h2>
             {% for r in recent %} 
-                - {{ r|sanitized_user_experience_report_for_user }}
+                - <i><b>{{ r|sanitized_user_experience_report_for_user|linebreaksbr }}</b></i>
             {% endfor %}
         </div>
     </body>

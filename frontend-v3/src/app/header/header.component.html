@@ -1,8 +1,8 @@
 <div fxLayout="column" fxLayoutAlign="center center">
     <div *ngIf="lowBandwidthMode" class="header-bandwidth-status" fxLayout="row" fxLayoutAlign="center center">
-        <a>unstable connection</a>&nbsp;
+        <a>having issues?</a>&nbsp;
         <mat-icon>signal_wifi_off</mat-icon>&nbsp;
-        <a href="{{userExperienceReportUrl}}">UX report</a>
+        <a href="{{userExperienceReportUrl}}" target="_blank">view UX report</a>
     </div>
     <!-- <div class="header-primary" fxLayout="row" fxLayoutAlign="space-evenly center">
         <a>release: {{ lastReleaseString }} (UTC)</a>
