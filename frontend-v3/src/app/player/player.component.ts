@@ -5,9 +5,10 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 import {MatListModule} from '@angular/material/list';
 import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import { CommonModule } from '@angular/common';
 
 import { ApiService } from '../api-service';
-import { CommonModule } from '@angular/common';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -57,6 +58,14 @@ export class PlayerComponent implements OnInit {
       this.filenameHashesByIndex[element.filename_hash] = idx;
     })
     this.updateAudioMetadataState();
+
+    setInterval(async () => {
+        if(new Date().getSeconds() === 0){  // poll new audio context at second 0
+          let newContext = await this.apiService.getMediaContext();
+          this.context = newContext;
+        }
+      }, environment.audioContextPollIntervalSeconds * 1000
+    );
   }
 
   async getAndLoadAudioTrack(filenameHash: string) {
@@ -131,7 +140,7 @@ export class PlayerComponent implements OnInit {
     let upperBound: number = this.numberOfTracks;
     let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
 
-    if (randomTrackIndex === badIndex) {
+    if (randomTrackIndex === badIndex && this.numberOfTracks > 1) {  // this extra condition is only relevant to development
       console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
       return this.onSongChangeShuffle(badIndex);
     }
