@@ -115,4 +115,4 @@ def get_audio_by_hash(request, filename_hash):
 @api_view(['GET'])
 def get_user_experience_report(request):
     report = get_current_user_experience_report()
-    return HttpResponse(content=json.dumps(report))
+    return render(request, 'user_experience_report.html', context=report)

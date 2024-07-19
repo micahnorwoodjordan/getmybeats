@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>User Experience Report</title>
+    </head>
+    <body style="text-align: center;">
+        <div style="padding-bottom: 20vh;">
+            <h1>User Experience Report</h1>
+        </div>
+        <div style="padding-bottom: 20vh;">
+            <h2>Known Issues</h2>
+            {% for i in issues %} 
+                {{ i }}
+            {% endfor %}
+        </div>
+        <div style="padding-bottom: 20vh;">
+            <h2>Upcoming Features</h2>
+            {% for u in upcoming %} 
+                {{ u }}
+            {% endfor %}
+        </div>
+        <div style="padding-bottom: 20vh;">
+            <h2>Recent Features</h2>
+            {% for r in recent %} 
+                {{ r }}
+            {% endfor %}
+        </div>
+    </body>
+</html>

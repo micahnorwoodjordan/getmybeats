@@ -92,9 +92,17 @@ def get_audio_context():
 
 
 def get_current_user_experience_report():
-    report_for_user = dict()
+    report_for_user = {
+        'issues': [],
+        'upcoming': [],
+        'recent': []
+    }
     report_raw = UserExperienceReport.objects.last()
 
-    for k, v in {**report_raw.issues, **report_raw.recent, **report_raw.upcoming}.items():
-        report_for_user[k] = v
+    for k, v in report_raw.issues.items():
+        report_for_user['issues'].append({k: v})
+    for k, v in report_raw.issues.items():
+        report_for_user['upcoming'].append({k: v})
+    for k, v in report_raw.issues.items():
+        report_for_user['recent'].append({k: v})
     return report_for_user
