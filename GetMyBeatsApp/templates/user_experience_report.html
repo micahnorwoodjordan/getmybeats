@@ -1,0 +1,36 @@
+{% load string_formatters %}
+
+<!DOCTYPE html>
+<html lang="en" style="background-color: rgb(20, 19, 19); font-family: Inconsolata, Roboto, 'Helvetica Neue', sans-serif;">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200;400&display=swap" rel="stylesheet">
+        <title>User Experience Report</title>
+    </head>
+    <body style="color: white;">
+        <div style="padding-bottom: 2vh;">
+            <h1>User Experience Report</h1>
+        </div>
+        <div style="padding-bottom: 10vh;">
+            <h2>Known Issues</h2>
+            {% for i in issues %} 
+                <h3><b>- {{ i.title|titleize }}:</b></h3><br>&emsp;&#x2022;<i>{{ i.description }}</i>
+            {% endfor %}
+        </div>
+        <div style="padding-bottom: 10vh;">
+            <h2>Upcoming Features/Fixes</h2>
+            {% for u in upcoming %} 
+                <h3><b>- {{ u.title|titleize }}:</b></h3><br>&emsp;&#x2022;<i>{{ u.description }}</i>
+            {% endfor %}
+        </div>
+        <div style="padding-bottom: 10vh;">
+            <h2>Recent Features</h2>
+            {% for r in recent %} 
+                <h3><b>- {{ r.title|titleize }}:</b></h3><br>&emsp;&#x2022;<i>{{ r.description }}</i>
+            {% endfor %}
+        </div>
+    </body>
+</html>

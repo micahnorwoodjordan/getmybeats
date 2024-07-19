@@ -12,7 +12,7 @@ from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
     get_audio_filenames, record_request_information, get_release_by_id,
-    get_audio_context, get_audio_by_filename_hash
+    get_audio_context, get_audio_by_filename_hash, get_current_user_experience_report
 )
 
 
@@ -87,11 +87,13 @@ def get_release(request, release_id):
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
+@api_view(['GET'])
 def get_site_audio_context(request):
     context_array = get_audio_context()
     return HttpResponse(content=json.dumps(context_array))
 
 
+@api_view(['GET'])
 def get_audio_by_hash(request, filename_hash):
     try:
         audio = get_audio_by_filename_hash(filename_hash)
@@ -108,3 +110,9 @@ def get_audio_by_hash(request, filename_hash):
     except Exception as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
+
+
+@api_view(['GET'])
+def get_user_experience_report(request):
+    report = get_current_user_experience_report()
+    return render(request, 'user_experience_report.html', context=report)
