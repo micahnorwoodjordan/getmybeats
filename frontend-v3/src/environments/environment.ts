@@ -3,7 +3,7 @@ export const environment = {
     apiHost: "http://192.168.0.180:80",
     apiMediaPath: "/media/",
     localMediaPath: "/assets/",
-    audioContextPollIntervalSeconds: 60,
+    audioContextEvaluationIntervalSeconds: 1,
     audioContextPollMinuteTimestamp: 15,
     audioContextPollSecondTimestamp: 0
 }
