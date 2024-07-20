@@ -67,7 +67,10 @@ export class PlayerComponent implements OnInit {
   }
 
   // ------------------------------------------------ AUDIO CONTEXTUALIZATION LOGIC BEGIN -------------------------------------------------------------
-  //  this logic below helps sync the frontend with the filename hash rotation on the backend:
+  // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+  // https://stackoverflow.com/questions/73847771/setinterval-returns-undefined-or-scope-of-returned-value-wrong
+
+  // this logic below helps sync the frontend with the filename hash rotation on the backend:
   //       at every 15th epoch minute it will begin polling the api, but will stop as soon as it receives an updated audio context
   //       this will allow for a near-seamless user experience in the middle of a hash rotation cycle
 
