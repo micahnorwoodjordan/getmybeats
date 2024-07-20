@@ -8,6 +8,7 @@ import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angula
 import { CommonModule } from '@angular/common';
 
 import { ApiService } from '../api-service';
+import { PollService } from '../poll.service';
 import { environment } from 'src/environments/environment';
 
 
@@ -32,8 +33,6 @@ export class PlayerComponent implements OnInit {
   loading: boolean = false;
   lowBandwidthMode: boolean = false;
   filenameHashesByIndex: any;
-  intervalId: any = undefined;
-  hashesWereRotated: boolean = false;
 
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -42,7 +41,11 @@ export class PlayerComponent implements OnInit {
   // becuase the event handler runs between 4 and 66hz
   sliderValueProxy: number = 0;
 
-  constructor(private apiService: ApiService, private bottomSheet: MatBottomSheet) {}
+  constructor(
+    private apiService: ApiService,
+    private pollService: PollService,
+    private bottomSheet: MatBottomSheet
+  ) {}
 
 
   // small methods
@@ -61,51 +64,16 @@ export class PlayerComponent implements OnInit {
     })
     this.updateAudioMetadataState();
 
-    this.intervalId = setInterval(async () => {
-      this.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
-    }, environment.audioContextEvaluationIntervalSeconds * 1000);
-  }
-
-  // ------------------------------------------------ AUDIO CONTEXTUALIZATION LOGIC BEGIN -------------------------------------------------------------
-  // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
-  // https://stackoverflow.com/questions/73847771/setinterval-returns-undefined-or-scope-of-returned-value-wrong
-
-  // this logic below helps sync the frontend with the filename hash rotation on the backend:
-  //       at every 15th epoch minute it will begin polling the api, but will stop as soon as it receives an updated audio context
-  //       this will allow for a near-seamless user experience in the middle of a hash rotation cycle
-
-  stopPollNewContext() {
-    console.log('stopPollNewContext fired');
-    this.intervalId = setInterval(() => {
-      clearInterval(this.intervalId);
-    }, environment.audioContextEvaluationIntervalSeconds * 1000);
-  }
-
-  async pollNewContext(): Promise<boolean> {
-    console.log('pollNewContext fired');
-    let newContext = await this.apiService.getMediaContext();
-    let receivedNewContext = JSON.stringify(this.context) !== JSON.stringify(newContext);
-
-    if (receivedNewContext) {
-      console.log('pollNewContext: recieved updated audio context');
-      this.context = newContext;
-      this.stopPollNewContext();
-    }
-    return receivedNewContext;
-  }
-
-  async evaluateCurrentContext() {  // remember, this gets called every second of each 15th epoch minute
-    console.log('evaluateCurrentContext fired');
-    if(new Date().getMinutes() % environment.audioContextPollMinuteTimestamp === 0) {
-      if (!this.hashesWereRotated) {
-        this.hashesWereRotated = await this.pollNewContext();
+    setInterval(async () => {
+      await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
+      let pollContext = this.pollService.getContext();
+      if (JSON.stringify(this.context) !== JSON.stringify(pollContext)) {
+        console.log('PlayerComponent context updated');
+        this.context = pollContext;
       }
-    }
-    else {
-      this.hashesWereRotated = false;
-    }
+    }, environment.audioContextEvaluationIntervalSeconds * 1000);
   }
-  // ------------------------------------------------ AUDIO CONTEXTUALIZATION LOGIC END ---------------------------------------------------------------
+
 
   async getAndLoadAudioTrack(filenameHash: string) {
     this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
@@ -242,10 +210,9 @@ export class PlayerComponent implements OnInit {
     }
   }
 
-  onSongChangeRepeatTrue() {
+  async onSongChangeRepeatTrue() {
     this.pauseOnCycleThrough();
-    this.audioTrack.currentTime = 0;
-    this.audioTrack.load();
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
 
