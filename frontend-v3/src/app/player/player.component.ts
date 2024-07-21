@@ -25,7 +25,7 @@ export class PlayerComponent implements OnInit {
   paused: boolean = true;
 
   // ----------------------------------------------------------------------------------------------------------------
-  // attributes that need to be access via template
+  // attributes that need to be accessed via template
   lowBandwidthMode: boolean = false;
   title: string = "null";
   loading: boolean = false;
@@ -44,7 +44,6 @@ export class PlayerComponent implements OnInit {
   onNext() { this.audioService.onNext(); }  // ZZZ
   onPrevious() { this.audioService.onPrevious(); }  // ZZZ
 
-    // synchronous methods
   onSliderChange(event: any) {
     setTimeout(() => {}, 200);
     this.sliderValueProxy = this.sliderValue;
@@ -56,7 +55,6 @@ export class PlayerComponent implements OnInit {
     await this.audioService.setInitialAudioState();
     this.audioService.updateAudioMetadataState();
 
-
     setInterval(async () => {
       await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
       let pollContext = this.pollService.getContext();
@@ -64,6 +62,11 @@ export class PlayerComponent implements OnInit {
         console.log('PlayerComponent context updated');
         this.audioService.context = pollContext;
       }
+      this.getAudioTrackPresentationData();
+    }, environment.audioContextEvaluationIntervalSeconds * 1000);
+  }
+
+  getAudioTrackPresentationData() {
       this.lowBandwidthMode = this.audioService.getLowBandwidthMode();
       this.title = this.audioService.getTitle();
       this.loading = this.audioService.getLoading();
@@ -71,10 +74,9 @@ export class PlayerComponent implements OnInit {
       this.duration = this.audioService.getDuration();
       this.musicLength = this.audioService.getMusicLength();
       this.sliderValue = this.audioService.getSliderValue();
-    }, environment.audioContextEvaluationIntervalSeconds * 1000);
+      this.paused = this.audioService.audioTrack.paused;
   }
 
-  // small methods
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false;
     this.audioService.setShuffleEnabled(this.shuffleEnabled);
@@ -103,8 +105,10 @@ export class PlayerComponent implements OnInit {
         this.audioService.pauseOnCycleThrough();
         await this.audioService.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
         this.audioService.setAudioIndex(this.audioService.filenameHashesByIndex[songHashAndTitleDict.filename_hash]);
+        this.audioService.setAudioTitle(this.audioService.filenameTitlesByHash[songHashAndTitleDict.filename_hash]);
         this.audioService.playOnCycleThrough();
         this.audioService.updateAudioMetadataState();
+        this.getAudioTrackPresentationData();
       } else {
         console.log('no data was returned from TrackSelectorBottomSheet');
       }

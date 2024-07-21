@@ -14,14 +14,15 @@ export class AudioService {
   public musicLength: string = '0:00';
   public duration: number = 1;
   public currentTime: string = '0:00';
-  public title: string = "null";
   public filenameHashesByIndex: any;
+  public filenameTitlesByHash: any;
   public sliderValue: number = 0;
   public loading: boolean = false;
   public lowBandwidthMode: boolean = false;
 
   // set by player component ------------
   public selectedAudioIndex = 0;
+  public title: string = "null";
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
   public context: any;
@@ -58,8 +59,9 @@ export class AudioService {
   // setters
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; }
   public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; }
-  public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
+  public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
+  public setAudioTitle(newTitle: string) { this.title = newTitle; }
   
 
   async setInitialAudioState() {
@@ -69,9 +71,11 @@ export class AudioService {
     let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
     this.audioTrack = await this.getAndLoadAudioTrack(audioFilenameHash);
     this.title = this.context[this.selectedAudioIndex].title;
+    this.filenameTitlesByHash = {};
     this.filenameHashesByIndex = {};
     this.context.forEach((element: any, idx: number) => {
       this.filenameHashesByIndex[element.filename_hash] = idx;
+      this.filenameTitlesByHash[element.filename_hash] = element.title;
     })
   }
 
@@ -191,6 +195,4 @@ export class AudioService {
     await this.onIndexChange(this.selectedAudioIndex);
     this.playOnCycleThrough();
   }
-
-
 }
