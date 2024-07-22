@@ -10,10 +10,12 @@ import { environment } from 'src/environments/environment';
 export class PollService {
   private intervalId: any;
   private hashesWereRotated: boolean = false;
-
   public context: any;
 
   constructor(private apiService: ApiService) { }
+
+  public getContext() { return this.context; }
+  private async setContext(newContext: any) { this.context = newContext; }
 
   // ------------------------------------------------ AUDIO CONTEXTUALIZATION LOGIC BEGIN -------------------------------------------------------------
   // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
@@ -31,6 +33,7 @@ export class PollService {
       }
     }
     else {
+      if (this.context === undefined) { await this.pollNewContext(); }  // for 1st time getting context
       this.hashesWereRotated = false;
     }
   }
@@ -42,7 +45,7 @@ export class PollService {
 
     if (receivedNewContext) {
       console.log('pollNewContext: recieved updated audio context');
-      this.context = newContext;
+      this.setContext(newContext);
       this.stopPollNewContext();
     }
     return receivedNewContext;
@@ -56,9 +59,4 @@ export class PollService {
   }
 
   // ------------------------------------------------ AUDIO CONTEXTUALIZATION LOGIC END ---------------------------------------------------------------
-
-  // getters
-  getContext() {
-    return this.context;
-  }
 }

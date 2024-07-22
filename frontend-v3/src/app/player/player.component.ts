@@ -21,9 +21,14 @@ import { environment } from 'src/environments/environment';
 export class PlayerComponent implements OnInit {
   shuffleEnabled: boolean = false;
   repeatEnabled: boolean = false;
-  sliderValueProxy: number = 0;
   paused: boolean = true;
-
+  // ----------------------------------------------------------------------------------------------------------------
+  sliderValueProxy: number = 0;
+  // there's most likely a cleaner way to do this, but this variable avoids this scenario:
+  // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
+  // `ontimeupdate` HTMLAudioElement event handler updates the sliderValue attr again to re-sync the slider position
+  // `AfterViewInit` was not able to validate the 1st `sliderValue` change before the 2nd change took effect
+  // because the event handler runs between 4 and 66hz
   // ----------------------------------------------------------------------------------------------------------------
   // attributes that need to be accessed via template
   lowBandwidthMode: boolean = false;
@@ -47,23 +52,20 @@ export class PlayerComponent implements OnInit {
   onPrevious() { this.audioService.onPreviousWrapper(); }
 
   onPlayPauseClick() {
-    let pausedState = this.audioService.audioTrack.paused;
-    if (pausedState) {
-      this.audioService.playAudioTrack();
-    } else {
-      this.audioService.pauseAudioTrack();
-    }
-    pausedState = this.audioService.audioTrack.paused;
-    this.paused = pausedState;
+    this.audioService.audioTrack.paused ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
+    this.paused = this.audioService.audioTrack.paused;
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   onClickShuffle() {
-    this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false;
+    this.shuffleEnabled = !this.shuffleEnabled;
+    this.repeatEnabled = false;
     this.audioService.setShuffleEnabled(this.shuffleEnabled);
   }
+
   onClickRepeat() {
-    this.repeatEnabled = !this.repeatEnabled; this.shuffleEnabled = false;
+    this.repeatEnabled = !this.repeatEnabled;
+    this.shuffleEnabled = false;
     this.audioService.setRepeatEnabled(this.repeatEnabled);
   }
 
@@ -74,7 +76,7 @@ export class PlayerComponent implements OnInit {
     this.audioService.playAudioTrack();
   }
   // ----------------------------------------------------------------------------------------------------------------
-  // getters
+  // AudioService getters
   getAudioTrackPresentationData() {
     this.lowBandwidthMode = this.audioService.getLowBandwidthMode();
     this.title = this.audioService.getTitle();
@@ -96,7 +98,7 @@ export class PlayerComponent implements OnInit {
       let pollContext = this.pollService.getContext();
       if (JSON.stringify(this.audioService.context) !== JSON.stringify(pollContext)) {
         console.log('PlayerComponent context updated');
-        this.audioService.context = pollContext;
+        this.audioService.setContextExternal(pollContext);
       }
       this.getAudioTrackPresentationData();
     }, environment.audioContextEvaluationIntervalSeconds * 1000);

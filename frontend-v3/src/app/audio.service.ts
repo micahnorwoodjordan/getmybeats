@@ -28,13 +28,6 @@ export class AudioService {
   public repeatEnabled: boolean = false;
   public context: any;
   // ----------------------------------------------------------------------------------------------------------------
-  sliderValueProxy: number = 0;
-  // there's most likely a cleaner way to do this, but this variable avoids this scenario:
-  // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
-  // `ontimeupdate` HTMLAudioElement event handler updates the sliderValue attr again to re-sync the slider position
-  // `AfterViewInit` was not able to validate the 1st `sliderValue` change before the 2nd change took effect
-  // becuase the event handler runs between 4 and 66hz
-  // ----------------------------------------------------------------------------------------------------------------
 
   constructor(private apiService: ApiService) { }
 
@@ -51,33 +44,38 @@ export class AudioService {
   public getSliderValue() { return this.sliderValue; }
 
   public async getAndLoadAudioTrack(filenameHash: string) {
-    this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
+    console.log('getandloadaudiotrack fired');
+    this.setAudioTrack(await this.apiService.getMaskedAudioTrack(filenameHash));
     this.audioTrack.load();
-    console.log('audio ready');
     return this.audioTrack;
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
-  public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; }
-  public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; }
+  private async setContext() { this.context = await this.apiService.getMediaContext(); this.setAudioFilenameHashes(); }
+  private async setAudioTrack(track: HTMLAudioElement) { this.audioTrack = track; }
+  private setAudioFilenameHashes() {
+    this.filenameTitlesByHash = {};
+    this.filenameHashesByIndex = {};
+    this.context.forEach((element: any, idx: number) => {
+      this.filenameHashesByIndex[element.filename_hash] = idx;
+      this.filenameTitlesByHash[element.filename_hash] = element.title;
+    });
+  }
+
+  public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
+  public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; this.repeatEnabled ? this.shuffleEnabled = false : null; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-  private async setContext() { this.context = await this.apiService.getMediaContext(); }
+  public setContextExternal(newContext: any) { this.context = newContext; this.setAudioFilenameHashes(); }
 
   public async setInitialAudioState() {
     // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
     await this.setContext();
     this.numberOfTracks = this.context.length;
     let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
-    this.audioTrack = await this.getAndLoadAudioTrack(audioFilenameHash);
-    this.title = this.context[this.selectedAudioIndex].title;
-    this.filenameTitlesByHash = {};
-    this.filenameHashesByIndex = {};
-    this.context.forEach((element: any, idx: number) => {
-      this.filenameHashesByIndex[element.filename_hash] = idx;
-      this.filenameTitlesByHash[element.filename_hash] = element.title;
-    })
+    this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
+    this.setAudioTitle(this.context[this.selectedAudioIndex].title);
   }
 // ----------------------------------------------------------------------------------------------------------------
 // dynamic methods
@@ -127,21 +125,13 @@ export class AudioService {
     if (this.shuffleEnabled) {
       await this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
-      let newIndex: number = this.selectedAudioIndex;
-      if (!this.repeatEnabled) {
-        newIndex = this.getNextAudioIndex();
-      }
+      let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getNextAudioIndex();
       this.onNext(newIndex);
     }
   }
 
   public onPreviousWrapper() {
-    let newIndex: number;
-    if (this.repeatEnabled) {
-      newIndex = this.selectedAudioIndex;
-    } else {
-      newIndex = this.getPreviousAudioIndex();
-    }
+    let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getPreviousAudioIndex();
     this.onPrevious(newIndex);
   }
   // ----------------------------------------------------------------------------------------------------------------
@@ -154,11 +144,7 @@ export class AudioService {
 
   private getNextAudioIndex() {
     let newIndex = this.selectedAudioIndex;
-    if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
-      newIndex += 1
-    } else {
-      newIndex = 0;
-    }
+    this.selectedAudioIndex + 1 < this.numberOfTracks ? newIndex += 1 : newIndex = 0;
     return newIndex;
   }
 
@@ -170,28 +156,24 @@ export class AudioService {
 
   private getPreviousAudioIndex() {
     let newIndex = this.selectedAudioIndex;
-    if (newIndex - 1 >= 0) {
-      newIndex -= 1;
-    } else {
-      newIndex = this.numberOfTracks - 1;
-    }
+    newIndex - 1 >= 0 ? newIndex -= 1 : newIndex = this.numberOfTracks - 1;
     return newIndex;
   }
 
   private async onIndexChange(newIndex: number) {
-    if (!this.context) {  // TODO: not sure how this could occur, but should investigate
+    console.log('onindexchange fired');
+    if (!this.context) {  // TODO: not sure how this could occur, but should investigate. this is a glaring optimization hole
       console.log('onindexchange fetching context, since context was undefined')
       await this.setContext();
     }
     this.setAudioIndex(newIndex);
     let audioFilenameHash = this.context[newIndex].filename_hash;
-    await this.getAndLoadAudioTrack(audioFilenameHash);
-    this.title = this.context[this.selectedAudioIndex].title;
+    await this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
+    this.setAudioTitle(this.context[this.selectedAudioIndex].title);
     this.updateAudioMetadataState();
   }
 
   private async onSongChangeShuffle(badIndex: number): Promise<number> {
-    if (this.repeatEnabled) { this.repeatEnabled = !this.repeatEnabled; }
     let lowerBound: number = 0;
     let upperBound: number = this.numberOfTracks;
     let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
