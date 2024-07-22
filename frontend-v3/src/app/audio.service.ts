@@ -18,7 +18,7 @@ export class AudioService {
   public filenameTitlesByHash: any;
   public sliderValue: number = 0;
   public loading: boolean = false;
-  public lowBandwidthMode: boolean = false;
+  public hasPlaybackError: boolean = false;
 
   // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
@@ -36,7 +36,7 @@ export class AudioService {
   public getContext() { return this.context; }
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
-  public getLowBandwidthMode() { return this.lowBandwidthMode; }
+  public getHasPlaybackError() { return this.hasPlaybackError; }
   public getAudioTrack() { return this.audioTrack; }
   public getCurrentTime() { return this.currentTime; }
   public getDuration() { return this.duration; }
@@ -110,9 +110,9 @@ export class AudioService {
     this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
     this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
 
-    this.audioTrack.onstalled = () => { console.log('onstalled'); this.lowBandwidthMode = true; }
-    this.audioTrack.onerror = () => { console.log('onerror'); this.lowBandwidthMode = true; }
-    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.lowBandwidthMode = false; }
+    this.audioTrack.onstalled = () => { console.log('onstalled'); this.hasPlaybackError = true; }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; this.setContext(); this.hasPlaybackError = false; }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; }
   }
   // ----------------------------------------------------------------------------------------------------------------
   // public core utility methods

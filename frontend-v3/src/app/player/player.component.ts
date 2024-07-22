@@ -31,7 +31,7 @@ export class PlayerComponent implements OnInit {
   // because the event handler runs between 4 and 66hz
   // ----------------------------------------------------------------------------------------------------------------
   // attributes that need to be accessed via template
-  lowBandwidthMode: boolean = false;
+  hasPlaybackError: boolean = false;
   title: string = "null";
   loading: boolean = false;
   currentTime: string = '0:00';
@@ -78,7 +78,7 @@ export class PlayerComponent implements OnInit {
   // ----------------------------------------------------------------------------------------------------------------
   // AudioService getters
   getAudioTrackPresentationData() {
-    this.lowBandwidthMode = this.audioService.getLowBandwidthMode();
+    this.hasPlaybackError = this.audioService.getHasPlaybackError();
     this.title = this.audioService.getTitle();
     this.loading = this.audioService.getLoading();
     this.currentTime = this.audioService.getCurrentTime();

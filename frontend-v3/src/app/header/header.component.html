@@ -1,5 +1,5 @@
 <div fxLayout="column" fxLayoutAlign="center center">
-    <div *ngIf="lowBandwidthMode" class="header-bandwidth-status" fxLayout="row" fxLayoutAlign="center center">
+    <div *ngIf="hasPlaybackError" class="header-bandwidth-status" fxLayout="row" fxLayoutAlign="center center">
         <a>having issues?</a>&nbsp;
         <mat-icon>signal_wifi_off</mat-icon>&nbsp;
         <a href="{{userExperienceReportUrl}}" target="_blank">view UX report</a>

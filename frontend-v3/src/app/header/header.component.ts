@@ -12,7 +12,7 @@ import { environment } from 'src/environments/environment';
 
 export class HeaderComponent implements OnInit {
   userExperienceReportUrl = `${environment.apiHost}/user/experience`;
-  @Input() lowBandwidthMode: boolean = false;
+  @Input() hasPlaybackError: boolean = false;
 
   lastReleaseString: string = '';
 
