@@ -135,6 +135,17 @@ export class AudioService {
     }
   }
 
+  public onPreviousWrapper() {
+    let newIndex: number;
+    if (this.repeatEnabled) {
+      newIndex = this.selectedAudioIndex;
+    } else {
+      newIndex = this.getPreviousAudioIndex();
+    }
+    this.onPrevious(newIndex);
+  }
+  // ----------------------------------------------------------------------------------------------------------------
+  // private core utility methods
   private async onNext(newIndex: number) {
     this.pauseOnCycleThrough();
     await this.onIndexChange(newIndex);
@@ -149,16 +160,6 @@ export class AudioService {
       newIndex = 0;
     }
     return newIndex;
-  }
-
-  public onPreviousWrapper() {
-    let newIndex: number;
-    if (this.repeatEnabled) {
-      newIndex = this.selectedAudioIndex;
-    } else {
-      newIndex = this.getPreviousAudioIndex();
-    }
-    this.onPrevious(newIndex);
   }
 
   private async onPrevious(newIndex: number) {
@@ -176,8 +177,7 @@ export class AudioService {
     }
     return newIndex;
   }
-  // ----------------------------------------------------------------------------------------------------------------
-  // private core utility methods
+
   private async onIndexChange(newIndex: number) {
     if (!this.context) {  // TODO: not sure how this could occur, but should investigate
       console.log('onindexchange fetching context, since context was undefined')
