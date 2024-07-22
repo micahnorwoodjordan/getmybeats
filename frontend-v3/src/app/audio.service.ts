@@ -20,14 +20,13 @@ export class AudioService {
   public loading: boolean = false;
   public lowBandwidthMode: boolean = false;
 
+  // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
   public selectedAudioIndex = 0;
   public title: string = "null";
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
   public context: any;
-  // ------------------------------------
-
   // ----------------------------------------------------------------------------------------------------------------
   sliderValueProxy: number = 0;
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
@@ -39,13 +38,8 @@ export class AudioService {
 
   constructor(private apiService: ApiService) { }
 
-  // small methods
-  public pauseOnCycleThrough() { this.audioTrack.pause(); }
-  public playOnCycleThrough() { this.audioTrack.play(); }
-  public playAudioTrack() { this.audioTrack.play(); }
-  public pauseAudioTrack() { this.audioTrack.pause(); }
-
-  //getters
+  // ----------------------------------------------------------------------------------------------------------------
+  // getters
   public getContext() { return this.context; }
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
@@ -56,17 +50,24 @@ export class AudioService {
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
 
+  public async getAndLoadAudioTrack(filenameHash: string) {
+    this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
+    this.audioTrack.load();
+    console.log('audio ready');
+    return this.audioTrack;
+  }
+  // ----------------------------------------------------------------------------------------------------------------
   // setters
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; }
   public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-  
+  private async setContext() { this.context = await this.apiService.getMediaContext(); }
 
-  async setInitialAudioState() {
+  public async setInitialAudioState() {
     // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
-    this.context = await this.apiService.getMediaContext();
+    await this.setContext();
     this.numberOfTracks = this.context.length;
     let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
     this.audioTrack = await this.getAndLoadAudioTrack(audioFilenameHash);
@@ -78,7 +79,8 @@ export class AudioService {
       this.filenameTitlesByHash[element.filename_hash] = element.title;
     })
   }
-
+// ----------------------------------------------------------------------------------------------------------------
+// dynamic methods
   updateAudioMetadataState() {
     // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
     // the below logic blocks are borrowed from the above github project
@@ -114,24 +116,47 @@ export class AudioService {
     this.audioTrack.onerror = () => { console.log('onerror'); this.lowBandwidthMode = true; }
     this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.lowBandwidthMode = false; }
   }
+  // ----------------------------------------------------------------------------------------------------------------
+  // public core utility methods
+  public pauseOnCycleThrough() { this.audioTrack.pause(); }
+  public playOnCycleThrough() { this.audioTrack.play(); }
+  public playAudioTrack() { this.audioTrack.play(); }
+  public pauseAudioTrack() { this.audioTrack.pause(); }
 
-
-  async getAndLoadAudioTrack(filenameHash: string) {
-    this.audioTrack = await this.apiService.getMaskedAudioTrack(filenameHash);
-    this.audioTrack.load();
-    console.log('audio ready');
-    return this.audioTrack;
+  public async onNext() {
+    if (this.shuffleEnabled) {
+      await this.onSongChangeShuffle(this.selectedAudioIndex); 
+    } else {
+      if (this.repeatEnabled) {
+        this.onSongChangeRepeatTrue();
+      } else {
+        this.onNextRepeatFalse();
+      }
+    }
   }
 
-  async onIndexChange(newIndex: number) {
-    this.selectedAudioIndex = newIndex;
-    let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
+  public async onPrevious() {
+    if (this.repeatEnabled) {
+      this.onSongChangeRepeatTrue();
+    } else {
+      this.onPreviousRepeatFalse();
+    }
+  }
+  // ----------------------------------------------------------------------------------------------------------------
+  // private core utility methods
+  private async onIndexChange(newIndex: number) {
+    if (!this.context) {  // TODO: not sure how this could occur, but should investigate
+      console.log('onindexchange fetching context, since context was undefined')
+      await this.setContext();
+    }
+    this.setAudioIndex(newIndex);
+    let audioFilenameHash = this.context[newIndex].filename_hash;
     await this.getAndLoadAudioTrack(audioFilenameHash);
     this.title = this.context[this.selectedAudioIndex].title;
     this.updateAudioMetadataState();
   }
 
-  async onSongChangeShuffle(badIndex: number): Promise<number> {
+  private async onSongChangeShuffle(badIndex: number): Promise<number> {
     if (this.repeatEnabled) { this.repeatEnabled = !this.repeatEnabled; }
     let lowerBound: number = 0;
     let upperBound: number = this.numberOfTracks;
@@ -147,35 +172,15 @@ export class AudioService {
     return -1
   }
 
-  async onNext() {
-    if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex); 
+  private async onNextRepeatFalse() {
+    let newIndex: number = this.selectedAudioIndex;
+    if (newIndex + 1 < this.numberOfTracks) {
+      newIndex += 1;
     } else {
-      if (this.repeatEnabled) {
-        this.onSongChangeRepeatTrue();
-      } else {
-        this.onNextRepeatFalse();
-      }
+      newIndex = 0;
     }
-  }
-
-  async onPrevious() {
-    if (this.repeatEnabled) {
-      this.onSongChangeRepeatTrue();
-    } else {
-      this.onPreviousRepeatFalse();
-    }
-  }
-
-  async onNextRepeatFalse() {
     this.pauseOnCycleThrough();
-
-    if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
-      this.selectedAudioIndex += 1;
-    } else {
-      this.selectedAudioIndex = 0;
-    }
-    await this.onIndexChange(this.selectedAudioIndex);
+    await this.onIndexChange(newIndex);
     this.playOnCycleThrough();
   }
 
@@ -196,3 +201,4 @@ export class AudioService {
     this.playOnCycleThrough();
   }
 }
+// ----------------------------------------------------------------------------------------------------------------
