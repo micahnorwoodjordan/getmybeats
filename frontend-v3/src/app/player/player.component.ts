@@ -41,8 +41,31 @@ export class PlayerComponent implements OnInit {
     private bottomSheet: MatBottomSheet
   ) {}
 
-  onNext() { this.audioService.onNext(); }  // ZZZ
-  onPrevious() { this.audioService.onPrevious(); }  // ZZZ
+  // ----------------------------------------------------------------------------------------------------------------
+  // interactive player methods
+  onNext() { this.audioService.onNext(); }
+  onPrevious() { this.audioService.onPrevious(); }
+
+  onPlayPauseClick() {
+    let pausedState = this.audioService.audioTrack.paused;
+    if (pausedState) {
+      this.audioService.playAudioTrack();
+    } else {
+      this.audioService.pauseAudioTrack();
+    }
+    pausedState = this.audioService.audioTrack.paused;
+    this.paused = pausedState;
+  }
+  // ----------------------------------------------------------------------------------------------------------------
+  // setters
+  onClickShuffle() {
+    this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false;
+    this.audioService.setShuffleEnabled(this.shuffleEnabled);
+  }
+  onClickRepeat() {
+    this.repeatEnabled = !this.repeatEnabled; this.shuffleEnabled = false;
+    this.audioService.setRepeatEnabled(this.repeatEnabled);
+  }
 
   onSliderChange(event: any) {
     setTimeout(() => {}, 200);
@@ -50,6 +73,19 @@ export class PlayerComponent implements OnInit {
     this.audioService.setCurrentTime(this.sliderValueProxy);
     this.audioService.playAudioTrack();
   }
+  // ----------------------------------------------------------------------------------------------------------------
+  // getters
+  getAudioTrackPresentationData() {
+    this.lowBandwidthMode = this.audioService.getLowBandwidthMode();
+    this.title = this.audioService.getTitle();
+    this.loading = this.audioService.getLoading();
+    this.currentTime = this.audioService.getCurrentTime();
+    this.duration = this.audioService.getDuration();
+    this.musicLength = this.audioService.getMusicLength();
+    this.sliderValue = this.audioService.getSliderValue();
+    this.paused = this.audioService.audioTrack.paused;
+}
+// ----------------------------------------------------------------------------------------------------------------
 
   async ngOnInit(): Promise<void> {
     await this.audioService.setInitialAudioState();
@@ -64,37 +100,6 @@ export class PlayerComponent implements OnInit {
       }
       this.getAudioTrackPresentationData();
     }, environment.audioContextEvaluationIntervalSeconds * 1000);
-  }
-
-  getAudioTrackPresentationData() {
-      this.lowBandwidthMode = this.audioService.getLowBandwidthMode();
-      this.title = this.audioService.getTitle();
-      this.loading = this.audioService.getLoading();
-      this.currentTime = this.audioService.getCurrentTime();
-      this.duration = this.audioService.getDuration();
-      this.musicLength = this.audioService.getMusicLength();
-      this.sliderValue = this.audioService.getSliderValue();
-      this.paused = this.audioService.audioTrack.paused;
-  }
-
-  onClickShuffle() {
-    this.shuffleEnabled = !this.shuffleEnabled; this.repeatEnabled = false;
-    this.audioService.setShuffleEnabled(this.shuffleEnabled);
-  }
-  onClickRepeat() {
-    this.repeatEnabled = !this.repeatEnabled; this.shuffleEnabled = false;
-    this.audioService.setRepeatEnabled(this.repeatEnabled);
-  }
-
-  onPlayPauseClick() {
-    let pausedState = this.audioService.audioTrack.paused;
-    if (pausedState) {
-      this.audioService.playAudioTrack();
-    } else {
-      this.audioService.pauseAudioTrack();
-    }
-    pausedState = this.audioService.audioTrack.paused;
-    this.paused = pausedState;
   }
 
   async openBottomSheet(): Promise<void> {
@@ -115,7 +120,7 @@ export class PlayerComponent implements OnInit {
     });
   }
 }
- 
+// ----------------------------------------------------------------------------------------------------------------
 @Component({
   standalone: true,
   imports: [MatListModule, CommonModule],
@@ -152,3 +157,4 @@ export class TrackSelectorBottomSheet {
     event.preventDefault();
   }
 }
+// ----------------------------------------------------------------------------------------------------------------
