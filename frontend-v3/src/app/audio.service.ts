@@ -102,7 +102,7 @@ export class AudioService {
       this.sliderValue = this.audioTrack.currentTime;
     }
 
-    this.audioTrack.onended = () => { this.loading = true; this.onNext(); }
+    this.audioTrack.onended = () => { this.loading = true; this.onNextWrapper(); }
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
     this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
@@ -123,24 +123,58 @@ export class AudioService {
   public playAudioTrack() { this.audioTrack.play(); }
   public pauseAudioTrack() { this.audioTrack.pause(); }
 
-  public async onNext() {
+  public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
     if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex); 
+      await this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
-      if (this.repeatEnabled) {
-        this.onSongChangeRepeatTrue();
-      } else {
-        this.onNextRepeatFalse();
+      let newIndex: number = this.selectedAudioIndex;
+      if (!this.repeatEnabled) {
+        newIndex = this.getNextAudioIndex();
       }
+      this.onNext(newIndex);
     }
   }
 
-  public async onPrevious() {
-    if (this.repeatEnabled) {
-      this.onSongChangeRepeatTrue();
+  private async onNext(newIndex: number) {
+    this.pauseOnCycleThrough();
+    await this.onIndexChange(newIndex);
+    this.playOnCycleThrough();
+  }
+
+  private getNextAudioIndex() {
+    let newIndex = this.selectedAudioIndex;
+    if (this.selectedAudioIndex + 1 < this.numberOfTracks) {
+      newIndex += 1
     } else {
-      this.onPreviousRepeatFalse();
+      newIndex = 0;
     }
+    return newIndex;
+  }
+
+  public onPreviousWrapper() {
+    let newIndex: number;
+    if (this.repeatEnabled) {
+      newIndex = this.selectedAudioIndex;
+    } else {
+      newIndex = this.getPreviousAudioIndex();
+    }
+    this.onPrevious(newIndex);
+  }
+
+  private async onPrevious(newIndex: number) {
+    this.pauseOnCycleThrough();
+    await this.onIndexChange(newIndex);
+    this.playOnCycleThrough();
+  }
+
+  private getPreviousAudioIndex() {
+    let newIndex = this.selectedAudioIndex;
+    if (newIndex - 1 >= 0) {
+      newIndex -= 1;
+    } else {
+      newIndex = this.numberOfTracks - 1;
+    }
+    return newIndex;
   }
   // ----------------------------------------------------------------------------------------------------------------
   // private core utility methods
@@ -170,35 +204,6 @@ export class AudioService {
     await this.onIndexChange(randomTrackIndex);
     this.playOnCycleThrough();
     return -1
-  }
-
-  private async onNextRepeatFalse() {
-    let newIndex: number = this.selectedAudioIndex;
-    if (newIndex + 1 < this.numberOfTracks) {
-      newIndex += 1;
-    } else {
-      newIndex = 0;
-    }
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(newIndex);
-    this.playOnCycleThrough();
-  }
-
-  async onPreviousRepeatFalse() {
-    this.pauseOnCycleThrough();
-    if (this.selectedAudioIndex - 1 >= 0) {
-      this.selectedAudioIndex -= 1;
-    } else {
-      this.selectedAudioIndex = this.numberOfTracks - 1;
-    }
-    await this.onIndexChange(this.selectedAudioIndex);
-    this.playOnCycleThrough();
-  }
-
-  async onSongChangeRepeatTrue() {
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(this.selectedAudioIndex);
-    this.playOnCycleThrough();
   }
 }
 // ----------------------------------------------------------------------------------------------------------------

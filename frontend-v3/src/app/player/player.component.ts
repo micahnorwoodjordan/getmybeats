@@ -43,8 +43,8 @@ export class PlayerComponent implements OnInit {
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
-  onNext() { this.audioService.onNext(); }
-  onPrevious() { this.audioService.onPrevious(); }
+  onNext() { this.audioService.onNextWrapper(); }
+  onPrevious() { this.audioService.onPreviousWrapper(); }
 
   onPlayPauseClick() {
     let pausedState = this.audioService.audioTrack.paused;
