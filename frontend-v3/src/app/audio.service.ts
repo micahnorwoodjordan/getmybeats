@@ -67,7 +67,21 @@ export class AudioService {
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-  public setContextExternal(newContext: any) { this.context = newContext; this.setAudioFilenameHashes(); }
+
+  public setContextExternal(newContext: any) {
+    let staleAudioRef = this.audioTrack;
+    let staleAudioWasPlaying = staleAudioRef.paused ? false : true;
+    this.context = newContext;
+    this.setAudioFilenameHashes();
+    this.pauseAudioTrack();
+    let filenameHash: string = this.context[this.selectedAudioIndex].filename_hash;
+    this.setAudioTrack(this.apiService.getMaskedAudioTrack(filenameHash));  // no api call until `play` is called
+    this.setCurrentTime(staleAudioRef.currentTime);
+    if (staleAudioWasPlaying) {  // don't automatically play on context update if user was not playing audio already
+      this.playAudioTrack();
+    }
+    this.updateAudioMetadataState();
+  }
 
   public async setInitialAudioState() {
     // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
@@ -79,7 +93,7 @@ export class AudioService {
   }
 // ----------------------------------------------------------------------------------------------------------------
 // dynamic methods
-  updateAudioMetadataState() {
+  public async updateAudioMetadataState() {
     // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
     // the below logic blocks are borrowed from the above github project
     // these blocks are instrumental in getting the audio seeking logic to work correctly
@@ -104,14 +118,12 @@ export class AudioService {
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
     this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
-
     this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
     this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
     this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
     this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
-
     this.audioTrack.onstalled = () => { console.log('onstalled'); this.hasPlaybackError = true; }
-    this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; this.setContext(); this.hasPlaybackError = false; }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; }
     this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; }
   }
   // ----------------------------------------------------------------------------------------------------------------
