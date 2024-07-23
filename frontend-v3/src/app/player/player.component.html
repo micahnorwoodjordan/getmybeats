@@ -1,6 +1,6 @@
 <div class="player">
     <div fxLayout="column" fxLayoutAlign="center center">
-        <app-header [lowBandwidthMode]="lowBandwidthMode"></app-header>
+        <app-header [hasPlaybackError]="hasPlaybackError"></app-header>
         <div class="backdrop" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
         </div>
@@ -15,8 +15,8 @@
             <mat-icon *ngIf="shuffleEnabled" class="shuffle-icon-enabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
             <mat-icon  *ngIf="!shuffleEnabled" class="shuffle-icon-disabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
             <mat-icon class="left-control-arrow" (click)="onPrevious()" fxFlex="15">skip_previous</mat-icon>
-            <mat-icon *ngIf="audioTrack.paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">play_arrow</mat-icon>
-            <mat-icon *ngIf="!audioTrack.paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">pause</mat-icon>
+            <mat-icon *ngIf="paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">play_arrow</mat-icon>
+            <mat-icon *ngIf="!paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">pause</mat-icon>
             <mat-icon class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
             <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
             <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
