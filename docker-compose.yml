@@ -2,6 +2,8 @@ services:
   redis:
     command: redis-server
     image: redis
+    ports:
+      - 6379:6379
     environment:
       - REDIS_SETTINGS=${REDIS_SETTINGS}
       - DIGITALOCEAN_SETTINGS=${DIGITALOCEAN_SETTINGS}
