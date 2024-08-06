@@ -39,6 +39,14 @@ touch "$DJANGO_LOGGING_DIR/general.log"
 python3.12 -m venv $VENV_DIR
 
 
+# install docker (this is a development version, but only a disposable redis server will be spun up)
+cd
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+cd $APPLICATION_DIR
+docker compose up
+
+
 # install source code and artifacts
 cd $APPLICATION_DIR
 git clone https://github.com/micahnorwoodjordan/getmybeats.git .
