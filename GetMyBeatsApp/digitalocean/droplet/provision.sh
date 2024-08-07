@@ -18,6 +18,25 @@ apt install -y curl iputils-ping redis-tools nginx \
     mysql-client net-tools python3.12-venv unzip cron
 
 
+##################################################################################################################################
+# install docker
+# https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+sudo apt-get update
+sudo apt-get install -y ca-certificates
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+##################################################################################################################################
+
+
 # install node/npm. breaks if not all on one line
 cd
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash && . ~/.bashrc && nvm install 22.3.0
@@ -37,14 +56,6 @@ cd
 touch "$GUNICORN_LOGGING_DIR/error.log"
 touch "$DJANGO_LOGGING_DIR/general.log"
 python3.12 -m venv $VENV_DIR
-
-
-# install docker (this is a development version, but only a disposable redis server will be spun up)
-cd
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh get-docker.sh
-cd $APPLICATION_DIR
-docker compose up
 
 
 # install source code and artifacts
@@ -97,3 +108,6 @@ cp cron/crontab /etc/cron.d/
 chmod 0644 /etc/cron.d/crontab
 touch /var/log/cron.log
 systemctl start cron
+
+
+docker compose up
