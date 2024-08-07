@@ -110,4 +110,4 @@ touch /var/log/cron.log
 systemctl start cron
 
 
-docker compose up
+docker compose -f docker-compose.prod.yml up
