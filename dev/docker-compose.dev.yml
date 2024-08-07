@@ -1,7 +1,7 @@
 services:
   frontend-build:
     build:
-        dockerfile: dev/Dockerfile.frontend.dev
+        dockerfile: dev/Dockerfile.frontend
         context: ./..
     ports:
       - 4200:4200
@@ -14,7 +14,7 @@ services:
       ng build --configuration development"
   api-build:
     build:
-      dockerfile: dev/Dockerfile.backend.dev
+      dockerfile: dev/Dockerfile.backend
       context: ./..
     ports:
       - 8000:8000
@@ -83,7 +83,7 @@ services:
       - .env
   api-testing:
     build:
-        dockerfile: dev/Dockerfile.backend.dev
+        dockerfile: dev/Dockerfile.backend
         context: ./..
     ports:
       - 8000:8000
@@ -116,7 +116,7 @@ services:
         condition: service_started
   frontend-testing:
     build:
-        dockerfile: dev/Dockerfile.frontend.dev
+        dockerfile: dev/Dockerfile.frontend
         context: ./..
     ports:
       - 4200:4200
