@@ -4,6 +4,7 @@ import logging
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -12,7 +13,8 @@ from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
     get_audio_filenames, record_request_information, get_release_by_id,
-    get_audio_context, get_audio_by_filename_hash, get_current_user_experience_report
+    get_audio_context, get_audio_by_filename_hash, get_current_user_experience_report,
+    validate_audio_get_request_information, record_audio_request_information
 )
 
 
@@ -96,7 +98,10 @@ def get_site_audio_context(request):
 @api_view(['GET'])
 def get_audio_by_hash(request, filename_hash):
     try:
+        audio_request_id = request.META['HTTP_REQUEST_ID']
+        validate_audio_get_request_information(audio_request_id)
         audio = get_audio_by_filename_hash(filename_hash)
+        record_audio_request_information(audio_request_id)
         content_file = ContentFile(open(audio.file.path, 'rb').read())
         response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file))
         # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
@@ -107,6 +112,12 @@ def get_audio_by_hash(request, filename_hash):
         response['Content-Disposition'] = f'attachment; filename={filename_hash}'
         response['Accept-Ranges'] = 'bytes'
         return response
+    except KeyError as e:  # missing request-id header
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=400, reason=GENERIC_400_MSG)
+    except ObjectDoesNotExist as e:
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=404, reason=GENERIC_404_MSG)
     except Exception as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
         return HttpResponse(status=500, reason=GENERIC_500_MSG)

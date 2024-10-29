@@ -130,3 +130,11 @@ class UserExperienceReport(models.Model):
     issues = models.JSONField()
     upcoming = models.JSONField()
     recent = models.JSONField()
+
+
+class AudioFetchRequest(models.Model):
+    request_uuid = models.UUIDField(primary_key=False, blank=False, null=False)
+
+    class Meta:
+        managed = True
+        db_table = 'audio_fetch_request'

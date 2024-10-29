@@ -6,7 +6,10 @@ from django.db import transaction, IntegrityError
 from django.core.cache import cache
 from django.utils.timezone import now
 
-from GetMyBeatsApp.models import Audio, SiteVisitRequest, ProductionRelease, UserExperienceReport
+from GetMyBeatsApp.models import (
+    Audio, SiteVisitRequest, ProductionRelease, UserExperienceReport,
+    AudioFetchRequest
+)
 
 
 logger = logging.getLogger(__name__)
@@ -62,6 +65,19 @@ def record_request_information(request):
         cache.add(site_vist_request_cache_key, remote_ip_address)
 
     return recorded_site_visit
+
+
+def validate_audio_get_request_information(request_id):
+    # since every audio GET request needs a unique GUID,
+    # the chances are that valid requests will only be sent from the browser
+    # (and not from a command line, though this is possible).
+    # if a request is maliciously mimicked, the already-existing GUID will trip the below condition
+    if AudioFetchRequest.objects.filter(request_uuid=request_id).exists():
+        raise Exception('not a valid request')
+
+
+def record_audio_request_information(request_id):
+    AudioFetchRequest.objects.create(request_uuid=request_id)
 
 
 def get_release_by_id(release_id):
