@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 
+import { HttpEventType } from '@angular/common/http';
 import { ApiService } from './api-service';
+import { generateAudioRequestGUID } from './utilities';
 
 
 @Injectable({
@@ -45,14 +47,47 @@ export class AudioService {
 
   public async getAndLoadAudioTrack(filenameHash: string) {
     console.log('getandloadaudiotrack fired');
-    this.setAudioTrack(await this.apiService.getMaskedAudioTrack(filenameHash));
+    let requestGUID = generateAudioRequestGUID();
+    let audioSrc = '';
+
+    this.apiService.getMaskedAudioTrack(filenameHash, requestGUID).subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.DownloadProgress:
+            if (event.total !== undefined) {
+              console.log(`getandloadaudiotrack: ${Math.round((event.loaded / event.total) * 100)}% of data fetched`);
+            }
+            break;
+          case HttpEventType.Response:
+            console.log(`getandloadaudiotrack: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                audioSrc = URL.createObjectURL(event.body);
+                this.setAudioTitle(this.context[this.selectedAudioIndex].title);
+                this.setAudioTrack(audioSrc);
+                this.setLoading(false);
+              }
+            } else {
+              console.log('getandloadaudiotrack: ERROR fetching audio');
+            }
+            
+            break;
+          default:
+            console.log('getandloadaudiotrack: no response from server yet');
+        }
+      },
+      error => {
+        console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+      }
+    );
     this.audioTrack.load();
     return this.audioTrack;
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
+  private setLoading(value: boolean) { this.loading = value; }
   private async setContext() { this.context = await this.apiService.getMediaContext(); this.setAudioFilenameHashes(); }
-  private async setAudioTrack(track: HTMLAudioElement) { this.audioTrack = track; }
+  private async setAudioTrack(src: string) { this.audioTrack.src = src; }
   private setAudioFilenameHashes() {
     this.filenameTitlesByHash = {};
     this.filenameHashesByIndex = {};
@@ -75,7 +110,7 @@ export class AudioService {
     this.setAudioFilenameHashes();
     this.pauseAudioTrack();
     let filenameHash: string = this.context[this.selectedAudioIndex].filename_hash;
-    this.setAudioTrack(this.apiService.getMaskedAudioTrack(filenameHash));  // no api call until `play` is called
+    this.getAndLoadAudioTrack(filenameHash);
     this.setCurrentTime(staleAudioRef.currentTime);
     if (staleAudioWasPlaying) {  // don't automatically play on context update if user was not playing audio already
       this.playAudioTrack();

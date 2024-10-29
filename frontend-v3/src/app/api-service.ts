@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { environment } from 'src/environments/environment';
 
@@ -17,10 +17,19 @@ export class ApiService {
     return this.httpClient.get(url).toPromise();
   }
 
-  getMaskedAudioTrack(filenameHash: string) {
+  getMaskedAudioTrack(filenameHash: string, requestGUID: string) {
     let location = '/media/hash/' + filenameHash;
     let url = environment.apiHost + location;
-    return new Audio(url);
+    let requestHeaders = new HttpHeaders().set('Request-Id', requestGUID);
+    return this.httpClient.get(
+      url,
+      {
+        observe: 'events',
+        responseType: 'blob',
+        reportProgress: true,
+        headers: requestHeaders
+      }
+    );
   }
 
   getLastRelease() {
