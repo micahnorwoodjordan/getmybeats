@@ -45,7 +45,7 @@ export class AudioService {
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
 
-  public async getAndLoadAudioTrack(filenameHash: string) {
+  public getAndLoadAudioTrack(filenameHash: string) {
     console.log('getandloadaudiotrack fired');
     let requestGUID = generateAudioRequestGUID();
     let audioSrc = '';
@@ -86,7 +86,6 @@ export class AudioService {
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   private setLoading(value: boolean) { this.loading = value; }
-  private async setContext() { this.context = await this.apiService.getMediaContext(); this.setAudioFilenameHashes(); }
   private async setAudioTrack(src: string) { this.audioTrack.src = src; }
   private setAudioFilenameHashes() {
     this.filenameTitlesByHash = {};
@@ -95,6 +94,34 @@ export class AudioService {
       this.filenameHashesByIndex[element.filename_hash] = idx;
       this.filenameTitlesByHash[element.filename_hash] = element.title;
     });
+  }
+  private setContext() {
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`getMediaContext: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+                this.setAudioFilenameHashes();
+                this.numberOfTracks = this.context.length;
+                let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
+                this.getAndLoadAudioTrack(audioFilenameHash);
+              }
+            } else {
+              console.log('getMediaContext: ERROR');
+            }
+            
+            break;
+          default:
+            console.log('getMediaContext: no response from server yet');
+        }
+      },
+      error => {
+        console.log(`getMediaContext ERROR: ${error.toString()}`);
+      }
+    );
   }
 
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
@@ -118,17 +145,10 @@ export class AudioService {
     this.updateAudioMetadataState();
   }
 
-  public async setInitialAudioState() {
-    // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
-    await this.setContext();
-    this.numberOfTracks = this.context.length;
-    let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
-    this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
-    this.setAudioTitle(this.context[this.selectedAudioIndex].title);
-  }
+  public setInitialAudioState() { this.setContext(); }
 // ----------------------------------------------------------------------------------------------------------------
 // dynamic methods
-  public async updateAudioMetadataState() {
+  public updateAudioMetadataState() {
     // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
     // the below logic blocks are borrowed from the above github project
     // these blocks are instrumental in getting the audio seeking logic to work correctly
@@ -159,7 +179,7 @@ export class AudioService {
     this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
     this.audioTrack.onstalled = () => { console.log('onstalled'); this.hasPlaybackError = true; }
     this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; }
-    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; this.loading = false; }
   }
   // ----------------------------------------------------------------------------------------------------------------
   // public core utility methods
@@ -207,15 +227,15 @@ export class AudioService {
     return newIndex;
   }
 
-  private async onIndexChange(newIndex: number) {
+  private onIndexChange(newIndex: number) {
     console.log('onindexchange fired');
     if (!this.context) {  // TODO: not sure how this could occur, but should investigate. this is a glaring optimization hole
       console.log('onindexchange fetching context, since context was undefined')
-      await this.setContext();
+      this.setContext();
     }
     this.setAudioIndex(newIndex);
     let audioFilenameHash = this.context[newIndex].filename_hash;
-    await this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
+    this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
     this.setAudioTitle(this.context[this.selectedAudioIndex].title);
     this.updateAudioMetadataState();
   }

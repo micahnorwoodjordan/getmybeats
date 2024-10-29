@@ -89,28 +89,33 @@ export class PlayerComponent implements OnInit {
 }
 // ----------------------------------------------------------------------------------------------------------------
 
-  async ngOnInit(): Promise<void> {
-    await this.audioService.setInitialAudioState();
-    this.audioService.updateAudioMetadataState();
-
-    setInterval(async () => {
-      await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
-      let pollContext = this.pollService.getContext();
-      if (JSON.stringify(this.audioService.context) !== JSON.stringify(pollContext)) {
-        console.log('PlayerComponent context updated');
-        this.audioService.setContextExternal(pollContext);
-      }
+  ngOnInit() {
+    this.audioService.setInitialAudioState();
+    setInterval(() => {
+      this.audioService.updateAudioMetadataState();
       this.getAudioTrackPresentationData();
-    }, environment.audioContextEvaluationIntervalSeconds * 1000);
+    }, 500  // every 1/2 second
+  );
+    
+
+    // setInterval(async () => {
+    //   await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
+    //   let pollContext = this.pollService.getContext();
+    //   if (JSON.stringify(this.audioService.context) !== JSON.stringify(pollContext)) {
+    //     console.log('PlayerComponent context updated');
+    //     this.audioService.setContextExternal(pollContext);
+    //   }
+    //   this.getAudioTrackPresentationData();
+    // }, environment.audioContextEvaluationIntervalSeconds * 1000);
   }
 
-  async openBottomSheet(): Promise<void> {
+  openBottomSheet() {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
-    bottomSheetRef.afterDismissed().subscribe(async (songHashAndTitleDict) => {
+    bottomSheetRef.afterDismissed().subscribe((songHashAndTitleDict) => {
       if (songHashAndTitleDict !== undefined ) {
         this.audioService.pauseOnCycleThrough();
-        await this.audioService.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
+        this.audioService.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
         this.audioService.setAudioIndex(this.audioService.filenameHashesByIndex[songHashAndTitleDict.filename_hash]);
         this.audioService.setAudioTitle(this.audioService.filenameTitlesByHash[songHashAndTitleDict.filename_hash]);
         this.audioService.playOnCycleThrough();

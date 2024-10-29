@@ -14,7 +14,14 @@ export class ApiService {
   getMediaContext() {
     let location = '/media/context/';
     let url = environment.apiHost + location;
-    return this.httpClient.get(url).toPromise();
+    return this.httpClient.get(
+      url,
+      {
+        observe: 'events',
+        reportProgress: true,
+        responseType: 'json'
+      }
+    );
   }
 
   getMaskedAudioTrack(filenameHash: string, requestGUID: string) {
