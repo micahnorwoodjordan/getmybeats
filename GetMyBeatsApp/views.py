@@ -14,7 +14,8 @@ from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
     get_audio_filenames, record_request_information, get_release_by_id,
     get_audio_context, get_audio_by_filename_hash, get_current_user_experience_report,
-    validate_audio_get_request_information, record_audio_request_information
+    validate_audio_get_request_information, record_audio_request_information,
+    InvalidAudioFetchRequestException
 )
 
 
@@ -113,6 +114,9 @@ def get_audio_by_hash(request, filename_hash):
         response['Accept-Ranges'] = 'bytes'
         return response
     except KeyError as e:  # missing request-id header
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=400, reason=GENERIC_400_MSG)
+    except InvalidAudioFetchRequestException as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
         return HttpResponse(status=400, reason=GENERIC_400_MSG)
     except ObjectDoesNotExist as e:
