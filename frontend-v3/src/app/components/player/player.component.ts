@@ -7,8 +7,8 @@ import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 
-import { AudioService } from '../audio.service';
-import { ApiService } from '../api-service';
+import { AudioService } from '../../services/audio.service';
+import { ApiService } from '../../services/api.service';
 // import { PollService } from '../poll.service';
 import { environment } from 'src/environments/environment';
 
