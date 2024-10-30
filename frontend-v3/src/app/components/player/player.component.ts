@@ -102,6 +102,12 @@ export class PlayerComponent implements OnInit {
       this.audioService.setContextExternal();
       }, environment.audioContextEvaluationIntervalSeconds * 1000  // every 30 seconds
     );
+
+    // user experience: disables next and previous buttons until requested audio is loaded
+    setInterval(() => {
+      this.loading = this.audioService.getLoading();
+      }, 10
+    );
   
     // setInterval(async () => {
     //   await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
