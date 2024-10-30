@@ -85,8 +85,9 @@ export class AudioService {
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
+  public setInitialAudioState() { this.setContextAndLoadAudioTrack(); }
   private setLoading(value: boolean) { this.loading = value; }
-  private async setAudioTrack(src: string) { this.audioTrack.src = src; }
+  private setAudioTrack(src: string) { this.audioTrack.src = src; }
   private setAudioFilenameHashes() {
     this.filenameTitlesByHash = {};
     this.filenameHashesByIndex = {};
@@ -95,12 +96,13 @@ export class AudioService {
       this.filenameTitlesByHash[element.filename_hash] = element.title;
     });
   }
-  private setContext() {
+
+  private setContextAndLoadAudioTrack() {
     this.apiService.getMediaContext().subscribe(
       event => {
         switch (event.type) {
           case HttpEventType.Response:
-            console.log(`getMediaContext: received server response ${event.status}`);
+            console.log(`setContextAndLoadAudioTrack: received server response ${event.status}`);
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 this.context = event.body;
@@ -108,18 +110,55 @@ export class AudioService {
                 this.numberOfTracks = this.context.length;
                 let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
                 this.getAndLoadAudioTrack(audioFilenameHash);
+                // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+                // the below logic blocks are borrowed from the above github project
+                // these blocks are instrumental in getting the audio seeking logic to work correctly
+                this.audioTrack.ondurationchange = () => {
+                  const totalSeconds = Math.floor(this.audioTrack.duration);
+                  const duration = momentDuration(totalSeconds, 'seconds');
+                  this.musicLength = duration.seconds() < 10 ?
+                    `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+                      `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+                  this.duration = totalSeconds;
+                
+                }
+              } else {
+                console.log('setContextAndLoadAudioTrack: ERROR');
               }
-            } else {
-              console.log('getMediaContext: ERROR');
             }
-            
             break;
           default:
-            console.log('getMediaContext: no response from server yet');
-        }
+            console.log('setContextAndLoadAudioTrack: no response from server yet');
+          }
       },
       error => {
-        console.log(`getMediaContext ERROR: ${error.toString()}`);
+        console.log(`setContextAndLoadAudioTrack ERROR: ${error.toString()}`);
+      }
+    );
+  }
+
+  private setContext() {
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`setContext: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+                this.setAudioFilenameHashes();
+                this.numberOfTracks = this.context.length;
+              } else {
+                console.log('setContext: ERROR');
+              }
+            }
+            break;
+          default:
+            console.log('setContext: no response from server yet');
+          }
+      },
+      error => {
+        console.log(`setContext ERROR: ${error.toString()}`);
       }
     );
   }
@@ -129,38 +168,10 @@ export class AudioService {
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-
-  public setContextExternal(newContext: any) {
-    let staleAudioRef = this.audioTrack;
-    let staleAudioWasPlaying = staleAudioRef.paused ? false : true;
-    this.context = newContext;
-    this.setAudioFilenameHashes();
-    this.pauseAudioTrack();
-    let filenameHash: string = this.context[this.selectedAudioIndex].filename_hash;
-    this.getAndLoadAudioTrack(filenameHash);
-    this.setCurrentTime(staleAudioRef.currentTime);
-    if (staleAudioWasPlaying) {  // don't automatically play on context update if user was not playing audio already
-      this.playAudioTrack();
-    }
-    this.updateAudioMetadataState();
-  }
-
-  public setInitialAudioState() { this.setContext(); }
+  public setContextExternal() { this.setContext(); }
 // ----------------------------------------------------------------------------------------------------------------
 // dynamic methods
   public updateAudioMetadataState() {
-    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
-    // the below logic blocks are borrowed from the above github project
-    // these blocks are instrumental in getting the audio seeking logic to work correctly
-    this.audioTrack.ondurationchange = () => {
-      const totalSeconds = Math.floor(this.audioTrack.duration);
-      const duration = momentDuration(totalSeconds, 'seconds');
-      this.musicLength = duration.seconds() < 10 ?
-        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
-          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
-      this.duration = totalSeconds;
-    }
-
     this.audioTrack.ontimeupdate = () => {
       const duration = momentDuration(Math.floor(this.audioTrack.currentTime), 'seconds');
       this.currentTime = duration.seconds() < 10 ? 
@@ -188,9 +199,9 @@ export class AudioService {
   public playAudioTrack() { this.audioTrack.play(); }
   public pauseAudioTrack() { this.audioTrack.pause(); }
 
-  public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
+  public onNextWrapper() {  // wrap so that this can be called from player component without passing args
     if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex);
+      this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
       let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getNextAudioIndex();
       this.onNext(newIndex);
@@ -203,22 +214,13 @@ export class AudioService {
   }
   // ----------------------------------------------------------------------------------------------------------------
   // private core utility methods
-  private async onNext(newIndex: number) {
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(newIndex);
-    this.playOnCycleThrough();
-  }
+  private onNext(newIndex: number) { this.onIndexChange(newIndex); }
+  private onPrevious(newIndex: number) { this.onIndexChange(newIndex); }
 
   private getNextAudioIndex() {
     let newIndex = this.selectedAudioIndex;
     this.selectedAudioIndex + 1 < this.numberOfTracks ? newIndex += 1 : newIndex = 0;
     return newIndex;
-  }
-
-  private async onPrevious(newIndex: number) {
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(newIndex);
-    this.playOnCycleThrough();
   }
 
   private getPreviousAudioIndex() {
@@ -236,11 +238,9 @@ export class AudioService {
     this.setAudioIndex(newIndex);
     let audioFilenameHash = this.context[newIndex].filename_hash;
     this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
-    this.setAudioTitle(this.context[this.selectedAudioIndex].title);
-    this.updateAudioMetadataState();
   }
 
-  private async onSongChangeShuffle(badIndex: number): Promise<number> {
+  private onSongChangeShuffle(badIndex: number): number {
     let lowerBound: number = 0;
     let upperBound: number = this.numberOfTracks;
     let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
@@ -249,9 +249,7 @@ export class AudioService {
       console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
       return this.onSongChangeShuffle(badIndex);
     }
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(randomTrackIndex);
-    this.playOnCycleThrough();
+    this.onIndexChange(randomTrackIndex);
     return -1
   }
 }

@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 
 import { AudioService } from '../audio.service';
 import { ApiService } from '../api-service';
-import { PollService } from '../poll.service';
+// import { PollService } from '../poll.service';
 import { environment } from 'src/environments/environment';
 
 
@@ -42,7 +42,7 @@ export class PlayerComponent implements OnInit {
 
   constructor(
     private audioService: AudioService,
-    private pollService: PollService,
+    // private pollService: PollService,
     private bottomSheet: MatBottomSheet
   ) {}
 
@@ -92,12 +92,16 @@ export class PlayerComponent implements OnInit {
   ngOnInit() {
     this.audioService.setInitialAudioState();
     setInterval(() => {
-      this.audioService.updateAudioMetadataState();
-      this.getAudioTrackPresentationData();
-    }, 500  // every 1/2 second
-  );
-    
+        this.audioService.updateAudioMetadataState();
+        this.getAudioTrackPresentationData();
+      }, 500  // every 1/2 second
+    );
 
+    setInterval(() => {
+      this.audioService.setContextExternal();
+      }, environment.audioContextEvaluationIntervalSeconds * 1000  // every 30 seconds
+    );
+  
     // setInterval(async () => {
     //   await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
     //   let pollContext = this.pollService.getContext();
