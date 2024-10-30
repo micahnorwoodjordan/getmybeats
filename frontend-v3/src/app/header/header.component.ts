@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { HttpEventType } from '@angular/common/http';
 
 import { ApiService } from '../api-service';
 import { environment } from 'src/environments/environment';
@@ -18,11 +19,32 @@ export class HeaderComponent implements OnInit {
 
   constructor(private apiService: ApiService) {}
 
-  async ngOnInit(): Promise<void> { await this.setLastReleaseDate(); }
+  ngOnInit() { this.setLastReleaseDate(); }
 
-  async setLastReleaseDate() {
-    let lastReleaseData: any = await this.apiService.getLastRelease();
-    let unsanitizedString = lastReleaseData.release_date;
-    this.lastReleaseString = unsanitizedString.split('T')[0];
+  setLastReleaseDate() {
+    this.apiService.getLastRelease().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`setLastReleaseDate: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                let lastRelease = event.body;
+                let unsanitizedString = lastRelease.release_date;
+                this.lastReleaseString = unsanitizedString.split('T')[0];
+              }
+            } else {
+              console.log('setLastReleaseDate: ERROR fetching release date');
+            }
+            
+            break;
+          default:
+            console.log('setLastReleaseDate: no response from server yet');
+        }
+      },
+      error => {
+        console.log(`setLastReleaseDate ERROR: ${error.toString()}`);
+      }
+    );
   }
 }
