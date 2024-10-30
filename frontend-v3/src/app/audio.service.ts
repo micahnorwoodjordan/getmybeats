@@ -21,6 +21,7 @@ export class AudioService {
   public sliderValue: number = 0;
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
+  public autoplayOnIndexChange: boolean = false;
 
   // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
@@ -66,6 +67,10 @@ export class AudioService {
                 this.setAudioTitle(this.context[this.selectedAudioIndex].title);
                 this.setAudioTrack(audioSrc);
                 this.setLoading(false);
+                this.audioTrack.load();
+                if (this.autoplayOnIndexChange) {
+                  this.playAudioTrack();
+                }
               }
             } else {
               console.log('getandloadaudiotrack: ERROR fetching audio');
@@ -80,12 +85,11 @@ export class AudioService {
         console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
       }
     );
-    this.audioTrack.load();
-    return this.audioTrack;
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   public setInitialAudioState() { this.setContextAndLoadAudioTrack(); }
+  public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setLoading(value: boolean) { this.loading = value; }
   private setAudioTrack(src: string) { this.audioTrack.src = src; }
   private setAudioFilenameHashes() {
@@ -200,6 +204,7 @@ export class AudioService {
   public pauseAudioTrack() { this.audioTrack.pause(); }
 
   public onNextWrapper() {  // wrap so that this can be called from player component without passing args
+    this.setAutoplayOnIndexChange(true);
     if (this.shuffleEnabled) {
       this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
@@ -231,10 +236,6 @@ export class AudioService {
 
   private onIndexChange(newIndex: number) {
     console.log('onindexchange fired');
-    if (!this.context) {  // TODO: not sure how this could occur, but should investigate. this is a glaring optimization hole
-      console.log('onindexchange fetching context, since context was undefined')
-      this.setContext();
-    }
     this.setAudioIndex(newIndex);
     let audioFilenameHash = this.context[newIndex].filename_hash;
     this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
