@@ -14,10 +14,12 @@
         <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon *ngIf="shuffleEnabled" class="shuffle-icon-enabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
             <mat-icon  *ngIf="!shuffleEnabled" class="shuffle-icon-disabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
-            <mat-icon class="left-control-arrow" (click)="onPrevious()" fxFlex="15">skip_previous</mat-icon>
-            <mat-icon *ngIf="paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">play_arrow</mat-icon>
-            <mat-icon *ngIf="!paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">pause</mat-icon>
-            <mat-icon class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
+
+            <mat-icon [attr.aria-disabled]="loading" [ngClass]="{'disabled-ui-element': loading}" class="left-control-arrow" (click)="onPrevious()" fxFlex="15">skip_previous</mat-icon>
+            <mat-icon *ngIf="paused" [attr.aria-disabled]="loading" [ngClass]="{'disabled-ui-element': loading}" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">play_arrow</mat-icon>
+            <mat-icon *ngIf="!paused" [attr.aria-disabled]="loading" [ngClass]="{'disabled-ui-element': loading}"  class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">pause</mat-icon>
+            <mat-icon [attr.aria-disabled]="loading" [ngClass]="{'disabled-ui-element': loading}" class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
+
             <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
             <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
         </div>

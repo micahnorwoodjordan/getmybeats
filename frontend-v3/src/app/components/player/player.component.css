@@ -32,6 +32,8 @@
 .shuffle-icon-disabled { color: white; transform: scale(1.3); transition: 1s; margin-right: 10vh; cursor: pointer; }
 .shuffle-icon-disabled:hover { color: white; transform: scale(1.7); margin-right: 10vh; transition: 1s; cursor: pointer; }
 
+.disabled-ui-element { opacity: 0.5; cursor: default; pointer-events: none; }
+
 @media (max-width: 1024px) {
     .current-time-text { color: white; }
     .duration-time-text { color: white; }

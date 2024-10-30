@@ -53,6 +53,7 @@ export class AudioService {
 
     this.apiService.getMaskedAudioTrack(filenameHash, requestGUID).subscribe(
       event => {
+        this.setLoading(true);
         switch (event.type) {
           case HttpEventType.DownloadProgress:
             if (event.total !== undefined) {
