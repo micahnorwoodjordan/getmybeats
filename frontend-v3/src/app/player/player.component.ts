@@ -5,6 +5,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import {MatListModule} from '@angular/material/list';
 import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { CommonModule } from '@angular/common';
+import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../audio.service';
 import { ApiService } from '../api-service';
@@ -118,11 +119,10 @@ export class PlayerComponent implements OnInit {
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
     bottomSheetRef.afterDismissed().subscribe((songHashAndTitleDict) => {
       if (songHashAndTitleDict !== undefined ) {
-        this.audioService.pauseOnCycleThrough();
+        this.audioService.setAutoplayOnIndexChange(true);
         this.audioService.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
         this.audioService.setAudioIndex(this.audioService.filenameHashesByIndex[songHashAndTitleDict.filename_hash]);
         this.audioService.setAudioTitle(this.audioService.filenameTitlesByHash[songHashAndTitleDict.filename_hash]);
-        this.audioService.playOnCycleThrough();
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();
       } else {
@@ -156,10 +156,33 @@ export class TrackSelectorBottomSheet {
   context: any;
   songDict: any;
 
-  constructor(private apiService: ApiService, private bottomSheetRef: MatBottomSheetRef<TrackSelectorBottomSheet>) {}
+  constructor(
+    private apiService: ApiService,
+    private bottomSheetRef: MatBottomSheetRef<TrackSelectorBottomSheet>
+  ) {}
 
-  async ngOnInit(): Promise<void> {
-      this.context = await this.apiService.getMediaContext();
+  ngOnInit() {
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`matbottomsheet ngOnInit: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+              } else {
+                console.log('matbottomsheet ngOnInit: ERROR');
+              }
+            }
+            break;
+          default:
+            console.log('matbottomsheet ngOnInit: no response from server yet');
+          }
+      },
+      error => {
+        console.log(`matbottomsheet ngOnInit ERROR: ${error.toString()}`);
+      }
+    );
   }
 
   getSelectedSong(song: any, event: MouseEvent) {
