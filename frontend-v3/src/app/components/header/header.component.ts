@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
 
-import { ApiService } from '../../services/api-service';
+import { ApiService } from '../../services/api.service';
 import { environment } from 'src/environments/environment';
 
 

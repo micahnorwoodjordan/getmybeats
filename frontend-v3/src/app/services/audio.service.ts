@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 
 import { HttpEventType } from '@angular/common/http';
-import { ApiService } from './api-service';
-import { generateAudioRequestGUID } from './utilities';
+import { ApiService } from './api.service';
+import { generateAudioRequestGUID } from '../utilities';
 
 
 @Injectable({

@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../../services/audio.service';
-import { ApiService } from '../../services/api-service';
+import { ApiService } from '../../services/api.service';
 // import { PollService } from '../poll.service';
 import { environment } from 'src/environments/environment';
 
