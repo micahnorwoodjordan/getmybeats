@@ -83,6 +83,7 @@ deactivate
 
 # run django managament commands
 cd $FRONTEND_SRC_DIR
+npm install --save-dev @types/uuid
 npm install -g @angular/cli && npm install --package-lock-only
 npm install --save-dev @angular-devkit/build-angular@17.3.3
 echo "n\r" | ng build --configuration production
