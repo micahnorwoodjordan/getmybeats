@@ -13,7 +13,7 @@ CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
     'http://127.0.0.1',
     'http://192.168.0.180'
 ]
-
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # local development only
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = ['*']
 

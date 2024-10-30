@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 
+import { HttpEventType } from '@angular/common/http';
 import { ApiService } from './api-service';
+import { generateAudioRequestGUID } from './utilities';
 
 
 @Injectable({
@@ -19,6 +21,7 @@ export class AudioService {
   public sliderValue: number = 0;
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
+  public autoplayOnIndexChange: boolean = false;
 
   // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
@@ -43,16 +46,52 @@ export class AudioService {
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
 
-  public async getAndLoadAudioTrack(filenameHash: string) {
+  public getAndLoadAudioTrack(filenameHash: string) {
     console.log('getandloadaudiotrack fired');
-    this.setAudioTrack(await this.apiService.getMaskedAudioTrack(filenameHash));
-    this.audioTrack.load();
-    return this.audioTrack;
+    let requestGUID = generateAudioRequestGUID();
+    let audioSrc = '';
+
+    this.apiService.getMaskedAudioTrack(filenameHash, requestGUID).subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.DownloadProgress:
+            if (event.total !== undefined) {
+              console.log(`getandloadaudiotrack: ${Math.round((event.loaded / event.total) * 100)}% of data fetched`);
+            }
+            break;
+          case HttpEventType.Response:
+            console.log(`getandloadaudiotrack: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                audioSrc = URL.createObjectURL(event.body);
+                this.setAudioTitle(this.context[this.selectedAudioIndex].title);
+                this.setAudioTrack(audioSrc);
+                this.setLoading(false);
+                this.audioTrack.load();
+                if (this.autoplayOnIndexChange) {
+                  this.playAudioTrack();
+                }
+              }
+            } else {
+              console.log('getandloadaudiotrack: ERROR fetching audio');
+            }
+            
+            break;
+          default:
+            console.log('getandloadaudiotrack: no response from server yet');
+        }
+      },
+      error => {
+        console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+      }
+    );
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
-  private async setContext() { this.context = await this.apiService.getMediaContext(); this.setAudioFilenameHashes(); }
-  private async setAudioTrack(track: HTMLAudioElement) { this.audioTrack = track; }
+  public setInitialAudioState() { this.setContextAndLoadAudioTrack(); }
+  public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
+  private setLoading(value: boolean) { this.loading = value; }
+  private setAudioTrack(src: string) { this.audioTrack.src = src; }
   private setAudioFilenameHashes() {
     this.filenameTitlesByHash = {};
     this.filenameHashesByIndex = {};
@@ -62,50 +101,81 @@ export class AudioService {
     });
   }
 
+  private setContextAndLoadAudioTrack() {
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`setContextAndLoadAudioTrack: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+                this.setAudioFilenameHashes();
+                this.numberOfTracks = this.context.length;
+                let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
+                this.getAndLoadAudioTrack(audioFilenameHash);
+                // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+                // the below logic blocks are borrowed from the above github project
+                // these blocks are instrumental in getting the audio seeking logic to work correctly
+                this.audioTrack.ondurationchange = () => {
+                  const totalSeconds = Math.floor(this.audioTrack.duration);
+                  const duration = momentDuration(totalSeconds, 'seconds');
+                  this.musicLength = duration.seconds() < 10 ?
+                    `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+                      `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+                  this.duration = totalSeconds;
+                
+                }
+              } else {
+                console.log('setContextAndLoadAudioTrack: ERROR');
+              }
+            }
+            break;
+          default:
+            console.log('setContextAndLoadAudioTrack: no response from server yet');
+          }
+      },
+      error => {
+        console.log(`setContextAndLoadAudioTrack ERROR: ${error.toString()}`);
+      }
+    );
+  }
+
+  private setContext() {
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`setContext: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+                this.setAudioFilenameHashes();
+                this.numberOfTracks = this.context.length;
+              } else {
+                console.log('setContext: ERROR');
+              }
+            }
+            break;
+          default:
+            console.log('setContext: no response from server yet');
+          }
+      },
+      error => {
+        console.log(`setContext ERROR: ${error.toString()}`);
+      }
+    );
+  }
+
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
   public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; this.repeatEnabled ? this.shuffleEnabled = false : null; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-
-  public setContextExternal(newContext: any) {
-    let staleAudioRef = this.audioTrack;
-    let staleAudioWasPlaying = staleAudioRef.paused ? false : true;
-    this.context = newContext;
-    this.setAudioFilenameHashes();
-    this.pauseAudioTrack();
-    let filenameHash: string = this.context[this.selectedAudioIndex].filename_hash;
-    this.setAudioTrack(this.apiService.getMaskedAudioTrack(filenameHash));  // no api call until `play` is called
-    this.setCurrentTime(staleAudioRef.currentTime);
-    if (staleAudioWasPlaying) {  // don't automatically play on context update if user was not playing audio already
-      this.playAudioTrack();
-    }
-    this.updateAudioMetadataState();
-  }
-
-  public async setInitialAudioState() {
-    // https://balramchavan.medium.com/using-async-await-feature-in-angular-587dd56fdc77
-    await this.setContext();
-    this.numberOfTracks = this.context.length;
-    let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
-    this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
-    this.setAudioTitle(this.context[this.selectedAudioIndex].title);
-  }
+  public setContextExternal() { this.setContext(); }
 // ----------------------------------------------------------------------------------------------------------------
 // dynamic methods
-  public async updateAudioMetadataState() {
-    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
-    // the below logic blocks are borrowed from the above github project
-    // these blocks are instrumental in getting the audio seeking logic to work correctly
-    this.audioTrack.ondurationchange = () => {
-      const totalSeconds = Math.floor(this.audioTrack.duration);
-      const duration = momentDuration(totalSeconds, 'seconds');
-      this.musicLength = duration.seconds() < 10 ?
-        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
-          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
-      this.duration = totalSeconds;
-    }
-
+  public updateAudioMetadataState() {
     this.audioTrack.ontimeupdate = () => {
       const duration = momentDuration(Math.floor(this.audioTrack.currentTime), 'seconds');
       this.currentTime = duration.seconds() < 10 ? 
@@ -124,7 +194,7 @@ export class AudioService {
     this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
     this.audioTrack.onstalled = () => { console.log('onstalled'); this.hasPlaybackError = true; }
     this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; }
-    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; this.loading = false; }
   }
   // ----------------------------------------------------------------------------------------------------------------
   // public core utility methods
@@ -133,9 +203,10 @@ export class AudioService {
   public playAudioTrack() { this.audioTrack.play(); }
   public pauseAudioTrack() { this.audioTrack.pause(); }
 
-  public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
+  public onNextWrapper() {  // wrap so that this can be called from player component without passing args
+    this.setAutoplayOnIndexChange(true);
     if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex);
+      this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
       let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getNextAudioIndex();
       this.onNext(newIndex);
@@ -148,22 +219,13 @@ export class AudioService {
   }
   // ----------------------------------------------------------------------------------------------------------------
   // private core utility methods
-  private async onNext(newIndex: number) {
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(newIndex);
-    this.playOnCycleThrough();
-  }
+  private onNext(newIndex: number) { this.onIndexChange(newIndex); }
+  private onPrevious(newIndex: number) { this.onIndexChange(newIndex); }
 
   private getNextAudioIndex() {
     let newIndex = this.selectedAudioIndex;
     this.selectedAudioIndex + 1 < this.numberOfTracks ? newIndex += 1 : newIndex = 0;
     return newIndex;
-  }
-
-  private async onPrevious(newIndex: number) {
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(newIndex);
-    this.playOnCycleThrough();
   }
 
   private getPreviousAudioIndex() {
@@ -172,20 +234,14 @@ export class AudioService {
     return newIndex;
   }
 
-  private async onIndexChange(newIndex: number) {
+  private onIndexChange(newIndex: number) {
     console.log('onindexchange fired');
-    if (!this.context) {  // TODO: not sure how this could occur, but should investigate. this is a glaring optimization hole
-      console.log('onindexchange fetching context, since context was undefined')
-      await this.setContext();
-    }
     this.setAudioIndex(newIndex);
     let audioFilenameHash = this.context[newIndex].filename_hash;
-    await this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
-    this.setAudioTitle(this.context[this.selectedAudioIndex].title);
-    this.updateAudioMetadataState();
+    this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
   }
 
-  private async onSongChangeShuffle(badIndex: number): Promise<number> {
+  private onSongChangeShuffle(badIndex: number): number {
     let lowerBound: number = 0;
     let upperBound: number = this.numberOfTracks;
     let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
@@ -194,9 +250,7 @@ export class AudioService {
       console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
       return this.onSongChangeShuffle(badIndex);
     }
-    this.pauseOnCycleThrough();
-    await this.onIndexChange(randomTrackIndex);
-    this.playOnCycleThrough();
+    this.onIndexChange(randomTrackIndex);
     return -1
   }
 }

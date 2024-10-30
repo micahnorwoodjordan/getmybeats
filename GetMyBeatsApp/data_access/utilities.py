@@ -4,9 +4,13 @@ import logging
 from django.conf import settings
 from django.db import transaction, IntegrityError
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 
-from GetMyBeatsApp.models import Audio, SiteVisitRequest, ProductionRelease, UserExperienceReport
+from GetMyBeatsApp.models import (
+    Audio, SiteVisitRequest, ProductionRelease, UserExperienceReport,
+    AudioFetchRequest
+)
 
 
 logger = logging.getLogger(__name__)
@@ -14,6 +18,10 @@ logger = logging.getLogger(__name__)
 
 NEW_AUDIO_UPLOAD_CACHE_KEY = f'NEW-UPLOAD-{now().strftime("%Y.%m.%d")}'
 NEW_SITE_VISIT_REQUEST_CACHE_KEY_PREFIX = 'user-site-audio-context-'
+
+
+class InvalidAudioFetchRequestException(Exception):
+    pass
 
 
 def b64encode_file_upload(filepath):
@@ -62,6 +70,26 @@ def record_request_information(request):
         cache.add(site_vist_request_cache_key, remote_ip_address)
 
     return recorded_site_visit
+
+
+def validate_audio_get_request_information(request_id):
+    # since every audio GET request needs a unique GUID,
+    # the chances are that valid requests will only be sent from the browser
+    # (and not from a command line, though this is possible).
+    # if a request is maliciously mimicked, the already-existing GUID will trip the below condition
+    msg = 'not a valid request'
+    try:
+        if AudioFetchRequest.objects.filter(request_uuid=request_id).exists():
+            raise InvalidAudioFetchRequestException(msg)
+    except ValidationError as e:  # from a malformed UUID
+        raise InvalidAudioFetchRequestException(msg) from e
+
+
+def record_audio_request_information(request_id):
+    try:
+        AudioFetchRequest.objects.create(request_uuid=request_id)
+    except ValidationError as e:
+        raise InvalidAudioFetchRequestException('not a valid request') from e
 
 
 def get_release_by_id(release_id):

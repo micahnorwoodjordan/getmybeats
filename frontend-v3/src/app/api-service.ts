@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { environment } from 'src/environments/environment';
+import { ReleaseDate } from 'src/app/interfaces/ReleaseDate';
 
 
 @Injectable({
@@ -14,18 +15,41 @@ export class ApiService {
   getMediaContext() {
     let location = '/media/context/';
     let url = environment.apiHost + location;
-    return this.httpClient.get(url).toPromise();
+    return this.httpClient.get(
+      url,
+      {
+        observe: 'events',
+        reportProgress: true,
+        responseType: 'json'
+      }
+    );
   }
 
-  getMaskedAudioTrack(filenameHash: string) {
+  getMaskedAudioTrack(filenameHash: string, requestGUID: string) {
     let location = '/media/hash/' + filenameHash;
     let url = environment.apiHost + location;
-    return new Audio(url);
+    let requestHeaders = new HttpHeaders().set('Request-Id', requestGUID);
+    return this.httpClient.get(
+      url,
+      {
+        observe: 'events',
+        responseType: 'blob',
+        reportProgress: true,
+        headers: requestHeaders
+      }
+    );
   }
 
   getLastRelease() {
     let location = '/releases/-1/';
     let url = environment.apiHost + location;
-    return this.httpClient.get(url).toPromise();
+    return this.httpClient.get<ReleaseDate>(
+      url,
+      {
+        observe: 'events',
+        reportProgress: true,
+        responseType: 'json'
+      }
+    );
   }
 }
