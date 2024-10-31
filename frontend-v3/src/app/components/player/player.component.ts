@@ -9,8 +9,7 @@ import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
-// import { PollService } from '../poll.service';
-import { environment } from 'src/environments/environment';
+import { PollService } from '../../services/poll.service';
 
 
 @Component({
@@ -43,7 +42,7 @@ export class PlayerComponent implements OnInit {
 
   constructor(
     private audioService: AudioService,
-    // private pollService: PollService,
+    private pollService: PollService,
     private bottomSheet: MatBottomSheet
   ) {}
 
@@ -98,26 +97,18 @@ export class PlayerComponent implements OnInit {
       }, 500  // every 1/2 second
     );
 
-    setInterval(() => {
-      this.audioService.setContextExternal();
-      }, environment.audioContextEvaluationIntervalSeconds * 1000  // every 30 seconds
-    );
-
     // user experience: disables next and previous buttons until requested audio is loaded
     setInterval(() => {
-      this.loading = this.audioService.getLoading();
+        this.loading = this.audioService.getLoading();
       }, 10
     );
-  
-    // setInterval(async () => {
-    //   await this.pollService.evaluateCurrentContext();  // this logic fires every second to evaluate the current audio context
-    //   let pollContext = this.pollService.getContext();
-    //   if (JSON.stringify(this.audioService.context) !== JSON.stringify(pollContext)) {
-    //     console.log('PlayerComponent context updated');
-    //     this.audioService.setContextExternal(pollContext);
-    //   }
-    //   this.getAudioTrackPresentationData();
-    // }, environment.audioContextEvaluationIntervalSeconds * 1000);
+
+    // for constant audio contextualization 
+    // fires between the 200th and 400th millisecond of the 15th second of every 2nd minute of every hour
+    setInterval(() => {
+      this.pollService.evaluateCurrentTimeForMediaContextUpdate();
+      }, 200
+    );
   }
 
   openBottomSheet() {
