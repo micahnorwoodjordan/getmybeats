@@ -3,7 +3,7 @@
 
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import {MatListModule} from '@angular/material/list';
-import { MatBottomSheet, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 
@@ -46,19 +46,19 @@ export class PlayerComponent implements OnInit {
     private audioService: AudioService,
     private pollService: PollService,
     private bottomSheet: MatBottomSheet
-  ) {}
+  ) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
   onNext() { this.audioService.onNextWrapper(); }
   onPrevious() { this.audioService.onPreviousWrapper(); }
-
   onPlayPauseClick() {
-    this.audioService.audioTrack.paused ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
-    this.paused = this.audioService.audioTrack.paused;
+    this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
+    this.paused = this.audioService.isAudioPaused();
   }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
+  setLoading(value: boolean) { this.loading = value; }
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
     this.repeatEnabled = false;
@@ -87,7 +87,7 @@ export class PlayerComponent implements OnInit {
     this.duration = this.audioService.getDuration();
     this.musicLength = this.audioService.getMusicLength();
     this.sliderValue = this.audioService.getSliderValue();
-    this.paused = this.audioService.audioTrack.paused;
+    this.paused = this.audioService.isAudioPaused();
 }
 // ----------------------------------------------------------------------------------------------------------------
 
@@ -101,43 +101,51 @@ export class PlayerComponent implements OnInit {
 
     // user experience: disables next and previous buttons until requested audio is loaded
     setInterval(() => {
-        this.loading = this.audioService.getLoading();
-      }, 10
+        this.setLoading(this.audioService.getLoading());
+      }, 10  // every 1/100 second
     );
 
     // for constant audio contextualization 
     // fires between the 200th and 400th millisecond of the 15th second of every 2nd minute of every hour
     setInterval(() => {
       this.pollService.evaluateCurrentTimeForMediaContextUpdate();
-      }, 200
+      }, 200  // every 1/5 second
     );
   }
 
   openBottomSheet() {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
-    bottomSheetRef.afterDismissed().subscribe((contextElement: MediaContextElement) => {
-      if (contextElement !== undefined ) {
-        // ------------------------------------------------------------------------------------------------------------------------------
-        // this safeguards against when the context changes AFTER the bottomsheet renders but BEFORE it releases on track selection
-        // in this instance, the filename hash has changed, so we need the audio service's updated filename hash
-        let audioServiceContext = this.audioService.getContext();
-        let trueFileNameHash: string = '';
-        let bottomsheetTitle = contextElement.title;
-
-        audioServiceContext.forEach((ctxElement: MediaContextElement, idx: number) => {
-          if (ctxElement.title === bottomsheetTitle) {
-            trueFileNameHash = ctxElement.filename_hash;
+    bottomSheetRef.afterDismissed().subscribe((unvalidatedContextElement: MediaContextElement) => {
+      setTimeout(() => {  // give the audio service a grace period since
+          if (unvalidatedContextElement !== undefined ) {
+            // ------------------------------------------------------------------------------------------------------------------------------
+            // this safeguards against when the context changes AFTER the bottomsheet renders but BEFORE it releases on track selection
+            // in this instance, the filename hash has changed, so we need the audio service's updated filename hash
+    
+            let audioServiceContext = this.audioService.getContext();
+            let validatedFilenameHash: string = '';
+            let unvalidatedTitle = unvalidatedContextElement.title;  // title is invalid in the sense that it was not derived correctly
+    
+            audioServiceContext.forEach((validContextElement: MediaContextElement, idx: number) => {
+              let validTitle = validContextElement.title;
+              if (validTitle === unvalidatedTitle) {
+                validatedFilenameHash = validContextElement.filename_hash;
+              }
+            });
+    
+            if (unvalidatedContextElement.filename_hash !== validatedFilenameHash) {
+              console.log('openBottomsheet: unexpected context change handled gracefully');
+            }
+            // ------------------------------------------------------------------------------------------------------------------------------
+    
+            this.audioService.setAutoplayOnIndexChange(true);
+            this.audioService.getAndLoadAudioTrack(validatedFilenameHash);
+            this.audioService.updateAudioMetadataState();
+          } else {
+            console.log('no data was returned from TrackSelectorBottomSheet');
           }
-        })
-        // ------------------------------------------------------------------------------------------------------------------------------
-
-        this.audioService.setAutoplayOnIndexChange(true);
-        this.audioService.getAndLoadAudioTrack(trueFileNameHash);
-        this.audioService.updateAudioMetadataState();
-      } else {
-        console.log('no data was returned from TrackSelectorBottomSheet');
-      }
+        }, 200);
     });
   }
 }

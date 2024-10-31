@@ -13,7 +13,7 @@ import { generateAudioRequestGUID } from '../utilities';
 })
 
 export class AudioService {
-  public audioTrack: HTMLAudioElement = new Audio();
+  private audioTrack: HTMLAudioElement = new Audio();
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -42,11 +42,11 @@ export class AudioService {
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
   public getHasPlaybackError() { return this.hasPlaybackError; }
-  public getAudioTrack() { return this.audioTrack; }
   public getCurrentTime() { return this.currentTime; }
   public getDuration() { return this.duration; }
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
+  public isAudioPaused() { return this.audioTrack.paused; }
 
   public getAndLoadAudioTrack(filenameHash: string) {
     console.log('getandloadaudiotrack fired');
