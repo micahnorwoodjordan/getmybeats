@@ -11,6 +11,8 @@ import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
 import { PollService } from '../../services/poll.service';
 
+import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
+
 
 @Component({
   selector: 'app-player',
@@ -114,14 +116,25 @@ export class PlayerComponent implements OnInit {
   openBottomSheet() {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
-    bottomSheetRef.afterDismissed().subscribe((songHashAndTitleDict) => {
-      if (songHashAndTitleDict !== undefined ) {
+    bottomSheetRef.afterDismissed().subscribe((contextElement: MediaContextElement) => {
+      if (contextElement !== undefined ) {
+        // ------------------------------------------------------------------------------------------------------------------------------
+        // this safeguards against when the context changes AFTER the bottomsheet renders but BEFORE it releases on track selection
+        // in this instance, the filename hash has changed, so we need the audio service's updated filename hash
+        let audioServiceContext = this.audioService.getContext();
+        let trueFileNameHash: string = '';
+        let bottomsheetTitle = contextElement.title;
+
+        audioServiceContext.forEach((ctxElement: MediaContextElement, idx: number) => {
+          if (ctxElement.title === bottomsheetTitle) {
+            trueFileNameHash = ctxElement.filename_hash;
+          }
+        })
+        // ------------------------------------------------------------------------------------------------------------------------------
+
         this.audioService.setAutoplayOnIndexChange(true);
-        this.audioService.getAndLoadAudioTrack(songHashAndTitleDict.filename_hash);
-        this.audioService.setAudioIndex(this.audioService.filenameHashesByIndex[songHashAndTitleDict.filename_hash]);
-        this.audioService.setAudioTitle(this.audioService.filenameTitlesByHash[songHashAndTitleDict.filename_hash]);
+        this.audioService.getAndLoadAudioTrack(trueFileNameHash);
         this.audioService.updateAudioMetadataState();
-        this.getAudioTrackPresentationData();
       } else {
         console.log('no data was returned from TrackSelectorBottomSheet');
       }
@@ -182,9 +195,9 @@ export class TrackSelectorBottomSheet {
     );
   }
 
-  getSelectedSong(song: any, event: MouseEvent) {
+  getSelectedSong(song: MediaContextElement, event: MouseEvent) {
     this.songDict = song;
-    this.bottomSheetRef.dismiss(this.songDict);
+    this.bottomSheetRef.dismiss(song);
     event.preventDefault();
   }
 }
