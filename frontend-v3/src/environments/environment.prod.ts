@@ -2,6 +2,5 @@ export const environment = {
     production: true,
     apiHost: "https://getmybeats.com",
     apiMediaPath: "/media/",
-    localMediaPath: "/assets/",
-    audioContextPollMinutesInterval: 2
+    localMediaPath: "/assets/"
 }

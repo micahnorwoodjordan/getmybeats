@@ -9,23 +9,25 @@ import { AudioService } from './audio.service';
 })
 export class PollService {
   constructor(private audioService: AudioService) { }
+
+  private POLL_TIMESTAMP_MINUTES: number = 2;
+  private POLL_TIMESTAMP_SECONDS_UPPER_THRESHOLD: number = 10;
+  private POLL_TIMESTAMP_SECONDS_LOWER_THRESHOLD: number = 0;
+  private POLL_TIMESTAMP_MILLIS_UPPER_THRESHOLD: number = 400;
+  private POLL_TIMESTAMP_MILLIS_LOWER_THRESHOLD: number = 200;
   
   public evaluateCurrentTimeForMediaContextUpdate() {
     let currentDate = new Date();
-
     let currentMillis = currentDate.getMilliseconds();
     let currentSeconds = currentDate.getSeconds();
     let currentMinutes = currentDate.getMinutes();
 
-    let millisecondsUpperThreshold = 400;
-    let millisecondsLowerThreshold = 200;
-    let secondTimestamp = 15;
-
     let doPollForNewContext = (
-    currentMinutes % environment.audioContextPollMinutesInterval === 0 &&
-    currentSeconds === secondTimestamp &&
-    currentMillis >= millisecondsLowerThreshold &&
-    currentMillis <= millisecondsUpperThreshold
+        currentMinutes % this.POLL_TIMESTAMP_MINUTES === 0 &&
+        currentSeconds >= this.POLL_TIMESTAMP_SECONDS_LOWER_THRESHOLD &&
+        currentSeconds <= this.POLL_TIMESTAMP_SECONDS_UPPER_THRESHOLD &&
+        currentMillis >= this.POLL_TIMESTAMP_MILLIS_LOWER_THRESHOLD &&
+        currentMillis <= this.POLL_TIMESTAMP_MILLIS_UPPER_THRESHOLD
     );
 
     if (doPollForNewContext) {
