@@ -23,4 +23,4 @@ class Command(BaseCommand):
                 audio.filename_hash = new_hashed_filename
                 audio.filename_hash_updated_at = now_utc
             updated_count = Audio.objects.bulk_update(audios, ['filename_hash', 'filename_hash_updated_at'])
-        print(f'audio hashes updated: {updated_count}')
+        print(f'{updated_count} audio hashes updated at {now_utc}')
