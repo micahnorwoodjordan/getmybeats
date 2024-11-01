@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { environment } from 'src/environments/environment';
 import { ReleaseDate } from 'src/app/interfaces/ReleaseDate';
+import { MediaContextElement } from '../interfaces/MediaContextElement';
 
 
 @Injectable({
@@ -15,7 +16,7 @@ export class ApiService {
   getMediaContext() {
     let location = '/media/context/';
     let url = environment.apiHost + location;
-    return this.httpClient.get(
+    return this.httpClient.get<Array<MediaContextElement>>(
       url,
       {
         observe: 'events',

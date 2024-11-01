@@ -111,10 +111,11 @@ def get_audio_by_filename_hash(filename_hash):
 
 def get_audio_context():
     context_array = []
-    for a in Audio.objects.filter(filename_hash__isnull=False).order_by('-id'):
+    for idx, a in enumerate(list(Audio.objects.filter(filename_hash__isnull=False).order_by('-id'))):
         context_array.append({
             'filename_hash': a.filename_hash,
-            'title': a.title
+            'title': a.title,
+            'id': idx
         })
     return context_array
 

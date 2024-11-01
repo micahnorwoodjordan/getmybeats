@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 
 import { HttpEventType } from '@angular/common/http';
+
 import { ApiService } from './api.service';
+import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { generateAudioRequestGUID } from '../utilities';
 
 
@@ -11,13 +13,11 @@ import { generateAudioRequestGUID } from '../utilities';
 })
 
 export class AudioService {
-  public audioTrack: HTMLAudioElement = new Audio();
+  private audioTrack: HTMLAudioElement = new Audio();
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
   public currentTime: string = '0:00';
-  public filenameHashesByIndex: any;
-  public filenameTitlesByHash: any;
   public sliderValue: number = 0;
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
@@ -29,7 +29,7 @@ export class AudioService {
   public title: string = "null";
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
-  public context: any;
+  public context: Array<MediaContextElement> = [];
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(private apiService: ApiService) { }
@@ -40,11 +40,11 @@ export class AudioService {
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
   public getHasPlaybackError() { return this.hasPlaybackError; }
-  public getAudioTrack() { return this.audioTrack; }
   public getCurrentTime() { return this.currentTime; }
   public getDuration() { return this.duration; }
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
+  public isAudioPaused() { return this.audioTrack.paused; }
 
   public getAndLoadAudioTrack(filenameHash: string) {
     console.log('getandloadaudiotrack fired');
@@ -62,6 +62,13 @@ export class AudioService {
             break;
           case HttpEventType.Response:
             console.log(`getandloadaudiotrack: received server response ${event.status}`);
+
+            this.context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
+              if(mediaContextElement.filename_hash === filenameHash) {
+                this.setAudioIndex(mediaContextElement.id);
+              }
+            });
+
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 audioSrc = URL.createObjectURL(event.body);
@@ -93,14 +100,6 @@ export class AudioService {
   public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setLoading(value: boolean) { this.loading = value; }
   private setAudioTrack(src: string) { this.audioTrack.src = src; }
-  private setAudioFilenameHashes() {
-    this.filenameTitlesByHash = {};
-    this.filenameHashesByIndex = {};
-    this.context.forEach((element: any, idx: number) => {
-      this.filenameHashesByIndex[element.filename_hash] = idx;
-      this.filenameTitlesByHash[element.filename_hash] = element.title;
-    });
-  }
 
   private setContextAndLoadAudioTrack() {
     this.apiService.getMediaContext().subscribe(
@@ -111,7 +110,6 @@ export class AudioService {
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 this.context = event.body;
-                this.setAudioFilenameHashes();
                 this.numberOfTracks = this.context.length;
                 let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
                 this.getAndLoadAudioTrack(audioFilenameHash);
@@ -151,7 +149,6 @@ export class AudioService {
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 this.context = event.body;
-                this.setAudioFilenameHashes();
                 this.numberOfTracks = this.context.length;
               } else {
                 console.log('setContext: ERROR');
