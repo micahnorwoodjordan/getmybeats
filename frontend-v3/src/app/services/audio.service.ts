@@ -18,8 +18,6 @@ export class AudioService {
   public musicLength: string = '0:00';
   public duration: number = 1;
   public currentTime: string = '0:00';
-  public filenameHashesByIndex: any;
-  public filenameTitlesByHash: any;
   public sliderValue: number = 0;
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
@@ -64,6 +62,13 @@ export class AudioService {
             break;
           case HttpEventType.Response:
             console.log(`getandloadaudiotrack: received server response ${event.status}`);
+
+            this.context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
+              if(mediaContextElement.filename_hash === filenameHash) {
+                this.setAudioIndex(mediaContextElement.id);
+              }
+            });
+
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 audioSrc = URL.createObjectURL(event.body);
@@ -95,14 +100,6 @@ export class AudioService {
   public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setLoading(value: boolean) { this.loading = value; }
   private setAudioTrack(src: string) { this.audioTrack.src = src; }
-  private setAudioFilenameHashes() {
-    this.filenameTitlesByHash = {};
-    this.filenameHashesByIndex = {};
-    this.context.forEach((element: any, idx: number) => {
-      this.filenameHashesByIndex[element.filename_hash] = idx;
-      this.filenameTitlesByHash[element.filename_hash] = element.title;
-    });
-  }
 
   private setContextAndLoadAudioTrack() {
     this.apiService.getMediaContext().subscribe(
@@ -113,7 +110,6 @@ export class AudioService {
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 this.context = event.body;
-                this.setAudioFilenameHashes();
                 this.numberOfTracks = this.context.length;
                 let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
                 this.getAndLoadAudioTrack(audioFilenameHash);
@@ -153,7 +149,6 @@ export class AudioService {
             if (event.status == 200) {
               if (event.body !== undefined && event.body !== null) {
                 this.context = event.body;
-                this.setAudioFilenameHashes();
                 this.numberOfTracks = this.context.length;
               } else {
                 console.log('setContext: ERROR');
