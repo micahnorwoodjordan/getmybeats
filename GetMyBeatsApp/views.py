@@ -6,9 +6,9 @@ from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
-from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
+from GetMyBeatsApp.decorators.views.asset_security import block_curl_requests
 from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
@@ -17,15 +17,13 @@ from GetMyBeatsApp.data_access.utilities import (
     validate_audio_get_request_information, record_audio_request_information,
     InvalidAudioFetchRequestException
 )
+from GetMyBeatsApp.helpers.request_utilities import (
+    GENERIC_200_MSG, GENERIC_400_MSG,
+    GENERIC_404_MSG, GENERIC_500_MSG
+)
 
 
 logger = logging.getLogger(__name__)
-
-
-GENERIC_200_MSG = 'SUCCESS'
-GENERIC_400_MSG = 'BAD_REQUEST'
-GENERIC_404_MSG = 'RESOURCE_NOT_FOUND'
-GENERIC_500_MSG = 'UNKNOWN_SERVER_ERROR'
 
 
 def handler404(request, exception, template_name="404.html"):
@@ -54,6 +52,7 @@ def home(request):
 
 
 # TODO: add auth: access only from node app
+@block_curl_requests
 @api_view(['GET'])
 def audio_filenames(request):
     data = dict()
@@ -66,6 +65,7 @@ def audio_filenames(request):
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
+@block_curl_requests
 @api_view(['GET'])
 def get_release(request, release_id):
     try:
@@ -90,12 +90,14 @@ def get_release(request, release_id):
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
+@block_curl_requests
 @api_view(['GET'])
 def get_site_audio_context(request):
     context_array = get_audio_context()
-    return HttpResponse(content=json.dumps(context_array))
+    return HttpResponse(content=json.dumps(context_array), reason=GENERIC_200_MSG)
 
 
+@block_curl_requests
 @api_view(['GET'])
 def get_audio_by_hash(request, filename_hash):
     try:
