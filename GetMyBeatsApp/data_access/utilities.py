@@ -72,19 +72,6 @@ def record_request_information(request):
     return recorded_site_visit
 
 
-def validate_audio_get_request_information(request_id):
-    # since every audio GET request needs a unique GUID,
-    # the chances are that valid requests will only be sent from the browser
-    # (and not from a command line, though this is possible).
-    # if a request is maliciously mimicked, the already-existing GUID will trip the below condition
-    msg = 'not a valid request'
-    try:
-        if AudioFetchRequest.objects.filter(request_uuid=request_id).exists():
-            raise InvalidAudioFetchRequestException(msg)
-    except ValidationError as e:  # from a malformed UUID
-        raise InvalidAudioFetchRequestException(msg) from e
-
-
 def record_audio_request_information(request_id):
     try:
         AudioFetchRequest.objects.create(request_uuid=request_id)
