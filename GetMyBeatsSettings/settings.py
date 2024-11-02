@@ -11,6 +11,8 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY']  # collectstatic needs this key
 USE_LINUX = False
 DEBUG = False
 
+PROHIBITED_USER_AGENT_SUBSTRINGS = ['curl']
+
 # https://stackoverflow.com/questions/29573163/django-admin-login-suddenly-demanding-csrf-token
 # in general, future form POST's will probably need the CSRF cookie embedded into the Origin header
 

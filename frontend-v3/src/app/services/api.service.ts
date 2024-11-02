@@ -29,7 +29,7 @@ export class ApiService {
   getMaskedAudioTrack(filenameHash: string, requestGUID: string) {
     let location = '/media/hash/' + filenameHash;
     let url = environment.apiHost + location;
-    let requestHeaders = new HttpHeaders().set('Request-Id', requestGUID);
+    let requestHeaders = new HttpHeaders().set('Audio-Request-Id', requestGUID);
     return this.httpClient.get(
       url,
       {
