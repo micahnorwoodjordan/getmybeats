@@ -73,7 +73,7 @@ export class AudioService {
               if (event.body !== undefined && event.body !== null) {
                 audioSrc = URL.createObjectURL(event.body);
                 this.setAudioTitle(this.context[this.selectedAudioIndex].title);
-                this.setAudioTrack(audioSrc);
+                this.setAudioSrc(audioSrc);
                 this.setLoading(false);
                 this.audioTrack.load();
                 if (this.autoplayOnIndexChange) {
@@ -99,7 +99,7 @@ export class AudioService {
   public setInitialAudioState() { this.setContextAndLoadAudioTrack(); }
   public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setLoading(value: boolean) { this.loading = value; }
-  private setAudioTrack(src: string) { this.audioTrack.src = src; }
+  private setAudioSrc(src: string) { this.audioTrack.src = src; }
 
   private setContextAndLoadAudioTrack() {
     this.apiService.getMediaContext().subscribe(
@@ -198,11 +198,10 @@ export class AudioService {
   // public core utility methods
   public pauseOnCycleThrough() { this.audioTrack.pause(); }
   public playOnCycleThrough() { this.audioTrack.play(); }
-  public playAudioTrack() { this.audioTrack.play(); }
-  public pauseAudioTrack() { this.audioTrack.pause(); }
+  public playAudioTrack() { this.audioTrack.play(); this.setAutoplayOnIndexChange(true); }
+  public pauseAudioTrack() { this.audioTrack.pause(); this.setAutoplayOnIndexChange(false); }
 
   public onNextWrapper() {  // wrap so that this can be called from player component without passing args
-    this.setAutoplayOnIndexChange(true);
     if (this.shuffleEnabled) {
       this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
@@ -234,9 +233,25 @@ export class AudioService {
 
   private onIndexChange(newIndex: number) {
     console.log('onindexchange fired');
-    this.setAudioIndex(newIndex);
-    let audioFilenameHash = this.context[newIndex].filename_hash;
-    this.getAndLoadAudioTrack(audioFilenameHash);  // also sets the audioTrack attribute
+    let requestedAudioTitle = this.context[newIndex].title;
+    let availableAudioTitle = '';  // make sure the requested track exists in the system
+    let availableAudioFilenameHash = '';
+
+    this.setContext();
+    this.context.forEach((mediaContextElement: MediaContextElement, idx: number) => {
+      if (mediaContextElement.title === requestedAudioTitle) {
+        availableAudioTitle = mediaContextElement.title;
+        availableAudioFilenameHash = mediaContextElement.filename_hash;
+      }
+    });
+    setTimeout(() => {  // might be a little hacky, but allow the server to respond before doing anything else
+      if (availableAudioTitle !== '' && availableAudioFilenameHash !== '') {
+        this.setAudioIndex(newIndex);
+        this.getAndLoadAudioTrack(availableAudioFilenameHash);  // also sets the audioTrack attribute
+      } else {
+        window.alert(`there was an error downloading "${requestedAudioTitle}". please refresh the page if the issue does not resolve itself.`);
+      }
+    }, 200);
   }
 
   private onSongChangeShuffle(badIndex: number): number {
