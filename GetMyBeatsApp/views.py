@@ -6,26 +6,23 @@ from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
-from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
+from GetMyBeatsApp.decorators.views.asset_security import validate_user_agent, validate_audio_request_id
 from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
     get_audio_filenames, record_request_information, get_release_by_id,
     get_audio_context, get_audio_by_filename_hash, get_current_user_experience_report,
-    validate_audio_get_request_information, record_audio_request_information,
-    InvalidAudioFetchRequestException
+    record_audio_request_information
+)
+from GetMyBeatsApp.helpers.request_utilities import (
+    GENERIC_200_MSG, GENERIC_400_MSG,
+    GENERIC_404_MSG, GENERIC_500_MSG
 )
 
 
 logger = logging.getLogger(__name__)
-
-
-GENERIC_200_MSG = 'SUCCESS'
-GENERIC_400_MSG = 'BAD_REQUEST'
-GENERIC_404_MSG = 'RESOURCE_NOT_FOUND'
-GENERIC_500_MSG = 'UNKNOWN_SERVER_ERROR'
 
 
 def handler404(request, exception, template_name="404.html"):
@@ -53,7 +50,7 @@ def home(request):
     return render(request, 'home.html')
 
 
-# TODO: add auth: access only from node app
+@validate_user_agent
 @api_view(['GET'])
 def audio_filenames(request):
     data = dict()
@@ -66,6 +63,7 @@ def audio_filenames(request):
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
+@validate_user_agent
 @api_view(['GET'])
 def get_release(request, release_id):
     try:
@@ -90,17 +88,19 @@ def get_release(request, release_id):
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
+@validate_user_agent
 @api_view(['GET'])
 def get_site_audio_context(request):
     context_array = get_audio_context()
-    return HttpResponse(content=json.dumps(context_array))
+    return HttpResponse(content=json.dumps(context_array), reason=GENERIC_200_MSG)
 
 
+@validate_user_agent
+@validate_audio_request_id
 @api_view(['GET'])
 def get_audio_by_hash(request, filename_hash):
     try:
-        audio_request_id = request.META['HTTP_REQUEST_ID']
-        validate_audio_get_request_information(audio_request_id)
+        audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
         audio = get_audio_by_filename_hash(filename_hash)
         record_audio_request_information(audio_request_id)
         content_file = ContentFile(open(audio.file.path, 'rb').read())
@@ -113,10 +113,7 @@ def get_audio_by_hash(request, filename_hash):
         response['Content-Disposition'] = f'attachment; filename={filename_hash}'
         response['Accept-Ranges'] = 'bytes'
         return response
-    except KeyError as e:  # missing request-id header
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
-        return HttpResponse(status=400, reason=GENERIC_400_MSG)
-    except InvalidAudioFetchRequestException as e:
+    except KeyError as e:  # missing Audio-Request-Id header
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
         return HttpResponse(status=400, reason=GENERIC_400_MSG)
     except ObjectDoesNotExist as e:
