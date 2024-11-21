@@ -108,8 +108,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      frontend-testing:
-        condition: service_started
       redis:
         condition: service_started
       dbimport:
