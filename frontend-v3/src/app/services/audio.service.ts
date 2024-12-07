@@ -231,6 +231,8 @@ export class AudioService {
     return newIndex;
   }
 
+  public onIndexChangePublic(newIndex: number) { this.onIndexChange(newIndex); }
+
   private onIndexChange(newIndex: number) {
     console.log('onindexchange fired');
     let requestedAudioTitle = this.context[newIndex].title;

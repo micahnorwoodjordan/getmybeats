@@ -110,35 +110,16 @@ export class PlayerComponent implements OnInit {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
     bottomSheetRef.afterDismissed().subscribe((unvalidatedContextElement: MediaContextElement) => {
-          if (unvalidatedContextElement !== undefined ) {
-            // ------------------------------------------------------------------------------------------------------------------------------
-            // this safeguards against when the context changes AFTER the bottomsheet renders but BEFORE it releases on track selection
-            // in this instance, the filename hash has changed, so we need the audio service's updated filename hash
+      let context = this.audioService.getContext();
+      let index: number = 0;
 
-            this.audioService.setContextExternal();
-            setTimeout(() => {
-              let audioServiceContext = this.audioService.getContext();
-              let validatedFilenameHash: string = '';
-              let unvalidatedTitle = unvalidatedContextElement.title;  // title is invalid in the sense that it was not derived correctly
-  
-              audioServiceContext.forEach((validContextElement: MediaContextElement, idx: number) => {
-                let validTitle = validContextElement.title;
-                if (validTitle === unvalidatedTitle) {
-                  validatedFilenameHash = validContextElement.filename_hash;
-                }
-              });
-  
-              if (unvalidatedContextElement.filename_hash !== validatedFilenameHash) {
-                console.log('openBottomsheet: unexpected context change handled gracefully');
-              }
-              // ------------------------------------------------------------------------------------------------------------------------------
-  
-              this.audioService.setAutoplayOnIndexChange(true);
-              this.audioService.getAndLoadAudioTrack(validatedFilenameHash);
-            }, 200);
-          } else {
-            console.log('no data was returned from TrackSelectorBottomSheet');
-          }
+      context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
+        if (mediaContextElement.id === unvalidatedContextElement.id) {
+          index = mediaContextElement.id;
+        }
+      });
+
+      this.audioService.onIndexChangePublic(index);
     });
   }
 }
