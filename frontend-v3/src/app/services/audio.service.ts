@@ -237,21 +237,36 @@ export class AudioService {
     let availableAudioTitle = '';  // make sure the requested track exists in the system
     let availableAudioFilenameHash = '';
 
-    this.setContext();
-    this.context.forEach((mediaContextElement: MediaContextElement, idx: number) => {
-      if (mediaContextElement.title === requestedAudioTitle) {
-        availableAudioTitle = mediaContextElement.title;
-        availableAudioFilenameHash = mediaContextElement.filename_hash;
+    console.log('onindexchange -- getMediaContext');
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+                this.numberOfTracks = this.context.length;
+                this.context.forEach((mediaContextElement: MediaContextElement, idx: number) => {
+                  if (mediaContextElement.title === requestedAudioTitle) {
+                    availableAudioTitle = mediaContextElement.title;
+                    availableAudioFilenameHash = mediaContextElement.filename_hash;
+                    this.setAudioIndex(newIndex);
+                    this.getAndLoadAudioTrack(availableAudioFilenameHash);  // also sets the audioTrack attribute
+                  }
+                });
+              } else {
+                console.log('onindexchange -- getMediaContext: ERROR');
+              }
+            }
+            break;
+          default:
+            console.log('onindexchange -- getMediaContext: no response from server yet');
+          }
+      },
+      error => {
+        console.log(`onindexchange -- getMediaContext ERROR: ${error.toString()}`);
       }
-    });
-    setTimeout(() => {  // might be a little hacky, but allow the server to respond before doing anything else
-      if (availableAudioTitle !== '' && availableAudioFilenameHash !== '') {
-        this.setAudioIndex(newIndex);
-        this.getAndLoadAudioTrack(availableAudioFilenameHash);  // also sets the audioTrack attribute
-      } else {
-        window.alert(`there was an error downloading "${requestedAudioTitle}". please refresh the page if the issue does not resolve itself.`);
-      }
-    }, 200);
+    );
   }
 
   private onSongChangeShuffle(badIndex: number): number {
