@@ -108,8 +108,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      frontend-testing:
-        condition: service_started
       redis:
         condition: service_started
       dbimport:
@@ -118,13 +116,11 @@ services:
     build:
         dockerfile: dev/Dockerfile.frontend
         context: ./..
-    ports:
-      - 4200:4200
     volumes:
       - ../:/application/getmybeats
     command: bash -c "
       cd /application/getmybeats/frontend-v3/src &&
       npm install -g @angular/cli && npm install --package-lock-only &&
       npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
-      ng build --configuration development && tail -f /dev/null"
+      ng build --configuration development"
 

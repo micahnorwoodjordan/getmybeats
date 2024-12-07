@@ -104,13 +104,6 @@ export class PlayerComponent implements OnInit {
         this.setLoading(this.audioService.getLoading());
       }, 10  // every 1/100 second
     );
-
-    // for constant audio contextualization 
-    // fires between the 200th and 400th millisecond of the 15th second of every 2nd minute of every hour
-    setInterval(() => {
-      this.pollService.evaluateCurrentTimeForMediaContextUpdate();
-      }, 200  // every 1/5 second
-    );
   }
 
   openBottomSheet() {
@@ -122,24 +115,27 @@ export class PlayerComponent implements OnInit {
             // this safeguards against when the context changes AFTER the bottomsheet renders but BEFORE it releases on track selection
             // in this instance, the filename hash has changed, so we need the audio service's updated filename hash
 
-            let audioServiceContext = this.audioService.getContext();
-            let validatedFilenameHash: string = '';
-            let unvalidatedTitle = unvalidatedContextElement.title;  // title is invalid in the sense that it was not derived correctly
-
-            audioServiceContext.forEach((validContextElement: MediaContextElement, idx: number) => {
-              let validTitle = validContextElement.title;
-              if (validTitle === unvalidatedTitle) {
-                validatedFilenameHash = validContextElement.filename_hash;
+            this.audioService.setContextExternal();
+            setTimeout(() => {
+              let audioServiceContext = this.audioService.getContext();
+              let validatedFilenameHash: string = '';
+              let unvalidatedTitle = unvalidatedContextElement.title;  // title is invalid in the sense that it was not derived correctly
+  
+              audioServiceContext.forEach((validContextElement: MediaContextElement, idx: number) => {
+                let validTitle = validContextElement.title;
+                if (validTitle === unvalidatedTitle) {
+                  validatedFilenameHash = validContextElement.filename_hash;
+                }
+              });
+  
+              if (unvalidatedContextElement.filename_hash !== validatedFilenameHash) {
+                console.log('openBottomsheet: unexpected context change handled gracefully');
               }
-            });
-
-            if (unvalidatedContextElement.filename_hash !== validatedFilenameHash) {
-              console.log('openBottomsheet: unexpected context change handled gracefully');
-            }
-            // ------------------------------------------------------------------------------------------------------------------------------
-
-            this.audioService.setAutoplayOnIndexChange(true);
-            this.audioService.getAndLoadAudioTrack(validatedFilenameHash);
+              // ------------------------------------------------------------------------------------------------------------------------------
+  
+              this.audioService.setAutoplayOnIndexChange(true);
+              this.audioService.getAndLoadAudioTrack(validatedFilenameHash);
+            }, 200);
           } else {
             console.log('no data was returned from TrackSelectorBottomSheet');
           }
@@ -154,8 +150,8 @@ export class PlayerComponent implements OnInit {
   template: `
       <h1>tracks</h1>
       <mat-nav-list>
-          <mat-list-item *ngFor="let songDict of context" (click)="getSelectedSong(songDict, $event)">
-              <span matListItemTitle>{{ songDict.title }}</span>
+          <mat-list-item *ngFor="let mediaContextElement of context" (click)="getSelectedSong(mediaContextElement, $event)">
+              <span matListItemTitle>{{ mediaContextElement.title }}</span>
           </mat-list-item>
       </mat-nav-list>
   `,
@@ -168,8 +164,8 @@ export class PlayerComponent implements OnInit {
 })
 
 export class TrackSelectorBottomSheet {
-  context: any;
-  songDict: any;
+  context: Array<MediaContextElement> = [];
+  mediaContextElement: MediaContextElement = {title: '', filename_hash: '', id: 0};
 
   constructor(
     private apiService: ApiService,
@@ -201,7 +197,7 @@ export class TrackSelectorBottomSheet {
   }
 
   getSelectedSong(song: MediaContextElement, event: MouseEvent) {
-    this.songDict = song;
+    this.mediaContextElement = song;
     this.bottomSheetRef.dismiss(song);
     event.preventDefault();
   }
