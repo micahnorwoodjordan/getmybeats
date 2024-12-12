@@ -1,5 +1,6 @@
 import os
 import logging
+import tempfile
 from enum import Enum
 
 from django.db import models
@@ -99,42 +100,20 @@ class Audio(models.Model):
     ext = models.CharField(max_length=20, blank=True, null=False)
     artwork = models.ForeignKey(AudioArtwork, on_delete=models.DO_NOTHING, null=True, blank=True)
 
-    @property
-    def _attributes(self):
-        return {
-            'title': self.title,
-            'file': self.file,
-            'filename_hash': self.filename_hash,
-            's3_upload_path': self.s3_upload_path,
-            'ext': self.ext
-        }
-
     def save(self, *args, **kwargs):
-        if self.id:
-            previous_file = Audio.objects.get(pk=self.id)._attributes['file']
-            if previous_file != self.file:
-                self.upload_to_s3_on_save()
-        else:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            for chunk in self.file.chunks():
+                temp_file.write(chunk)
+
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
             self.title = filename.replace(self.ext, '')
             self.filename_hash_updated_at = now()
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
-            super().save(*args, **kwargs)  # commit file to disk for s3 upload
-            self.upload_to_s3_on_save()
-        return super().save(*args, **kwargs)
-
-    def upload_to_s3_on_save(self):  # TODO: refactor to reduce copypasta
-        filename = self.title + self.ext
-        try:
-            S3AudioService().upload(self.file.path, filename)
+            S3AudioService().upload(temp_file.name, filename)
             self.s3_upload_path = f's3://{settings.S3_AUDIO_BUCKET}/{filename}'
-            logger.info('upload_to_s3_on_save success', extra={settings.LOGGER_EXTRA_DATA_KEY: filename})
-            return True
-        except Exception as err:
-            logger.exception('upload_to_s3_on_save failure', extra={settings.LOGGER_EXTRA_DATA_KEY: str(err)})
-            return False
+        return super().save(*args, **kwargs)
 
     class Status(Enum):
         concept = 1
