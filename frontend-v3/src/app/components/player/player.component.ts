@@ -146,7 +146,14 @@ export class PlayerComponent implements OnInit {
 
 export class TrackSelectorBottomSheet {
   context: Array<MediaContextElement> = [];
-  mediaContextElement: MediaContextElement = {title: '', filename_hash: '', id: 0};
+  mediaContextElement: MediaContextElement = {
+    audio_filename_hash: '',
+    artwork_filename_hash: '',
+    artwork_width: '',
+    artwork_height: '',
+    title: '',
+    id: 0
+  };
 
   constructor(
     private apiService: ApiService,

@@ -64,7 +64,7 @@ export class AudioService {
             console.log(`getandloadaudiotrack: received server response ${event.status}`);
 
             this.context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
-              if(mediaContextElement.filename_hash === filenameHash) {
+              if(mediaContextElement.audio_filename_hash === filenameHash) {
                 this.setAudioIndex(mediaContextElement.id);
               }
             });
@@ -111,7 +111,7 @@ export class AudioService {
               if (event.body !== undefined && event.body !== null) {
                 this.context = event.body;
                 this.numberOfTracks = this.context.length;
-                let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
+                let audioFilenameHash = this.context[this.selectedAudioIndex].audio_filename_hash;
                 this.getAndLoadAudioTrack(audioFilenameHash);
                 // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
                 // the below logic blocks are borrowed from the above github project
@@ -251,7 +251,7 @@ export class AudioService {
                 this.context.forEach((mediaContextElement: MediaContextElement, idx: number) => {
                   if (mediaContextElement.title === requestedAudioTitle) {
                     availableAudioTitle = mediaContextElement.title;
-                    availableAudioFilenameHash = mediaContextElement.filename_hash;
+                    availableAudioFilenameHash = mediaContextElement.audio_filename_hash;
                     this.setAudioIndex(newIndex);
                     this.getAndLoadAudioTrack(availableAudioFilenameHash);  // also sets the audioTrack attribute
                   }
