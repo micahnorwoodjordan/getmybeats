@@ -37,6 +37,54 @@ class User(AbstractUser):
         return f'{User.__name__}: {self.id} -> {self.first_name} {self.last_name}'
 
 
+class AudioArtwork(models.Model):
+    id = models.AutoField(primary_key=True)
+    width = models.DecimalField(max_digits=6, decimal_places=2)
+    height = models.DecimalField(max_digits=6, decimal_places=2)
+    file = models.FileField()
+    filename_hash = models.CharField(max_length=300, null=True, blank=True)
+    creation_timestamp = models.DateTimeField(auto_now=True)
+    s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
+    ext = models.CharField(max_length=20, blank=True, null=False)
+
+    @property
+    def _attributes(self):
+        return {
+            'file': self.file,
+            'filename_hash': self.filename_hash,
+            's3_upload_path': self.s3_upload_path,
+            'ext': self.ext
+        }
+
+    def save(self, *args, **kwargs):
+        if self.id:
+            previous_file = AudioArtwork.objects.get(pk=self.id)._attributes['file']
+            if previous_file != self.file:
+                self.upload_to_s3_on_save()
+        else:
+            fp = self.file.path
+            self.ext = '.' + fp.split('.')[-1]
+            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
+            super().save(*args, **kwargs)  # commit file to disk for s3 upload
+            self.upload_to_s3_on_save()
+        return super().save(*args, **kwargs)
+
+    def upload_to_s3_on_save(self):  # TODO: refactor to reduce copypasta
+        filename = os.path.basename(self.file.path)
+        try:
+            S3AudioService(bucket=settings.S3_ARTWORK_BUCKET).upload(self.file.path, filename)
+            self.s3_upload_path = f's3://{settings.S3_ARTWORK_BUCKET}/{filename}'
+            logger.info('upload_to_s3_on_save success', extra={settings.LOGGER_EXTRA_DATA_KEY: filename})
+            return True
+        except Exception as err:
+            logger.exception('upload_to_s3_on_save failure', extra={settings.LOGGER_EXTRA_DATA_KEY: str(err)})
+            return False
+
+    class Meta:
+        db_table = 'audio_artwork'
+        managed = True
+
+
 class Audio(models.Model):
     id = models.AutoField(primary_key=True)
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
@@ -49,6 +97,7 @@ class Audio(models.Model):
     #   flip and re-migrate after all existing audio objects have this field populated
     s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
     ext = models.CharField(max_length=20, blank=True, null=False)
+    artwork = models.ForeignKey(AudioArtwork, on_delete=models.DO_NOTHING, null=True, blank=True)
 
     @property
     def _attributes(self):
@@ -76,7 +125,7 @@ class Audio(models.Model):
             self.upload_to_s3_on_save()
         return super().save(*args, **kwargs)
 
-    def upload_to_s3_on_save(self):
+    def upload_to_s3_on_save(self):  # TODO: refactor to reduce copypasta
         filename = self.title + self.ext
         try:
             S3AudioService().upload(self.file.path, filename)

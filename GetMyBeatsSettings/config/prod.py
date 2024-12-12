@@ -75,3 +75,4 @@ LOGGING = {
 }
 
 S3_AUDIO_BUCKET = 'getmybeats-audio'
+S3_ARTWORK_BUCKET = 'getmybeats-images'
