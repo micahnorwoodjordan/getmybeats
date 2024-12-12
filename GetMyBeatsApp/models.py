@@ -48,42 +48,31 @@ class AudioArtwork(models.Model):
     s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
     ext = models.CharField(max_length=20, blank=True, null=False)
 
-    @property
-    def _attributes(self):
-        return {
-            'file': self.file,
-            'filename_hash': self.filename_hash,
-            's3_upload_path': self.s3_upload_path,
-            'ext': self.ext
-        }
-
     def save(self, *args, **kwargs):
-        if self.id:
-            previous_file = AudioArtwork.objects.get(pk=self.id)._attributes['file']
-            if previous_file != self.file:
-                self.upload_to_s3_on_save()
-        else:
+        if self.pk:  # Check if the instance already exists
+            old_instance = AudioArtwork.objects.get(pk=self.pk)
+            if old_instance.file:
+                if self.file.name == old_instance.file.name:
+                    os.remove(old_instance.file.path)
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            for chunk in self.file.chunks():
+                temp_file.write(chunk)
+
+            filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
-            super().save(*args, **kwargs)  # commit file to disk for s3 upload
-            self.upload_to_s3_on_save()
+            S3AudioService(bucket=settings.S3_ARTWORK_BUCKET).upload(temp_file.name, filename)
+            self.s3_upload_path = os.path.join('s3://', settings.S3_ARTWORK_BUCKET, filename)
         return super().save(*args, **kwargs)
-
-    def upload_to_s3_on_save(self):  # TODO: refactor to reduce copypasta
-        filename = os.path.basename(self.file.path)
-        try:
-            S3AudioService(bucket=settings.S3_ARTWORK_BUCKET).upload(self.file.path, filename)
-            self.s3_upload_path = f's3://{settings.S3_ARTWORK_BUCKET}/{filename}'
-            logger.info('upload_to_s3_on_save success', extra={settings.LOGGER_EXTRA_DATA_KEY: filename})
-            return True
-        except Exception as err:
-            logger.exception('upload_to_s3_on_save failure', extra={settings.LOGGER_EXTRA_DATA_KEY: str(err)})
-            return False
 
     class Meta:
         db_table = 'audio_artwork'
         managed = True
+
+    def __str__(self):
+        return f'{AudioArtwork.__name__}: {self.id} -> {self.file.name}'
 
 
 class Audio(models.Model):
@@ -101,7 +90,13 @@ class Audio(models.Model):
     artwork = models.ForeignKey(AudioArtwork, on_delete=models.DO_NOTHING, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        if self.pk:  # Check if the instance already exists
+            old_instance = Audio.objects.get(pk=self.pk)
+            if old_instance.file:
+                if self.file.name == old_instance.file.name:
+                    os.remove(old_instance.file.path)
+
+        with tempfile.NamedTemporaryFile() as temp_file:
             for chunk in self.file.chunks():
                 temp_file.write(chunk)
 
@@ -112,7 +107,7 @@ class Audio(models.Model):
             self.filename_hash_updated_at = now()
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
             S3AudioService().upload(temp_file.name, filename)
-            self.s3_upload_path = f's3://{settings.S3_AUDIO_BUCKET}/{filename}'
+            self.s3_upload_path = os.path.join('s3://', settings.S3_AUDIO_BUCKET, filename)
         return super().save(*args, **kwargs)
 
     class Status(Enum):
@@ -126,7 +121,7 @@ class Audio(models.Model):
         managed = True
 
     def __str__(self):
-        return f'{Audio.__name__}: {self.id} -> {self.title} uploaded by {self.fk_uploaded_by.username}'
+        return f'{Audio.__name__}: {self.id} -> {self.title}'
 
 
 class RenewedSSLConfiguration(models.Model):
