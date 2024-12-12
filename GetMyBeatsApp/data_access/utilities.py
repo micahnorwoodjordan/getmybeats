@@ -9,7 +9,7 @@ from django.utils.timezone import now
 
 from GetMyBeatsApp.models import (
     Audio, SiteVisitRequest, ProductionRelease, UserExperienceReport,
-    AudioFetchRequest
+    AudioFetchRequest, AudioArtwork
 )
 
 
@@ -94,6 +94,10 @@ def get_all_audio_filename_hashes():
 
 def get_audio_by_filename_hash(filename_hash):
     return Audio.objects.get(filename_hash=filename_hash)
+
+
+def get_audio_artwork_by_filename_hash(filename_hash):
+    return AudioArtwork.objects.get(filename_hash=filename_hash)
 
 
 def get_audio_context():
