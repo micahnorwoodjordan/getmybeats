@@ -6,6 +6,7 @@ import { HttpEventType } from '@angular/common/http';
 import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { generateAudioRequestGUID } from '../utilities';
+import { ArtworkService } from './artwork.service';
 
 
 @Injectable({
@@ -14,6 +15,7 @@ import { generateAudioRequestGUID } from '../utilities';
 
 export class AudioService {
   private audioTrack: HTMLAudioElement = new Audio();
+  public audioArtwork: HTMLImageElement | null = null;
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -32,7 +34,7 @@ export class AudioService {
   public context: Array<MediaContextElement> = [];
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private artworkService: ArtworkService) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // getters
@@ -112,6 +114,9 @@ export class AudioService {
                 this.context = event.body;
                 this.numberOfTracks = this.context.length;
                 let audioFilenameHash = this.context[this.selectedAudioIndex].audio_filename_hash;
+                let audioArtworkFilenameHash = this.context[this.selectedAudioIndex].artwork_filename_hash;
+                this.artworkService.getAndLoadAudioArtwork(audioArtworkFilenameHash);
+                this.audioArtwork = this.artworkService.getAudioArtworkImage();
                 this.getAndLoadAudioTrack(audioFilenameHash);
                 // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
                 // the below logic blocks are borrowed from the above github project
@@ -123,7 +128,6 @@ export class AudioService {
                     `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
                       `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
                   this.duration = totalSeconds;
-                
                 }
               } else {
                 console.log('setContextAndLoadAudioTrack: ERROR');
@@ -238,6 +242,7 @@ export class AudioService {
     let requestedAudioTitle = this.context[newIndex].title;
     let availableAudioTitle = '';  // make sure the requested track exists in the system
     let availableAudioFilenameHash = '';
+    let availableAudioArtworkFilenameHash;
 
     console.log('onindexchange -- getMediaContext');
     this.apiService.getMediaContext().subscribe(
@@ -252,8 +257,11 @@ export class AudioService {
                   if (mediaContextElement.title === requestedAudioTitle) {
                     availableAudioTitle = mediaContextElement.title;
                     availableAudioFilenameHash = mediaContextElement.audio_filename_hash;
+                    availableAudioArtworkFilenameHash = mediaContextElement.artwork_filename_hash;
                     this.setAudioIndex(newIndex);
                     this.getAndLoadAudioTrack(availableAudioFilenameHash);  // also sets the audioTrack attribute
+                    this.artworkService.getAndLoadAudioArtwork(availableAudioArtworkFilenameHash);
+                    this.audioArtwork = this.artworkService.getAudioArtworkImage();
                   }
                 });
               } else {

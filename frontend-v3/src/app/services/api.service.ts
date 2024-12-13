@@ -27,7 +27,7 @@ export class ApiService {
   }
 
   getMaskedAudioTrack(filenameHash: string, requestGUID: string) {
-    let location = '/media/hash/' + filenameHash;
+    let location = '/media/audio/hash/' + filenameHash;
     let url = environment.apiHost + location;
     let requestHeaders = new HttpHeaders().set('Audio-Request-Id', requestGUID);
     return this.httpClient.get(
@@ -37,6 +37,19 @@ export class ApiService {
         responseType: 'blob',
         reportProgress: true,
         headers: requestHeaders
+      }
+    );
+  }
+
+  getMaskedAudioArtworkImage(filenameHash: string) {
+    let location = '/media/image/hash/' + filenameHash;
+    let url = environment.apiHost + location;
+    return this.httpClient.get(
+      url,
+      {
+        observe: 'events',
+        responseType: 'blob',
+        reportProgress: true
       }
     );
   }
