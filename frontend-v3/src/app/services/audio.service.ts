@@ -23,6 +23,7 @@ export class AudioService {
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
   public autoplayOnIndexChange: boolean = false;
+  public isFetchingNextSong: boolean = false;
   // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
   public selectedAudioIndex = 0;
@@ -42,10 +43,12 @@ export class AudioService {
   public getSliderValue() { return this.sliderValue; }
   public isAudioPaused() { return this.audioTrack.paused; }
   public getSelectedAudioIndex() { return this.selectedAudioIndex; }
+  public getIsFetchingNextSong() { return this.isFetchingNextSong; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setLoading(value: boolean) { this.loading = value; }
+  private setHasPlaybackError(value: boolean) { this.loading = value; }
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
   private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
   private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
@@ -54,6 +57,7 @@ export class AudioService {
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
+  public setIsFetchingNextSong(newValue: boolean) { this.isFetchingNextSong = newValue; }
   // ----------------------------------------------------------------------------------------------------------------
   public async initialize() {  await this.onSelectedAudioIndexChange(this.selectedAudioIndex); }
   public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
@@ -90,17 +94,22 @@ export class AudioService {
       this.sliderValue = this.audioTrack.currentTime;
     }
 
-    this.audioTrack.onended = () => { this.loading = true; this.onNextWrapper(); }
-    this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
-    this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
-    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
-    this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
-    this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
-    this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
-    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
-    this.audioTrack.onstalled = () => { console.log('onstalled'); this.hasPlaybackError = true; }
-    this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; }
-    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; this.loading = false; }
+    this.audioTrack.onended = () => { this.setIsFetchingNextSong(true); this.setLoading(true); }
+    this.audioTrack.onwaiting = () => { console.log('waiting'); this.setLoading(true); }
+    this.audioTrack.onseeking = () => { console.log('seeking'); this.setLoading(true); }
+    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
+    this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.setIsFetchingNextSong(false); this.setLoading(false); }
+    this.audioTrack.onplay = () => { console.log('onplay'); this.setIsFetchingNextSong(false); this.setLoading(false); }
+    this.audioTrack.onseeked = () => { console.log('onseeked'); this.setIsFetchingNextSong(false); this.setLoading(false); }
+    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.setIsFetchingNextSong(false); this.setLoading(false); }
+    this.audioTrack.onstalled = () => { console.log('onstalled'); this.setHasPlaybackError(true); }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.setHasPlaybackError(true); }
+    this.audioTrack.oncanplaythrough = () => {
+      console.log('oncanplaythrough');
+      this.setHasPlaybackError(false);
+      this.setIsFetchingNextSong(false);
+      this.setLoading(false);
+    }
   }
   // ----------------------------------------------------------------------------------------------------------------
   // public core utility methods

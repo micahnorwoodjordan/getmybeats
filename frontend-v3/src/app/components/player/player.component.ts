@@ -121,11 +121,6 @@ export class PlayerComponent implements OnInit {
       console.log('loadAudioArtworkImage ----- retrieved image source');
       this.setAudioHasArtwork(true);
       this.setArtworkImageSrc(imageSrc);
-      
-      if (backdropElement) {
-        console.log('loadAudioArtworkImage ----- changing background');
-        backdropElement.style.backgroundImage = `url(${imageSrc})`;
-      }
     }
   }
   // ----------------------------------------------------------------------------------------------------------------
@@ -157,6 +152,29 @@ export class PlayerComponent implements OnInit {
         this.setLoading(this.audioService.getLoading());
       }, 10  // every 1/100 second
     );
+
+    // this is VERY hacky:
+    // within this timer, the Player Component's `onNext` method fires only at the end of a playing song
+ 
+    // the event listeners on the audioService's `audioTrack` attr all set the audioService's `IsFetchingNextSong` attr true/false
+    // this timer polls the audioService for the cue to fire the Player Component's `onNext` method (fires when isFetchingNextSong === true)
+    // the Player Component's `onNext` method fires off every piece of logic required to cycle to the next song and corresponding artwork image
+    // this is because the audioService cant tell the player component when nor how to fetch the next song's corresponging artwork image
+
+    // TODO: think about helper modules/services that will keep Player Component and audioService logic appropriately coupled to avoid hacks like this
+    setInterval(async () => {
+      let count = 1;
+      let isFetchingNextSong = this.audioService.getIsFetchingNextSong();
+
+      if(isFetchingNextSong) {
+        if(count === 1) {
+          console.log(`audioService.isFetchingNextSong: ${isFetchingNextSong} --- calling "onNext"`);
+          await this.onNext();
+          count += 1;
+        }
+      }
+    }, 500);
+
   }
 
   openBottomSheet() {
