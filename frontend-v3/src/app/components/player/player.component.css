@@ -1,3 +1,5 @@
+:host { --backdrop-image-url: url('http://127.0.0.1'); }  /* placeholder location to avoid compilation errors */
+
 .songTitle { color: white; }
 .songArtist { color: white; }
 .slider { width: 40vw; margin-top: 3vh; margin-bottom: 1vh; }
@@ -15,12 +17,19 @@
 .right-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 
-.backdrop {
+.backdrop-with-image {
     margin-top: 10vh;
     width: 40vw;
     height: 35vh;
-    background:linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
     background-size: contain;
+    background-image: var(--backdrop-image-url);
+}
+
+.backdrop-without-image {
+    margin-top: 10vh;
+    width: 40vw;
+    height: 35vh;
+    background: linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
 }
 
 .repeat-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; margin-left: 10vh; cursor: pointer; }

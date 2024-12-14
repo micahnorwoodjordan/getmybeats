@@ -1,10 +1,10 @@
 <div class="player">
     <div fxLayout="column" fxLayoutAlign="center center">
         <app-header [hasPlaybackError]="hasPlaybackError"></app-header>
-        <div id="backdrop" *ngIf="!audioHasArtwork" class="backdrop" fxLayout="row" fxLayoutAlign="space-evenly center">
+        <div id="backdrop" *ngIf="!audioHasArtwork" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
         </div>
-        <div id="backdrop" *ngIf="audioHasArtwork" class="backdrop" fxLayout="row" fxLayoutAlign="space-evenly center"></div>
+        <div id="backdrop" *ngIf="audioHasArtwork" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="space-evenly center" [style.--backdrop-image-url]="'url(' + artworkImage.src + ')'"></div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
             <h1 class="songTitle"> {{ title }}</h1>
         </div>
