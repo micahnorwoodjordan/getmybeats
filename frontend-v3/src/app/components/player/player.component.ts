@@ -9,7 +9,6 @@ import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
-import { PollService } from '../../services/poll.service';
 
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 
@@ -42,16 +41,12 @@ export class PlayerComponent implements OnInit {
   sliderValue: number = 0;
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(
-    private audioService: AudioService,
-    private pollService: PollService,
-    private bottomSheet: MatBottomSheet
-  ) { }
+  constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
-  onNext() { this.audioService.onNextWrapper(); }
-  onPrevious() { this.audioService.onPreviousWrapper(); }
+  async onNext() { await this.audioService.onNextWrapper(); }
+  async onPrevious() { await this.audioService.onPreviousWrapper(); }
   onPlayPauseClick() {
     this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
     this.paused = this.audioService.isAudioPaused();
@@ -109,17 +104,20 @@ export class PlayerComponent implements OnInit {
   openBottomSheet() {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
-    bottomSheetRef.afterDismissed().subscribe((unvalidatedContextElement: MediaContextElement) => {
-      let context = this.audioService.getContext();
+    bottomSheetRef.afterDismissed().subscribe(async (unvalidatedContextElement: MediaContextElement) => {
       let index: number = 0;
+      let audioContext = await this.audioService.getContextSynchronously();
 
-      context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
-        if (mediaContextElement.id === unvalidatedContextElement.id) {
-          index = mediaContextElement.id;
+      if (audioContext) {
+        audioContext.forEach((mediaContextElement: MediaContextElement, idk: number) => {
+          if (mediaContextElement.id === unvalidatedContextElement.id) {
+            index = mediaContextElement.id;
+          }
+        });
+        if (index) {
+          await this.audioService.onIndexChangePublic(index);
         }
-      });
-
-      this.audioService.onIndexChangePublic(index);
+      }
     });
   }
 }
