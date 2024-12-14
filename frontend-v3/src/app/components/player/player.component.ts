@@ -2,13 +2,14 @@
 // i attempted to remvoe whitespace around the bottom sheet (did not succeed) and stumbled upon the ViewEncapsulation meta property
 
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import {MatListModule} from '@angular/material/list';
+import { MatListModule } from '@angular/material/list';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
+import { ArtworkService } from 'src/app/services/artwork.service';
 
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 
@@ -20,10 +21,10 @@ import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 })
 
 export class PlayerComponent implements OnInit {
-  shuffleEnabled: boolean = false;
-  repeatEnabled: boolean = false;
-  paused: boolean = true;
   // ----------------------------------------------------------------------------------------------------------------
+  audioContext: MediaContextElement[] = [];
+  index: number = 0;
+  artworkImage: HTMLImageElement = new Image();
   sliderValueProxy: number = 0;
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -32,6 +33,9 @@ export class PlayerComponent implements OnInit {
   // because the event handler runs between 4 and 66hz
   // ----------------------------------------------------------------------------------------------------------------
   // attributes that need to be accessed via template
+  shuffleEnabled: boolean = false;
+  repeatEnabled: boolean = false;
+  paused: boolean = true;
   hasPlaybackError: boolean = false;
   title: string = "null";
   loading: boolean = false;
@@ -39,14 +43,27 @@ export class PlayerComponent implements OnInit {
   duration: number = 1;
   musicLength: string = '0:00';
   sliderValue: number = 0;
+  audioHasArtwork: boolean = false;
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
+  constructor(
+    private audioService: AudioService,
+    private bottomSheet: MatBottomSheet,
+    private artworkService: ArtworkService
+  ) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
-  async onNext() { await this.audioService.onNextWrapper(); }
-  async onPrevious() { await this.audioService.onPreviousWrapper(); }
+  async onNext() {
+    await this.audioService.onNextWrapper();
+    this.refreshMetadata();
+    this.loadAudioArtworkImage();
+  }
+  async onPrevious() {
+    await this.audioService.onPreviousWrapper();
+    this.refreshMetadata();
+    this.loadAudioArtworkImage();
+  }
   onPlayPauseClick() {
     this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
     this.paused = this.audioService.isAudioPaused();
@@ -54,6 +71,11 @@ export class PlayerComponent implements OnInit {
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   setLoading(value: boolean) { this.loading = value; }
+  setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
+  setIndex(newIndex: number) { this.index = newIndex; }
+  setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
+  setArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
+  // ----------------------------------------------------------------------------------------------------------------
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
     this.repeatEnabled = false;
@@ -72,6 +94,40 @@ export class PlayerComponent implements OnInit {
     this.audioService.setCurrentTime(this.sliderValueProxy);
     this.audioService.playAudioTrack();
   }
+
+  refreshMetadata() {
+    let audioServiceAudioContext = this.audioService.getAudioContext();
+    let audioServiceIndex = this.audioService.getSelectedAudioIndex();
+    if(audioServiceAudioContext) {
+      this.setAudioContext(audioServiceAudioContext);
+      this.setIndex(audioServiceIndex);
+    }
+  }
+
+  async loadAudioArtworkImage() {
+    let artworkFilenameHash = this.audioContext[this.index].artwork_filename_hash;
+    let backdropElement = document.getElementById('backdrop');
+
+    if (!artworkFilenameHash) {
+      this.setAudioHasArtwork(false);
+        if (backdropElement) {
+          backdropElement.style.backgroundImage = 'none';
+          console.log('loadAudioArtworkImage ----- no artwork hash');
+        }
+        return;
+    }
+    let imageSrc = await this.artworkService.getImageSrcURL(artworkFilenameHash);
+    if(imageSrc !== '') {
+      console.log('loadAudioArtworkImage ----- retrieved image source');
+      this.setAudioHasArtwork(true);
+      this.setArtworkImageSrc(imageSrc);
+      
+      if (backdropElement) {
+        console.log('loadAudioArtworkImage ----- changing background');
+        backdropElement.style.backgroundImage = `url(${imageSrc})`;
+      }
+    }
+  }
   // ----------------------------------------------------------------------------------------------------------------
   // AudioService getters
   getAudioTrackPresentationData() {
@@ -88,6 +144,8 @@ export class PlayerComponent implements OnInit {
 
   async ngOnInit() {
     await this.audioService.initialize();
+    this.refreshMetadata();
+    this.loadAudioArtworkImage();
     setInterval(() => {
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();

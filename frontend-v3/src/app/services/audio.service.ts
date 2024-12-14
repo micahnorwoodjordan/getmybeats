@@ -29,11 +29,10 @@ export class AudioService {
   public title: string = "null";
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
-  public context: Array<MediaContextElement> = [];
   public audioContext: MediaContextElement[] | undefined = [];  // placeholder for `context` attribute to avoid compilation errors during refactor
   // ----------------------------------------------------------------------------------------------------------------
   // getters
-  public getContext() { return this.context; }
+  public getAudioContext() { return this.audioContext; }
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
   public getHasPlaybackError() { return this.hasPlaybackError; }
@@ -42,6 +41,7 @@ export class AudioService {
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
   public isAudioPaused() { return this.audioTrack.paused; }
+  public getSelectedAudioIndex() { return this.selectedAudioIndex; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
