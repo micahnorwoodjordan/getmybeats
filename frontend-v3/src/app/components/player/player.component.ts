@@ -191,6 +191,8 @@ export class PlayerComponent implements OnInit {
           }
         });
         await this.audioService.onIndexChangePublic(index);
+        this.refreshMetadata();
+        await this.loadAudioArtworkImage();
       }
     });
   }
