@@ -40,10 +40,9 @@ class User(AbstractUser):
 
 class AudioArtwork(models.Model):
     id = models.AutoField(primary_key=True)
-    width = models.DecimalField(max_digits=6, decimal_places=2)
-    height = models.DecimalField(max_digits=6, decimal_places=2)
     file = models.FileField()
     filename_hash = models.CharField(max_length=300, null=True, blank=True)
+    filename_hash_updated_at = models.DateTimeField(null=True, blank=True)
     creation_timestamp = models.DateTimeField(auto_now=True)
     s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
     ext = models.CharField(max_length=20, blank=True, null=False)
