@@ -56,7 +56,6 @@ export class AudioService {
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
   // ----------------------------------------------------------------------------------------------------------------
   public async initialize() {  await this.onSelectedAudioIndexChange(this.selectedAudioIndex); }
-
   public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
 
   private async getObjectURLFromDownload(filenameHash: string): Promise<string> {
@@ -109,6 +108,7 @@ export class AudioService {
   public playOnCycleThrough() { this.audioTrack.play(); }
   public playAudioTrack() { this.audioTrack.play(); this.setAutoplayOnIndexChange(true); }
   public pauseAudioTrack() { this.audioTrack.pause(); this.setAutoplayOnIndexChange(false); }
+  public async onIndexChangePublic(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
   public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
     if (this.shuffleEnabled) {
@@ -140,12 +140,9 @@ export class AudioService {
     return newIndex;
   }
 
-  public async onIndexChangePublic(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
-
   private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {
     let audioFilenameHash;
     let audioContext = await this.getContextSynchronously();
-
     if (audioContext) {
       this.setAudioContext(audioContext);
       this.setNumberOfTracks(audioContext.length);

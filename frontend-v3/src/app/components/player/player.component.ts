@@ -114,9 +114,7 @@ export class PlayerComponent implements OnInit {
             index = mediaContextElement.id;
           }
         });
-        if (index) {
-          await this.audioService.onIndexChangePublic(index);
-        }
+        await this.audioService.onIndexChangePublic(index);
       }
     });
   }
