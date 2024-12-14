@@ -50,19 +50,24 @@ class AudioArtwork(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:  # Check if the instance already exists
             old_instance = AudioArtwork.objects.get(pk=self.pk)
-            if old_instance.file:
-                if self.file.name == old_instance.file.name:
-                    os.remove(old_instance.file.path)
+            # dont wipe file if updating filename hash, for example
+            # and also replace old file if raw contents are different
+            with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
+                old_file_content = oldf.read()
+                new_file_content = newf.read()
 
-        with tempfile.NamedTemporaryFile() as temp_file:
-            for chunk in self.file.chunks():
-                temp_file.write(chunk)
-
+            if old_file_content != new_file_content:
+                os.remove(old_instance.file.path)
+        else:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
+            self.filename_hash_updated_at = now()
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
-            S3AudioService(bucket=settings.S3_ARTWORK_BUCKET).upload(temp_file.name, filename)
+            with tempfile.NamedTemporaryFile() as temp_file:
+                for chunk in self.file.chunks():
+                    temp_file.write(chunk)
+                S3AudioService().upload(temp_file.name, filename)
             self.s3_upload_path = os.path.join('s3://', settings.S3_ARTWORK_BUCKET, filename)
         return super().save(*args, **kwargs)
 
@@ -91,21 +96,25 @@ class Audio(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:  # Check if the instance already exists
             old_instance = Audio.objects.get(pk=self.pk)
-            if old_instance.file:
-                if self.file.name == old_instance.file.name:
-                    os.remove(old_instance.file.path)
+            # dont wipe file if updating filename hash, for example
+            # and also replace old file if raw contents are different
+            with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
+                old_file_content = oldf.read()
+                new_file_content = newf.read()
 
-        with tempfile.NamedTemporaryFile() as temp_file:
-            for chunk in self.file.chunks():
-                temp_file.write(chunk)
-
+            if old_file_content != new_file_content:
+                os.remove(old_instance.file.path)
+        else:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
             self.title = filename.replace(self.ext, '')
             self.filename_hash_updated_at = now()
             self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
-            S3AudioService().upload(temp_file.name, filename)
+            with tempfile.NamedTemporaryFile() as temp_file:
+                for chunk in self.file.chunks():
+                    temp_file.write(chunk)
+                S3AudioService().upload(temp_file.name, filename)
             self.s3_upload_path = os.path.join('s3://', settings.S3_AUDIO_BUCKET, filename)
         return super().save(*args, **kwargs)
 

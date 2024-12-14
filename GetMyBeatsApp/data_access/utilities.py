@@ -108,8 +108,6 @@ def get_audio_context():
         context_array.append({
             'audio_filename_hash': a.filename_hash,
             'artwork_filename_hash': a.artwork.filename_hash if a.artwork else None,
-            'artwork_width': str(a.artwork.width) if a.artwork else None,
-            'artwork_height': str(a.artwork.height) if a.artwork else None,
             'title': a.title,
             'id': idx
         })
