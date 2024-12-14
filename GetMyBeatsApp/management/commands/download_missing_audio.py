@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            S3AudioService.get_audio_for_site_index()
+            S3AudioService.get_assets_for_site_index()
             print('SUCCESS: finished downloading audio files.')
         except Exception as e:
             print(e)
