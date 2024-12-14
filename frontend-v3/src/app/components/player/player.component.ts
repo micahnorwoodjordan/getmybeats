@@ -91,8 +91,8 @@ export class PlayerComponent implements OnInit {
 }
 // ----------------------------------------------------------------------------------------------------------------
 
-  ngOnInit() {
-    this.audioService.setInitialAudioState();
+  async ngOnInit() {
+    await this.audioService.initialize();
     setInterval(() => {
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();

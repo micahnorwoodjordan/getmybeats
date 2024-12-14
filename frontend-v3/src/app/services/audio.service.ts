@@ -32,6 +32,7 @@ export class AudioService {
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
   public context: Array<MediaContextElement> = [];
+  public audioContext: MediaContextElement[] | undefined = [];  // placeholder for `context` attribute to avoid compilation errors during refactor
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(private apiService: ApiService, private artworkService: ArtworkService) { }
@@ -47,6 +48,48 @@ export class AudioService {
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
   public isAudioPaused() { return this.audioTrack.paused; }
+
+  private async getObjectURLFromDownload(filenameHash: string): Promise<string> {
+    let fileBlob = await this.apiService.downloadAudioTrackAsPromise(filenameHash, generateAudioRequestGUID());
+    if (fileBlob) {
+      return URL.createObjectURL(fileBlob);
+    }
+    return '';
+  }
+
+  public async initialize() {
+    let audioFilenameHash;
+    let audioContext = await this.getContextSynchronously();
+
+    if (audioContext) {
+      this.setAudioContext(audioContext);
+      this.setNumberOfTracks(audioContext.length);
+      this.setLoading(true);
+      audioFilenameHash = audioContext[this.selectedAudioIndex].audio_filename_hash;
+      let audioSrc = await this.getObjectURLFromDownload(audioFilenameHash);
+      this.setAudioTitle(audioContext[this.selectedAudioIndex].title);
+      this.setAudioSrc(audioSrc);
+      this.setLoading(false);
+      this.updateAudioOndurationchange();
+    }
+  }
+
+  private updateAudioOndurationchange() {
+    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+    // the below logic blocks are borrowed from the above github project
+    // these blocks are instrumental in getting the audio seeking logic to work correctly
+    this.audioTrack.ondurationchange = () => {
+      const totalSeconds = Math.floor(this.audioTrack.duration);
+      const duration = momentDuration(totalSeconds, 'seconds');
+      this.musicLength = duration.seconds() < 10 ?
+        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+      this.duration = totalSeconds;
+    }
+  }
+
+
+  private async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
 
   public getAndLoadAudioTrack(filenameHash: string) {
     console.log('getandloadaudiotrack fired');
@@ -102,6 +145,8 @@ export class AudioService {
   public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setLoading(value: boolean) { this.loading = value; }
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
+  private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
+  private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
 
   private setContextAndLoadAudioTrack() {
     this.apiService.getMediaContext().subscribe(
