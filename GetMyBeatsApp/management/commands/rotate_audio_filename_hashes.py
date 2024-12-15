@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from django.core.management.base import BaseCommand
 
 from GetMyBeatsApp.models import Audio, AudioArtwork
-from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
+from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_filename
 
 
 def rotate(model: models.Model) -> int:
@@ -20,7 +20,7 @@ def rotate(model: models.Model) -> int:
         objects = model.objects.all()
         for obj in objects:
             filename = os.path.basename(obj.file.path)
-            new_hashed_filename = get_new_hashed_audio_filename(filename)
+            new_hashed_filename = get_new_hashed_filename(filename)
             obj.filename_hash = new_hashed_filename
             obj.filename_hash_updated_at = now_utc
         updated_count = model.objects.bulk_update(objects, ['filename_hash', 'filename_hash_updated_at'])

@@ -119,11 +119,7 @@ def get_audio_by_hash(request, filename_hash):
         audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
         audio = get_audio_by_filename_hash(filename_hash)
         record_audio_request_information(audio_request_id)
-        # TODO: files are automatically namespaced on the filesystem in lowercase form
-        # this occurs during the audio creation routine (i forgot how)
-        # but lowercasing the entire filepath is error-prone for obvious reasons
-        # this model itself should handle the namespacing
-        content_file = ContentFile(open(audio.file.path.lower(), 'rb').read())
+        content_file = ContentFile(open(audio.file.path, 'rb').read())
         response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file))
         # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
         # must NEVER forget that Google Chrome bugs out when headers aren't properly set

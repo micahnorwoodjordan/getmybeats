@@ -9,7 +9,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 
 from GetMyBeatsApp.services.s3_service import S3AudioService
-from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_audio_filename
+from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_filename, lowercase_filename
 from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
 
 
@@ -40,7 +40,7 @@ class User(AbstractUser):
 
 class AudioArtwork(models.Model):
     id = models.AutoField(primary_key=True)
-    file = models.FileField()
+    file = models.FileField(upload_to=lowercase_filename)
     filename_hash = models.CharField(max_length=300, null=True, blank=True)
     filename_hash_updated_at = models.DateTimeField(null=True, blank=True)
     creation_timestamp = models.DateTimeField(auto_now=True)
@@ -48,28 +48,41 @@ class AudioArtwork(models.Model):
     ext = models.CharField(max_length=20, blank=True, null=False)
 
     def save(self, *args, **kwargs):
-        if self.pk:  # Check if the instance already exists
+        """
+        the complexity of this method is due to the mind boggling fact that
+        the FileField's file gets wiped from the filesystem during every `save` call after the 1st
+
+        this extra logic puts a band aid on this unwanted side effect
+        and also identifies whether a file upload contains an entirely different file based on the raw file data
+        """
+        if self.pk:
             old_instance = AudioArtwork.objects.get(pk=self.pk)
-            # dont wipe file if updating filename hash, for example
-            # and also replace old file if raw contents are different
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
                 old_file_content = oldf.read()
                 new_file_content = newf.read()
 
             if old_file_content != new_file_content:
                 os.remove(old_instance.file.path)
+                with tempfile.NamedTemporaryFile() as temp_file:
+                    for chunk in self.file.chunks():
+                        temp_file.write(chunk)
+                    filename = space_to_charx(self.file.name, UNDERSCORE).lower()
+                    S3AudioService().upload(temp_file.name, filename)
+            super().save(*args, **kwargs)
+            with open(self.file.path, 'wb') as file:
+                file.write(new_file_content)
         else:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
             self.filename_hash_updated_at = now()
-            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
+            self.filename_hash = get_new_hashed_filename(os.path.basename(fp))
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
                 S3AudioService().upload(temp_file.name, filename)
             self.s3_upload_path = os.path.join('s3://', settings.S3_ARTWORK_BUCKET, filename)
-        return super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'audio_artwork'
@@ -84,7 +97,7 @@ class Audio(models.Model):
     fk_uploaded_by = models.ForeignKey('User', models.DO_NOTHING, null=False, blank=False, default=1)  # super user
     updated_at = models.DateTimeField(default=now)
     title = models.CharField(max_length=200, blank=True, null=False, unique=True)
-    file = models.FileField()
+    file = models.FileField(upload_to=lowercase_filename)
     filename_hash = models.CharField(max_length=300, null=True, blank=True)  # TODO: flip blank/null and re-migrate
     filename_hash_updated_at = models.DateTimeField(null=True, blank=True)  # TODO: flip blank/null and re-migrate
     #   the two fields above temporarily allow null to avoid having to manually provide values for older audio objects
@@ -94,29 +107,42 @@ class Audio(models.Model):
     artwork = models.ForeignKey(AudioArtwork, on_delete=models.DO_NOTHING, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.pk:  # Check if the instance already exists
+        """
+        the complexity of this method is due to the mind boggling fact that
+        the FileField's file gets wiped from the filesystem during every `save` call after the 1st
+
+        this extra logic puts a band aid on this unwanted side effect
+        and also identifies whether a file upload contains an entirely different file based on the raw file data
+        """
+        if self.pk:
             old_instance = Audio.objects.get(pk=self.pk)
-            # dont wipe file if updating filename hash, for example
-            # and also replace old file if raw contents are different
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
                 old_file_content = oldf.read()
                 new_file_content = newf.read()
 
             if old_file_content != new_file_content:
                 os.remove(old_instance.file.path)
+                with tempfile.NamedTemporaryFile() as temp_file:
+                    for chunk in self.file.chunks():
+                        temp_file.write(chunk)
+                    filename = space_to_charx(self.file.name, UNDERSCORE).lower()
+                    S3AudioService().upload(temp_file.name, filename)
+            super().save(*args, **kwargs)
+            with open(self.file.path, 'wb') as file:
+                file.write(new_file_content)
         else:
             filename = space_to_charx(self.file.name, UNDERSCORE).lower()
             fp = self.file.path
             self.ext = '.' + fp.split('.')[-1]
             self.title = filename.replace(self.ext, '')
             self.filename_hash_updated_at = now()
-            self.filename_hash = get_new_hashed_audio_filename(os.path.basename(fp))
+            self.filename_hash = get_new_hashed_filename(os.path.basename(fp))
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
                 S3AudioService().upload(temp_file.name, filename)
             self.s3_upload_path = os.path.join('s3://', settings.S3_AUDIO_BUCKET, filename)
-        return super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
     class Status(Enum):
         concept = 1
