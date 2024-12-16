@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 
 import { ApiService } from './api.service';
+import { ArtworkService } from './artwork.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { generateAudioRequestGUID } from '../utilities';
 
@@ -11,10 +12,11 @@ import { generateAudioRequestGUID } from '../utilities';
 })
 
 export class AudioService {
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private artworkService: ArtworkService) { }
   // ----------------------------------------------------------------------------------------------------------------
   private audioTrack: HTMLAudioElement = new Audio();
-  public audioArtwork: HTMLImageElement | null = null;
+  private audioHasArtwork: boolean = false;
+  private artworkImageSrc: string = '';
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -23,7 +25,6 @@ export class AudioService {
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
   public autoplayOnIndexChange: boolean = false;
-  public isFetchingNextSong: boolean = false;
   // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
   public selectedAudioIndex = 0;
@@ -43,10 +44,13 @@ export class AudioService {
   public getSliderValue() { return this.sliderValue; }
   public isAudioPaused() { return this.audioTrack.paused; }
   public getSelectedAudioIndex() { return this.selectedAudioIndex; }
-  public getIsFetchingNextSong() { return this.isFetchingNextSong; }
+  public getArtworkImageSrc() { return this.artworkImageSrc; }
+  public getAudioHasArtwork() { return this.audioHasArtwork; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
-  public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
+  private setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
+  private setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
+  private setArtworkImageSrc(newSrc: string) { this.artworkImageSrc = newSrc; }
   private setLoading(value: boolean) { this.loading = value; }
   private setHasPlaybackError(value: boolean) { this.loading = value; }
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
@@ -57,9 +61,12 @@ export class AudioService {
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-  public setIsFetchingNextSong(newValue: boolean) { this.isFetchingNextSong = newValue; }
   // ----------------------------------------------------------------------------------------------------------------
-  public async initialize() {  await this.onSelectedAudioIndexChange(this.selectedAudioIndex); }
+  public async initialize() { 
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    await this.loadAudioArtworkImage();
+  }
+
   public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
 
   private async getObjectURLFromDownload(filenameHash: string): Promise<string> {
@@ -68,6 +75,32 @@ export class AudioService {
       return URL.createObjectURL(fileBlob);
     }
     return '';
+  }
+
+  private async loadAudioArtworkImage() {
+    console.log('loadAudioArtworkImage: begin');
+    if (this.audioContext) {
+      let artworkFilenameHash = this.audioContext[this.selectedAudioIndex].artwork_filename_hash;
+      let backdropElement = document.getElementById('backdrop');
+  
+      if (!artworkFilenameHash) {
+        this.setAudioHasArtwork(false);
+          if (backdropElement) {
+            backdropElement.style.backgroundImage = 'none';
+            console.log('loadAudioArtworkImage: no artwork hash');
+          }
+          return;
+      }
+      let imageSrc = await this.artworkService.getImageSrcURL(artworkFilenameHash);
+      if(imageSrc !== '') {
+        console.log('loadAudioArtworkImage: retrieved image source');
+        this.setAudioHasArtwork(true);
+        this.setArtworkImageSrc(imageSrc);
+      }
+    } else {
+      console.log('loadAudioArtworkImage: no context/audio index');
+    }
+    console.log('loadAudioArtworkImage: end');
   }
 
   private updateAudioOndurationchange() {
@@ -94,22 +127,17 @@ export class AudioService {
       this.sliderValue = this.audioTrack.currentTime;
     }
 
-    this.audioTrack.onended = () => { this.setIsFetchingNextSong(true); this.setLoading(true); }
+    this.audioTrack.onended = async () => { this.setLoading(true); await this.onNextWrapper(); }
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.setLoading(true); }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.setLoading(true); }
     this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
-    this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.setIsFetchingNextSong(false); this.setLoading(false); }
-    this.audioTrack.onplay = () => { console.log('onplay'); this.setIsFetchingNextSong(false); this.setLoading(false); }
-    this.audioTrack.onseeked = () => { console.log('onseeked'); this.setIsFetchingNextSong(false); this.setLoading(false); }
-    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.setIsFetchingNextSong(false); this.setLoading(false); }
+    this.audioTrack.onloadeddata = () => { console.log('onloadeddata'); this.setLoading(false); }
+    this.audioTrack.onplay = () => { console.log('onplay'); this.setLoading(false); }
+    this.audioTrack.onseeked = () => { console.log('onseeked'); this.setLoading(false); }
+    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.setLoading(false); }
     this.audioTrack.onstalled = () => { console.log('onstalled'); this.setHasPlaybackError(true); }
     this.audioTrack.onerror = () => { console.log('onerror'); this.setHasPlaybackError(true); }
-    this.audioTrack.oncanplaythrough = () => {
-      console.log('oncanplaythrough');
-      this.setHasPlaybackError(false);
-      this.setIsFetchingNextSong(false);
-      this.setLoading(false);
-    }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.setHasPlaybackError(false); this.setLoading(false); }
   }
   // ----------------------------------------------------------------------------------------------------------------
   // public core utility methods
@@ -166,6 +194,7 @@ export class AudioService {
       if (this.autoplayOnIndexChange) {
         this.playAudioTrack();
       }
+      await this.loadAudioArtworkImage();
     }
   }
 

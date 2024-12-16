@@ -9,7 +9,6 @@ import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
-import { ArtworkService } from 'src/app/services/artwork.service';
 
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 
@@ -22,9 +21,8 @@ import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 
 export class PlayerComponent implements OnInit {
   // ----------------------------------------------------------------------------------------------------------------
-  audioContext: MediaContextElement[] = [];
-  index: number = 0;
   artworkImage: HTMLImageElement = new Image();
+  audioHasArtwork: boolean = false;
   sliderValueProxy: number = 0;
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -43,26 +41,19 @@ export class PlayerComponent implements OnInit {
   duration: number = 1;
   musicLength: string = '0:00';
   sliderValue: number = 0;
-  audioHasArtwork: boolean = false;
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(
-    private audioService: AudioService,
-    private bottomSheet: MatBottomSheet,
-    private artworkService: ArtworkService
-  ) { }
+  constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
   async onNext() {
     await this.audioService.onNextWrapper();
-    this.refreshMetadata();
-    this.loadAudioArtworkImage();
+    this.refreshAudioArtworkImageSrc();
   }
   async onPrevious() {
     await this.audioService.onPreviousWrapper();
-    this.refreshMetadata();
-    this.loadAudioArtworkImage();
+    this.refreshAudioArtworkImageSrc();
   }
   onPlayPauseClick() {
     this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
@@ -71,10 +62,9 @@ export class PlayerComponent implements OnInit {
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   setLoading(value: boolean) { this.loading = value; }
-  setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
-  setIndex(newIndex: number) { this.index = newIndex; }
+  setAudioArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
   setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
-  setArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
+
   // ----------------------------------------------------------------------------------------------------------------
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
@@ -95,33 +85,11 @@ export class PlayerComponent implements OnInit {
     this.audioService.playAudioTrack();
   }
 
-  refreshMetadata() {
-    let audioServiceAudioContext = this.audioService.getAudioContext();
-    let audioServiceIndex = this.audioService.getSelectedAudioIndex();
-    if(audioServiceAudioContext) {
-      this.setAudioContext(audioServiceAudioContext);
-      this.setIndex(audioServiceIndex);
-    }
-  }
-
-  async loadAudioArtworkImage() {
-    let artworkFilenameHash = this.audioContext[this.index].artwork_filename_hash;
-    let backdropElement = document.getElementById('backdrop');
-
-    if (!artworkFilenameHash) {
-      this.setAudioHasArtwork(false);
-        if (backdropElement) {
-          backdropElement.style.backgroundImage = 'none';
-          console.log('loadAudioArtworkImage ----- no artwork hash');
-        }
-        return;
-    }
-    let imageSrc = await this.artworkService.getImageSrcURL(artworkFilenameHash);
-    if(imageSrc !== '') {
-      console.log('loadAudioArtworkImage ----- retrieved image source');
-      this.setAudioHasArtwork(true);
-      this.setArtworkImageSrc(imageSrc);
-    }
+  refreshAudioArtworkImageSrc() {
+    let imageSrc = this.audioService.getArtworkImageSrc();
+    let audioHasArtwork = this.audioService.getAudioHasArtwork();
+    this.setAudioArtworkImageSrc(imageSrc);
+    this.setAudioHasArtwork(audioHasArtwork);
   }
   // ----------------------------------------------------------------------------------------------------------------
   // AudioService getters
@@ -139,8 +107,8 @@ export class PlayerComponent implements OnInit {
 
   async ngOnInit() {
     await this.audioService.initialize();
-    this.refreshMetadata();
-    this.loadAudioArtworkImage();
+    this.refreshAudioArtworkImageSrc();
+
     setInterval(() => {
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();
@@ -153,28 +121,10 @@ export class PlayerComponent implements OnInit {
       }, 10  // every 1/100 second
     );
 
-    // this is VERY hacky:
-    // within this timer, the Player Component's `onNext` method fires only at the end of a playing song
- 
-    // the event listeners on the audioService's `audioTrack` attr all set the audioService's `IsFetchingNextSong` attr true/false
-    // this timer polls the audioService for the cue to fire the Player Component's `onNext` method (fires when isFetchingNextSong === true)
-    // the Player Component's `onNext` method fires off every piece of logic required to cycle to the next song and corresponding artwork image
-    // this is because the audioService cant tell the player component when nor how to fetch the next song's corresponging artwork image
-
-    // TODO: think about helper modules/services that will keep Player Component and audioService logic appropriately coupled to avoid hacks like this
-    setInterval(async () => {
-      let count = 1;
-      let isFetchingNextSong = this.audioService.getIsFetchingNextSong();
-
-      if(isFetchingNextSong) {
-        if(count === 1) {
-          console.log(`audioService.isFetchingNextSong: ${isFetchingNextSong} --- calling "onNext"`);
-          await this.onNext();
-          count += 1;
-        }
-      }
-    }, 500);
-
+    setInterval(() => {
+      this.refreshAudioArtworkImageSrc();
+    }, 250  // every quarter second
+  );
   }
 
   openBottomSheet() {
@@ -191,8 +141,7 @@ export class PlayerComponent implements OnInit {
           }
         });
         await this.audioService.onIndexChangePublic(index);
-        this.refreshMetadata();
-        await this.loadAudioArtworkImage();
+        this.refreshAudioArtworkImageSrc();
       }
     });
   }
