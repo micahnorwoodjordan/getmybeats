@@ -11,7 +11,7 @@ services:
       cd /application/getmybeats/frontend-v3/src &&
       npm install -g @angular/cli && npm install --package-lock-only &&
       npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
-      ng build --configuration development"
+      ng build --configuration production"
   api-build:
     build:
       dockerfile: dev/Dockerfile.backend
@@ -42,6 +42,8 @@ services:
       frontend-build:
         condition: service_completed_successfully
       redis:
+        condition: service_started
+      dbimport:
         condition: service_started
   db:
     ports:
