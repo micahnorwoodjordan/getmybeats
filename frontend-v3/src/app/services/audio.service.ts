@@ -81,16 +81,13 @@ export class AudioService {
     console.log('loadAudioArtworkImage: begin');
     if (this.audioContext) {
       let artworkFilenameHash = this.audioContext[this.selectedAudioIndex].artwork_filename_hash;
-      let backdropElement = document.getElementById('backdrop');
   
       if (!artworkFilenameHash) {
         this.setAudioHasArtwork(false);
-          if (backdropElement) {
-            backdropElement.style.backgroundImage = 'none';
-            console.log('loadAudioArtworkImage: no artwork hash');
-          }
-          return;
+        console.log('loadAudioArtworkImage: no artwork hash');
+        return;
       }
+
       let imageSrc = await this.artworkService.getImageSrcURL(artworkFilenameHash);
       if(imageSrc !== '') {
         console.log('loadAudioArtworkImage: retrieved image source');
