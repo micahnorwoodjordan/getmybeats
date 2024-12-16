@@ -10,3 +10,7 @@
 @media (max-width: 750px) {
     .header-primary { color: white; }
 }
+
+@media (max-width: 414px) {
+    .header-primary { padding-top: 0vh; padding-bottom: 3vh; color: white; }
+}

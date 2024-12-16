@@ -91,6 +91,7 @@ services:
     command: /bin/bash -c "
       systemctl start cron &&
       cd /application/media && aws s3 sync s3://getmybeats-audio-dev ./ &&
+      cd /application/media && aws s3 sync s3://getmybeats-images-dev ./ &&
       cd /application/getmybeats &&
       python3 dev/cron/prepare_env.py &&
       . /opt/venvs/getmybeats/bin/activate &&

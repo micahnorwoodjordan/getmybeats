@@ -2,14 +2,13 @@
 // i attempted to remvoe whitespace around the bottom sheet (did not succeed) and stumbled upon the ViewEncapsulation meta property
 
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import {MatListModule} from '@angular/material/list';
+import { MatListModule } from '@angular/material/list';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
-import { PollService } from '../../services/poll.service';
 
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 
@@ -21,10 +20,9 @@ import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 })
 
 export class PlayerComponent implements OnInit {
-  shuffleEnabled: boolean = false;
-  repeatEnabled: boolean = false;
-  paused: boolean = true;
   // ----------------------------------------------------------------------------------------------------------------
+  artworkImage: HTMLImageElement = new Image();
+  audioHasArtwork: boolean = false;
   sliderValueProxy: number = 0;
   // there's most likely a cleaner way to do this, but this variable avoids this scenario:
   // user drags the slider, updating the `sliderValue` attr and kicking off a rerender
@@ -33,6 +31,9 @@ export class PlayerComponent implements OnInit {
   // because the event handler runs between 4 and 66hz
   // ----------------------------------------------------------------------------------------------------------------
   // attributes that need to be accessed via template
+  shuffleEnabled: boolean = false;
+  repeatEnabled: boolean = false;
+  paused: boolean = true;
   hasPlaybackError: boolean = false;
   title: string = "null";
   loading: boolean = false;
@@ -42,16 +43,18 @@ export class PlayerComponent implements OnInit {
   sliderValue: number = 0;
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(
-    private audioService: AudioService,
-    private pollService: PollService,
-    private bottomSheet: MatBottomSheet
-  ) { }
+  constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
-  onNext() { this.audioService.onNextWrapper(); }
-  onPrevious() { this.audioService.onPreviousWrapper(); }
+  async onNext() {
+    await this.audioService.onNextWrapper();
+    this.refreshAudioArtworkImageSrc();
+  }
+  async onPrevious() {
+    await this.audioService.onPreviousWrapper();
+    this.refreshAudioArtworkImageSrc();
+  }
   onPlayPauseClick() {
     this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
     this.paused = this.audioService.isAudioPaused();
@@ -59,6 +62,10 @@ export class PlayerComponent implements OnInit {
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   setLoading(value: boolean) { this.loading = value; }
+  setAudioArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
+  setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
+
+  // ----------------------------------------------------------------------------------------------------------------
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
     this.repeatEnabled = false;
@@ -77,6 +84,13 @@ export class PlayerComponent implements OnInit {
     this.audioService.setCurrentTime(this.sliderValueProxy);
     this.audioService.playAudioTrack();
   }
+
+  refreshAudioArtworkImageSrc() {
+    let imageSrc = this.audioService.getArtworkImageSrc();
+    let audioHasArtwork = this.audioService.getAudioHasArtwork();
+    this.setAudioArtworkImageSrc(imageSrc);
+    this.setAudioHasArtwork(audioHasArtwork);
+  }
   // ----------------------------------------------------------------------------------------------------------------
   // AudioService getters
   getAudioTrackPresentationData() {
@@ -91,8 +105,10 @@ export class PlayerComponent implements OnInit {
 }
 // ----------------------------------------------------------------------------------------------------------------
 
-  ngOnInit() {
-    this.audioService.setInitialAudioState();
+  async ngOnInit() {
+    await this.audioService.initialize();
+    this.refreshAudioArtworkImageSrc();
+
     setInterval(() => {
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();
@@ -104,22 +120,29 @@ export class PlayerComponent implements OnInit {
         this.setLoading(this.audioService.getLoading());
       }, 10  // every 1/100 second
     );
+
+    setInterval(() => {
+      this.refreshAudioArtworkImageSrc();
+    }, 250  // every quarter second
+  );
   }
 
   openBottomSheet() {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
-    bottomSheetRef.afterDismissed().subscribe((unvalidatedContextElement: MediaContextElement) => {
-      let context = this.audioService.getContext();
+    bottomSheetRef.afterDismissed().subscribe(async (unvalidatedContextElement: MediaContextElement) => {
       let index: number = 0;
+      let audioContext = await this.audioService.getContextSynchronously();
 
-      context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
-        if (mediaContextElement.id === unvalidatedContextElement.id) {
-          index = mediaContextElement.id;
-        }
-      });
-
-      this.audioService.onIndexChangePublic(index);
+      if (audioContext) {
+        audioContext.forEach((mediaContextElement: MediaContextElement, idk: number) => {
+          if (mediaContextElement.id === unvalidatedContextElement.id) {
+            index = mediaContextElement.id;
+          }
+        });
+        await this.audioService.onIndexChangePublic(index);
+        this.refreshAudioArtworkImageSrc();
+      }
     });
   }
 }
@@ -146,7 +169,14 @@ export class PlayerComponent implements OnInit {
 
 export class TrackSelectorBottomSheet {
   context: Array<MediaContextElement> = [];
-  mediaContextElement: MediaContextElement = {title: '', filename_hash: '', id: 0};
+  mediaContextElement: MediaContextElement = {
+    audio_filename_hash: '',
+    artwork_filename_hash: '',
+    artwork_width: '',
+    artwork_height: '',
+    title: '',
+    id: 0
+  };
 
   constructor(
     private apiService: ApiService,

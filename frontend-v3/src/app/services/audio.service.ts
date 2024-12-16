@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 
-import { HttpEventType } from '@angular/common/http';
-
 import { ApiService } from './api.service';
+import { ArtworkService } from './artwork.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { generateAudioRequestGUID } from '../utilities';
 
@@ -13,7 +12,11 @@ import { generateAudioRequestGUID } from '../utilities';
 })
 
 export class AudioService {
+  constructor(private apiService: ApiService, private artworkService: ArtworkService) { }
+  // ----------------------------------------------------------------------------------------------------------------
   private audioTrack: HTMLAudioElement = new Audio();
+  private audioHasArtwork: boolean = false;
+  private artworkImageSrc: string = '';
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -22,21 +25,16 @@ export class AudioService {
   public loading: boolean = false;
   public hasPlaybackError: boolean = false;
   public autoplayOnIndexChange: boolean = false;
-
   // ----------------------------------------------------------------------------------------------------------------
   // set by player component ------------
   public selectedAudioIndex = 0;
   public title: string = "null";
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
-  public context: Array<MediaContextElement> = [];
-  // ----------------------------------------------------------------------------------------------------------------
-
-  constructor(private apiService: ApiService) { }
-
+  public audioContext: MediaContextElement[] | undefined = [];  // placeholder for `context` attribute to avoid compilation errors during refactor
   // ----------------------------------------------------------------------------------------------------------------
   // getters
-  public getContext() { return this.context; }
+  public getAudioContext() { return this.audioContext; }
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
   public getHasPlaybackError() { return this.hasPlaybackError; }
@@ -45,132 +43,76 @@ export class AudioService {
   public getMusicLength() { return this.musicLength; }
   public getSliderValue() { return this.sliderValue; }
   public isAudioPaused() { return this.audioTrack.paused; }
-
-  public getAndLoadAudioTrack(filenameHash: string) {
-    console.log('getandloadaudiotrack fired');
-    let requestGUID = generateAudioRequestGUID();
-    let audioSrc = '';
-
-    this.apiService.getMaskedAudioTrack(filenameHash, requestGUID).subscribe(
-      event => {
-        this.setLoading(true);
-        switch (event.type) {
-          case HttpEventType.DownloadProgress:
-            if (event.total !== undefined) {
-              console.log(`getandloadaudiotrack: ${Math.round((event.loaded / event.total) * 100)}% of data fetched`);
-            }
-            break;
-          case HttpEventType.Response:
-            console.log(`getandloadaudiotrack: received server response ${event.status}`);
-
-            this.context.forEach((mediaContextElement: MediaContextElement, idk: number) => {
-              if(mediaContextElement.filename_hash === filenameHash) {
-                this.setAudioIndex(mediaContextElement.id);
-              }
-            });
-
-            if (event.status == 200) {
-              if (event.body !== undefined && event.body !== null) {
-                audioSrc = URL.createObjectURL(event.body);
-                this.setAudioTitle(this.context[this.selectedAudioIndex].title);
-                this.setAudioSrc(audioSrc);
-                this.setLoading(false);
-                this.audioTrack.load();
-                if (this.autoplayOnIndexChange) {
-                  this.playAudioTrack();
-                }
-              }
-            } else {
-              console.log('getandloadaudiotrack: ERROR fetching audio');
-            }
-            
-            break;
-          default:
-            console.log('getandloadaudiotrack: no response from server yet');
-        }
-      },
-      error => {
-        console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
-      }
-    );
-  }
+  public getSelectedAudioIndex() { return this.selectedAudioIndex; }
+  public getArtworkImageSrc() { return this.artworkImageSrc; }
+  public getAudioHasArtwork() { return this.audioHasArtwork; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
-  public setInitialAudioState() { this.setContextAndLoadAudioTrack(); }
-  public setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
+  private setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
+  private setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
+  private setArtworkImageSrc(newSrc: string) { this.artworkImageSrc = newSrc; }
   private setLoading(value: boolean) { this.loading = value; }
+  private setHasPlaybackError(value: boolean) { this.loading = value; }
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
-
-  private setContextAndLoadAudioTrack() {
-    this.apiService.getMediaContext().subscribe(
-      event => {
-        switch (event.type) {
-          case HttpEventType.Response:
-            console.log(`setContextAndLoadAudioTrack: received server response ${event.status}`);
-            if (event.status == 200) {
-              if (event.body !== undefined && event.body !== null) {
-                this.context = event.body;
-                this.numberOfTracks = this.context.length;
-                let audioFilenameHash = this.context[this.selectedAudioIndex].filename_hash;
-                this.getAndLoadAudioTrack(audioFilenameHash);
-                // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
-                // the below logic blocks are borrowed from the above github project
-                // these blocks are instrumental in getting the audio seeking logic to work correctly
-                this.audioTrack.ondurationchange = () => {
-                  const totalSeconds = Math.floor(this.audioTrack.duration);
-                  const duration = momentDuration(totalSeconds, 'seconds');
-                  this.musicLength = duration.seconds() < 10 ?
-                    `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
-                      `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
-                  this.duration = totalSeconds;
-                
-                }
-              } else {
-                console.log('setContextAndLoadAudioTrack: ERROR');
-              }
-            }
-            break;
-          default:
-            console.log('setContextAndLoadAudioTrack: no response from server yet');
-          }
-      },
-      error => {
-        console.log(`setContextAndLoadAudioTrack ERROR: ${error.toString()}`);
-      }
-    );
-  }
-
-  private setContext() {
-    this.apiService.getMediaContext().subscribe(
-      event => {
-        switch (event.type) {
-          case HttpEventType.Response:
-            console.log(`setContext: received server response ${event.status}`);
-            if (event.status == 200) {
-              if (event.body !== undefined && event.body !== null) {
-                this.context = event.body;
-                this.numberOfTracks = this.context.length;
-              } else {
-                console.log('setContext: ERROR');
-              }
-            }
-            break;
-          default:
-            console.log('setContext: no response from server yet');
-          }
-      },
-      error => {
-        console.log(`setContext ERROR: ${error.toString()}`);
-      }
-    );
-  }
-
+  private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
+  private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
   public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; this.repeatEnabled ? this.shuffleEnabled = false : null; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
-  public setAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
+  public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
-  public setContextExternal() { this.setContext(); }
+  // ----------------------------------------------------------------------------------------------------------------
+  public async initialize() { 
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    await this.loadAudioArtworkImage();
+  }
+
+  public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
+
+  private async getObjectURLFromDownload(filenameHash: string): Promise<string> {
+    let fileBlob = await this.apiService.downloadAudioTrackAsPromise(filenameHash, generateAudioRequestGUID());
+    if (fileBlob) {
+      return URL.createObjectURL(fileBlob);
+    }
+    return '';
+  }
+
+  private async loadAudioArtworkImage() {
+    console.log('loadAudioArtworkImage: begin');
+    if (this.audioContext) {
+      let artworkFilenameHash = this.audioContext[this.selectedAudioIndex].artwork_filename_hash;
+  
+      if (!artworkFilenameHash) {
+        this.setAudioHasArtwork(false);
+        console.log('loadAudioArtworkImage: no artwork hash');
+        return;
+      }
+
+      let imageSrc = await this.artworkService.getImageSrcURL(artworkFilenameHash);
+      if(imageSrc !== '') {
+        console.log('loadAudioArtworkImage: retrieved image source');
+        this.setAudioHasArtwork(true);
+        this.setArtworkImageSrc(imageSrc);
+      }
+    } else {
+      console.log('loadAudioArtworkImage: no context/audio index');
+    }
+    console.log('loadAudioArtworkImage: end');
+  }
+
+  private updateAudioOndurationchange() {
+    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+    // the below logic blocks are borrowed from the above github project
+    // these blocks are instrumental in getting the audio seeking logic to work correctly
+    this.audioTrack.ondurationchange = () => {
+      const totalSeconds = Math.floor(this.audioTrack.duration);
+      const duration = momentDuration(totalSeconds, 'seconds');
+      this.musicLength = duration.seconds() < 10 ?
+        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+      this.duration = totalSeconds;
+    }
+  }
 // ----------------------------------------------------------------------------------------------------------------
 // dynamic methods
   public updateAudioMetadataState() {
@@ -182,17 +124,17 @@ export class AudioService {
       this.sliderValue = this.audioTrack.currentTime;
     }
 
-    this.audioTrack.onended = () => { this.loading = true; this.onNextWrapper(); }
-    this.audioTrack.onwaiting = () => { console.log('waiting'); this.loading = true; }
-    this.audioTrack.onseeking = () => { console.log('seeking'); this.loading = true; }
-    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.loading = true; }
-    this.audioTrack.onloadeddata = () => { console.log('onloadstart'); this.loading = false; }
-    this.audioTrack.onplay = () => { console.log('onplay'); this.loading = false; }
-    this.audioTrack.onseeked = () => { console.log('onseeked'); this.loading = false; }
-    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.loading = false; }
-    this.audioTrack.onstalled = () => { console.log('onstalled'); this.hasPlaybackError = true; }
-    this.audioTrack.onerror = () => { console.log('onerror'); this.hasPlaybackError = true; }
-    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.hasPlaybackError = false; this.loading = false; }
+    this.audioTrack.onended = async () => { this.setLoading(true); await this.onNextWrapper(); }
+    this.audioTrack.onwaiting = () => { console.log('waiting'); this.setLoading(true); }
+    this.audioTrack.onseeking = () => { console.log('seeking'); this.setLoading(true); }
+    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
+    this.audioTrack.onloadeddata = () => { console.log('onloadeddata'); this.setLoading(false); }
+    this.audioTrack.onplay = () => { console.log('onplay'); this.setLoading(false); }
+    this.audioTrack.onseeked = () => { console.log('onseeked'); this.setLoading(false); }
+    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.setLoading(false); }
+    this.audioTrack.onstalled = () => { console.log('onstalled'); this.setHasPlaybackError(true); }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.setHasPlaybackError(true); }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.setHasPlaybackError(false); this.setLoading(false); }
   }
   // ----------------------------------------------------------------------------------------------------------------
   // public core utility methods
@@ -200,24 +142,25 @@ export class AudioService {
   public playOnCycleThrough() { this.audioTrack.play(); }
   public playAudioTrack() { this.audioTrack.play(); this.setAutoplayOnIndexChange(true); }
   public pauseAudioTrack() { this.audioTrack.pause(); this.setAutoplayOnIndexChange(false); }
+  public async onIndexChangePublic(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
-  public onNextWrapper() {  // wrap so that this can be called from player component without passing args
+  public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
     if (this.shuffleEnabled) {
-      this.onSongChangeShuffle(this.selectedAudioIndex);
+      await this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
       let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getNextAudioIndex();
-      this.onNext(newIndex);
+      await this.onNext(newIndex);
     }
   }
 
-  public onPreviousWrapper() {
+  public async onPreviousWrapper() {
     let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getPreviousAudioIndex();
-    this.onPrevious(newIndex);
+    await this.onPrevious(newIndex);
   }
   // ----------------------------------------------------------------------------------------------------------------
   // private core utility methods
-  private onNext(newIndex: number) { this.onIndexChange(newIndex); }
-  private onPrevious(newIndex: number) { this.onIndexChange(newIndex); }
+  private async onNext(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
+  private async onPrevious(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
   private getNextAudioIndex() {
     let newIndex = this.selectedAudioIndex;
@@ -231,56 +174,37 @@ export class AudioService {
     return newIndex;
   }
 
-  public onIndexChangePublic(newIndex: number) { this.onIndexChange(newIndex); }
-
-  private onIndexChange(newIndex: number) {
-    console.log('onindexchange fired');
-    let requestedAudioTitle = this.context[newIndex].title;
-    let availableAudioTitle = '';  // make sure the requested track exists in the system
-    let availableAudioFilenameHash = '';
-
-    console.log('onindexchange -- getMediaContext');
-    this.apiService.getMediaContext().subscribe(
-      event => {
-        switch (event.type) {
-          case HttpEventType.Response:
-            if (event.status == 200) {
-              if (event.body !== undefined && event.body !== null) {
-                this.context = event.body;
-                this.numberOfTracks = this.context.length;
-                this.context.forEach((mediaContextElement: MediaContextElement, idx: number) => {
-                  if (mediaContextElement.title === requestedAudioTitle) {
-                    availableAudioTitle = mediaContextElement.title;
-                    availableAudioFilenameHash = mediaContextElement.filename_hash;
-                    this.setAudioIndex(newIndex);
-                    this.getAndLoadAudioTrack(availableAudioFilenameHash);  // also sets the audioTrack attribute
-                  }
-                });
-              } else {
-                console.log('onindexchange -- getMediaContext: ERROR');
-              }
-            }
-            break;
-          default:
-            console.log('onindexchange -- getMediaContext: no response from server yet');
-          }
-      },
-      error => {
-        console.log(`onindexchange -- getMediaContext ERROR: ${error.toString()}`);
+  private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {
+    let audioFilenameHash;
+    let audioContext = await this.getContextSynchronously();
+    if (audioContext) {
+      this.setAudioContext(audioContext);
+      this.setNumberOfTracks(audioContext.length);
+      this.setLoading(true);
+      audioFilenameHash = audioContext[newSelectedAudioIndex].audio_filename_hash;
+      let audioSrc = await this.getObjectURLFromDownload(audioFilenameHash);
+      this.setAudioTitle(audioContext[newSelectedAudioIndex].title);
+      this.setSelectedAudioIndex(newSelectedAudioIndex);
+      this.setAudioSrc(audioSrc);
+      this.setLoading(false);
+      this.updateAudioOndurationchange();
+      if (this.autoplayOnIndexChange) {
+        this.playAudioTrack();
       }
-    );
+      await this.loadAudioArtworkImage();
+    }
   }
 
-  private onSongChangeShuffle(badIndex: number): number {
+  private async onSongChangeShuffle(badIndex: number): Promise<number> {
     let lowerBound: number = 0;
     let upperBound: number = this.numberOfTracks;
     let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
 
     if (randomTrackIndex === badIndex && this.numberOfTracks > 1) {  // this extra condition is only relevant to development
       console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
-      return this.onSongChangeShuffle(badIndex);
+      return await this.onSongChangeShuffle(badIndex);
     }
-    this.onIndexChange(randomTrackIndex);
+    await this.onSelectedAudioIndexChange(randomTrackIndex);
     return -1
   }
 }
