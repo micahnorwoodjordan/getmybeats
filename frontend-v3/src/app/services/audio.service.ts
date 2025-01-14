@@ -56,6 +56,7 @@ export class AudioService {
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
   private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
   private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
+  private setAudioTrackCurrentTime(newtime: number) { this.audioTrack.currentTime = newtime; }
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
   public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; this.repeatEnabled ? this.shuffleEnabled = false : null; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
@@ -148,8 +149,15 @@ export class AudioService {
     if (this.shuffleEnabled) {
       await this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
-      let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getNextAudioIndex();
-      await this.onNext(newIndex);
+      if (this.repeatEnabled) {
+        this.setAudioTrackCurrentTime(0);
+        if (this.autoplayOnIndexChange) {
+          this.playAudioTrack();
+        }
+      } else {
+        let newIndex: number = this.getNextAudioIndex();
+        await this.onNext(newIndex);
+      }
     }
   }
 
