@@ -41,6 +41,7 @@ export class PlayerComponent implements OnInit {
   duration: number = 1;
   musicLength: string = '0:00';
   sliderValue: number = 0;
+  downloadProgress: number = 0;
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
@@ -122,8 +123,15 @@ export class PlayerComponent implements OnInit {
     );
 
     setInterval(() => {
-      this.refreshAudioArtworkImageSrc();
-    }, 250  // every quarter second
+        this.refreshAudioArtworkImageSrc();
+      }, 250  // every quarter second
+    );
+
+    setInterval(() => {
+      if (this.loading) {
+        this.downloadProgress = this.audioService.getDownloadProgress();
+      }
+    }, 500  // twice per second
   );
   }
 
