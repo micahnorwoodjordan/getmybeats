@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
+import { HttpEventType } from '@angular/common/http';
 
 import { ApiService } from './api.service';
 import { ArtworkService } from './artwork.service';
@@ -17,6 +18,7 @@ export class AudioService {
   private audioTrack: HTMLAudioElement = new Audio();
   private audioHasArtwork: boolean = false;
   private artworkImageSrc: string = '';
+  private downloadProgress: number = 0;
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -34,6 +36,7 @@ export class AudioService {
   public audioContext: MediaContextElement[] | undefined = [];  // placeholder for `context` attribute to avoid compilation errors during refactor
   // ----------------------------------------------------------------------------------------------------------------
   // getters
+  public getDownloadProgress() { return this.downloadProgress; }
   public getAudioContext() { return this.audioContext; }
   public getTitle() { return this.title; }
   public getLoading() { return this.loading; }
@@ -48,14 +51,16 @@ export class AudioService {
   public getAudioHasArtwork() { return this.audioHasArtwork; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
+  private setDownloadProgress(newProgressInt: number) { this.downloadProgress = newProgressInt; }
   private setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
   private setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
   private setArtworkImageSrc(newSrc: string) { this.artworkImageSrc = newSrc; }
   private setLoading(value: boolean) { this.loading = value; }
-  private setHasPlaybackError(value: boolean) { this.loading = value; }
+  private setHasPlaybackError(value: boolean) { this.hasPlaybackError = value; }
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
   private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
   private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
+  private setAudioTrackCurrentTime(newtime: number) { this.audioTrack.currentTime = newtime; }
   public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
   public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; this.repeatEnabled ? this.shuffleEnabled = false : null; }
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
@@ -68,14 +73,6 @@ export class AudioService {
   }
 
   public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
-
-  private async getObjectURLFromDownload(filenameHash: string): Promise<string> {
-    let fileBlob = await this.apiService.downloadAudioTrackAsPromise(filenameHash, generateAudioRequestGUID());
-    if (fileBlob) {
-      return URL.createObjectURL(fileBlob);
-    }
-    return '';
-  }
 
   private async loadAudioArtworkImage() {
     console.log('loadAudioArtworkImage: begin');
@@ -127,7 +124,9 @@ export class AudioService {
     this.audioTrack.onended = async () => { this.setLoading(true); await this.onNextWrapper(); }
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.setLoading(true); }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.setLoading(true); }
-    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
+    // my hypothesis is that setting `this.loading` to true here erroniously spawns the loading spinner
+    // when the browser is perfectly able to play the audio immediately
+    // this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
     this.audioTrack.onloadeddata = () => { console.log('onloadeddata'); this.setLoading(false); }
     this.audioTrack.onplay = () => { console.log('onplay'); this.setLoading(false); }
     this.audioTrack.onseeked = () => { console.log('onseeked'); this.setLoading(false); }
@@ -148,8 +147,15 @@ export class AudioService {
     if (this.shuffleEnabled) {
       await this.onSongChangeShuffle(this.selectedAudioIndex);
     } else {
-      let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getNextAudioIndex();
-      await this.onNext(newIndex);
+      if (this.repeatEnabled) {
+        this.setAudioTrackCurrentTime(0);
+        if (this.autoplayOnIndexChange) {
+          this.playAudioTrack();
+        }
+      } else {
+        let newIndex: number = this.getNextAudioIndex();
+        await this.onNext(newIndex);
+      }
     }
   }
 
@@ -181,16 +187,44 @@ export class AudioService {
       this.setAudioContext(audioContext);
       this.setNumberOfTracks(audioContext.length);
       this.setLoading(true);
+      this.setDownloadProgress(0);
       audioFilenameHash = audioContext[newSelectedAudioIndex].audio_filename_hash;
-      let audioSrc = await this.getObjectURLFromDownload(audioFilenameHash);
       this.setAudioTitle(audioContext[newSelectedAudioIndex].title);
       this.setSelectedAudioIndex(newSelectedAudioIndex);
-      this.setAudioSrc(audioSrc);
-      this.setLoading(false);
-      this.updateAudioOndurationchange();
-      if (this.autoplayOnIndexChange) {
-        this.playAudioTrack();
-      }
+
+      this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
+        event => {
+          switch (event.type) {
+            case HttpEventType.DownloadProgress:
+              if (event.total !== undefined) {
+                this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
+                console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+              }
+              break;
+            case HttpEventType.Response:
+              console.log(`getandloadaudiotrack: received server response ${event.status}`);
+              if (event.status == 200) {
+                if (event.body !== undefined && event.body !== null) {
+                  let audioSrc = URL.createObjectURL(event.body);
+                  this.setAudioSrc(audioSrc);
+                  this.setLoading(false);
+                  this.updateAudioOndurationchange();
+                  if (this.autoplayOnIndexChange) {
+                    this.playAudioTrack();
+                  }
+                }
+              } else {
+                console.log('getandloadaudiotrack: ERROR fetching audio');
+              }
+              break;
+            default:
+              console.log('getandloadaudiotrack: no response from server yet');
+          }
+        },
+        error => {
+          console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+        }
+      )
       await this.loadAudioArtworkImage();
     }
   }

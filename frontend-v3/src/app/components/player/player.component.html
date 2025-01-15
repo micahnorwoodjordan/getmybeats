@@ -5,6 +5,7 @@
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
         </div>
         <div id="backdrop" *ngIf="audioHasArtwork" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="space-evenly center" [style.--backdrop-image-url]="'url(' + artworkImage.src + ')'"></div>
+        <mat-progress-bar class="progress-bar" *ngIf="loading"  mode="determinate" [value]="downloadProgress"></mat-progress-bar>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
             <h1 class="songTitle"> {{ title }}</h1>
         </div>
