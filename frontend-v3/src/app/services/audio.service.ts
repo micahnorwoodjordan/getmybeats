@@ -56,7 +56,7 @@ export class AudioService {
   private setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
   private setArtworkImageSrc(newSrc: string) { this.artworkImageSrc = newSrc; }
   private setLoading(value: boolean) { this.loading = value; }
-  private setHasPlaybackError(value: boolean) { this.loading = value; }
+  private setHasPlaybackError(value: boolean) { this.hasPlaybackError = value; }
   private setAudioSrc(src: string) { this.audioTrack.src = src; }
   private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
   private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
@@ -124,7 +124,9 @@ export class AudioService {
     this.audioTrack.onended = async () => { this.setLoading(true); await this.onNextWrapper(); }
     this.audioTrack.onwaiting = () => { console.log('waiting'); this.setLoading(true); }
     this.audioTrack.onseeking = () => { console.log('seeking'); this.setLoading(true); }
-    this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
+    // my hypothesis is that setting `this.loading` to true here erroniously spawns the loading spinner
+    // when the browser is perfectly able to play the audio immediately
+    // this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
     this.audioTrack.onloadeddata = () => { console.log('onloadeddata'); this.setLoading(false); }
     this.audioTrack.onplay = () => { console.log('onplay'); this.setLoading(false); }
     this.audioTrack.onseeked = () => { console.log('onseeked'); this.setLoading(false); }

@@ -36,7 +36,7 @@ export class PlayerComponent implements OnInit {
   paused: boolean = true;
   hasPlaybackError: boolean = false;
   title: string = "null";
-  loading: boolean = false;
+  loading: boolean = true;
   currentTime: string = '0:00';
   duration: number = 1;
   musicLength: string = '0:00';
