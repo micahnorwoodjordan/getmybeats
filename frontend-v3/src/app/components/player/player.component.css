@@ -1,6 +1,5 @@
 :host { --backdrop-image-url: url('http://127.0.0.1'); }  /* placeholder location to avoid compilation errors */
 
-.player { margin-top: 10vh; }
 .songTitle { color: white; }
 .songArtist { color: white; }
 .slider { width: 40vw; margin-top: 3vh; margin-bottom: 1vh; }
@@ -93,7 +92,6 @@
 }
 
 @media (max-width: 414px) {
-    .player { margin-top: 15vh; }
     .play-pause-control { cursor: pointer; transform: scale(2.5); transition: 0.5s; color: white; }
 
     .left-control-arrow { cursor: pointer; left: 28vw; position: absolute; transform: scale(1.5); transition: 0.5s; color: white; }
