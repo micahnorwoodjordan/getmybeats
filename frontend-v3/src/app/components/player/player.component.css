@@ -18,7 +18,7 @@
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 .progress-bar { z-index: 1; width: 40vw; }
 .volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
-.bottom-div { padding-left: 18.75vw; }
+.bottom-div { padding-left: 18.75vw; padding-top: 3vh; }
 
 .backdrop-with-image {
     margin-top: 10vh;
@@ -105,10 +105,10 @@
     .shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
     .shuffle-icon-disabled { color: white; transform: scale(1.0); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
 
-    .backdrop-with-image { margin-top: 5vh; width: 85vw; height: 30vh; }
-    .backdrop-without-image { margin-top: 5vh; width: 85vw; height: 30vh; }
+    .backdrop-with-image { margin-top: 10vh; width: 85vw; height: 30vh; }
+    .backdrop-without-image { margin-top: 10vh; width: 85vw; height: 30vh; }
 
     .progress-bar { width: 85vw; }
-    .bottom-div { padding-left: 13vw; }
+    .bottom-div { padding-left: 13vw; padding-top: 0vh;}
     .volume-up-icon { padding-left: 15vw; }
 }
