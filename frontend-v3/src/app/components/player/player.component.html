@@ -36,13 +36,14 @@
                 <p class="duration-time-text">&nbsp;{{ musicLength }}</p>
             </div>
         </div>
-        <div fxLayout="row" fxLayoutAlign="space-evenly center">
-            <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()">menu</mat-icon>
-        </div>
-    </div>
-    <div fxLayout="row" fxLayoutAlign="center center" class="volume-icon-div">
-        <div fxLayout="column">
-            <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()">volume_up</mat-icon>
+        <div fxLayout="row" class="bottom-div">
+            <div fxFlex="20vw"></div>
+            <div fxFlex="20vw">
+                <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()">menu</mat-icon>
+            </div>
+            <div fxFlex="20vw">
+                <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()">volume_up</mat-icon>
+            </div>
         </div>
     </div>
 </div>
