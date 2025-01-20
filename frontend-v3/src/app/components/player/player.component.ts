@@ -48,6 +48,8 @@ export class PlayerComponent implements OnInit {
   musicLength: string = '0:00';
   sliderValue: number = 0;
   downloadProgress: number = 0;
+  snackbarRef: MatSnackBar | any;
+  snackbarOpen: boolean = false;
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(
@@ -71,11 +73,14 @@ export class PlayerComponent implements OnInit {
     this.paused = this.audioService.isAudioPaused();
   }
   // ----------------------------------------------------------------------------------------------------------------
+  // getters
+  getSnackbarOpen() { return this.snackbarOpen; }
+  // ----------------------------------------------------------------------------------------------------------------
   // setters
   setLoading(value: boolean) { this.loading = value; }
   setAudioArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
   setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
-
+  setSnackbarOpen(newValue: boolean) { this.snackbarOpen = newValue; }
   // ----------------------------------------------------------------------------------------------------------------
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
@@ -147,16 +152,28 @@ export class PlayerComponent implements OnInit {
 
 
   openCustomSnackBar() {
-    this._snackBar.openFromComponent(VolumeSliderSnackbar, {
-      data: {
-        audioService: this.audioService,
-        duration: 2500,
-        message: 'adjust volume (unavailable on iOS for security reasons)',
-        action: () => {
-          console.log('Action clicked')
-        }
+    if (this.snackbarOpen) {
+      if (this.snackbarRef) {
+        this.snackbarRef.dismiss();
+        this.setSnackbarOpen(false);
       }
-    });
+    } else {
+      const snackbarRef = this._snackBar.openFromComponent(VolumeSliderSnackbar, {
+        data: {
+          audioService: this.audioService,
+          duration: 2500,
+          message: 'adjust volume (unavailable on iOS for security reasons)',
+          action: () => {
+            console.log('Action clicked')
+          }
+        }
+      });
+      this.snackbarRef = snackbarRef;
+      this.setSnackbarOpen(true);
+      snackbarRef.afterDismissed().subscribe(() => {
+        this.setSnackbarOpen(false);
+      });
+    }
   }
 
   openBottomSheet() {
@@ -302,7 +319,7 @@ export class VolumeSliderSnackbar {
     );
   }
 
-  close() { this.snackBarRef.dismiss(); console.log('snackbar closed'); }
+  close() { this.snackBarRef.dismiss(); }
   setVolumeValue(newVolumeValue: number) { this.volumeValue = newVolumeValue; }
   getVolumeValue() { return this.volumeValue; }
 
