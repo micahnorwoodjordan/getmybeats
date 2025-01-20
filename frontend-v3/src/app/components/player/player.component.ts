@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -122,34 +123,35 @@ export class PlayerComponent implements OnInit {
     setInterval(() => {
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();
-      }, 500  // every 1/2 second
+      }, 500  // 2x per second
     );
 
     // user experience: disables next and previous buttons until requested audio is loaded
     setInterval(() => {
         this.setLoading(this.audioService.getLoading());
-      }, 10  // every 1/100 second
+      }, 10  // 100x per second
     );
 
     setInterval(() => {
         this.refreshAudioArtworkImageSrc();
-      }, 250  // every quarter second
+      }, 250  // 4x per second
     );
 
     setInterval(() => {
-      if (this.loading) {
-        this.downloadProgress = this.audioService.getDownloadProgress();
-      }
-    }, 500  // twice per second
-  );
+        if (this.loading) {
+          this.downloadProgress = this.audioService.getDownloadProgress();
+        }
+      }, 500  // 2x per second
+    );
   }
 
 
   openCustomSnackBar() {
-    this._snackBar.openFromComponent(CustomSnackbarComponent, {
+    this._snackBar.openFromComponent(VolumeSliderSnackbar, {
       data: {
+        audioService: this.audioService,
         duration: 2500,
-        message: 'adjust volume',
+        message: 'adjust volume (unavailable on iOS for security reasons)',
         action: () => {
           console.log('Action clicked')
         }
@@ -248,13 +250,15 @@ export class TrackSelectorBottomSheet {
   standalone: true,
   imports: [
     MatSliderModule,
-    MatButtonModule
+    MatButtonModule,
+    FormsModule
   ],
   styles: [
     `span { text-align: center; padding-right: 1vw; }`,
-    `.volume-slider { width: 10vw; }`,
+    `.volume-slider { width: 10vw; font-color: white; }`,
     `.text { text-align: center; }`,
-    `.close-button { text-align: center; }`
+    `.close-button { text-align: center; }`,
+    `@media (max-width: 414px) { .volume-slider { width: 50vw; } }`
   ],
   template: `
   <div fxLayout="row" fxLayoutAlign="space-evenly center">
@@ -262,8 +266,8 @@ export class TrackSelectorBottomSheet {
       <span>{{ message }}</span>
     <div>
     <div fxLayout="column">
-      <mat-slider step="0.05" min="0" max="100" class="volume-slider">
-        <input matSliderThumb/>
+      <mat-slider (input)="onSliderChange($event)" step="0.05" min="0" max="1" class="volume-slider">
+        <input matSliderThumb [(ngModel)]="sliderValue"/>
       </mat-slider>
     <div>
     <div fxLayout="column" class="close-button">
@@ -273,17 +277,39 @@ export class TrackSelectorBottomSheet {
 
   `
 })
-export class CustomSnackbarComponent {
+export class VolumeSliderSnackbar {
+  sliderValue: number = 1;
+  volumeValue: number = 1;
   message: string;
   action: () => void;
 
   constructor(
     @Inject(MAT_SNACK_BAR_DATA) public data: any,
-    private snackBarRef: MatSnackBarRef<CustomSnackbarComponent>
+    private snackBarRef: MatSnackBarRef<VolumeSliderSnackbar>,
+
   ) {
     this.message = data.message;
     this.action = data.action;
+
+    // NOTE: this very hacky: each time the slider renders, it does so with a value of 1
+    // meaning that even though a user may have already set the audio volume, the slider still renders with the incorrect value of 1
+    //
+    // using this timer gives the illusion that the above issue never takes place
+    setInterval(
+      () => {
+        this.sliderValue = this.data.audioService.getVolume();
+      }, 10  // 100x per second;
+    );
   }
+
   close() { this.snackBarRef.dismiss(); console.log('snackbar closed'); }
+  setVolumeValue(newVolumeValue: number) { this.volumeValue = newVolumeValue; }
+  getVolumeValue() { return this.volumeValue; }
+
+  onSliderChange(event: any) {
+    setTimeout(() => {}, 200);
+    this.volumeValue = this.sliderValue;
+    this.data.audioService.setVolume(this.volumeValue);
+  }
 }
 // ----------------------------------------------------------------------------------------------------------------

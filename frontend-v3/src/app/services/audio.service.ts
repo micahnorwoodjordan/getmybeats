@@ -49,6 +49,7 @@ export class AudioService {
   public getSelectedAudioIndex() { return this.selectedAudioIndex; }
   public getArtworkImageSrc() { return this.artworkImageSrc; }
   public getAudioHasArtwork() { return this.audioHasArtwork; }
+  public getVolume() { return this.audioTrack.volume; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   private setDownloadProgress(newProgressInt: number) { this.downloadProgress = newProgressInt; }
@@ -66,6 +67,7 @@ export class AudioService {
   public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
   public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
+  public setVolume(newVolumeLevel: number) { this.audioTrack.volume = newVolumeLevel; }
   // ----------------------------------------------------------------------------------------------------------------
   public async initialize() { 
     await this.onSelectedAudioIndexChange(this.selectedAudioIndex);

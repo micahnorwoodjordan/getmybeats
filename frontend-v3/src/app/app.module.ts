@@ -13,13 +13,6 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { HttpClientModule } from '@angular/common/http';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import {
-  MatSnackBar,
-  MatSnackBarAction,
-  MatSnackBarActions,
-  MatSnackBarLabel,
-  MatSnackBarRef,
-} from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
 
@@ -41,10 +34,7 @@ import { FormsModule } from '@angular/forms';
     MatToolbarModule,
     FormsModule,
     MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatSnackBarLabel,
-    MatSnackBarActions,
-    MatSnackBarAction
+    MatProgressBarModule
   ],
   providers: [
     provideAnimationsAsync()
