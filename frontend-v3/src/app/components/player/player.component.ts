@@ -1,11 +1,16 @@
 // https://stackoverflow.com/questions/45928423/get-rid-of-white-space-around-angular-material-modal-dialog
 // i attempted to remvoe whitespace around the bottom sheet (did not succeed) and stumbled upon the ViewEncapsulation meta property
 
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
+import { MatSnackBar, MAT_SNACK_BAR_DATA, MatSnackBarRef} from '@angular/material/snack-bar';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatButtonModule } from '@angular/material/button';
+
+
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
@@ -44,7 +49,11 @@ export class PlayerComponent implements OnInit {
   downloadProgress: number = 0;
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
+  constructor(
+    private audioService: AudioService,
+    private bottomSheet: MatBottomSheet,
+    private _snackBar: MatSnackBar
+  ) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
@@ -135,6 +144,19 @@ export class PlayerComponent implements OnInit {
   );
   }
 
+
+  openCustomSnackBar() {
+    this._snackBar.openFromComponent(CustomSnackbarComponent, {
+      data: {
+        duration: 2500,
+        message: 'adjust volume',
+        action: () => {
+          console.log('Action clicked')
+        }
+      }
+    });
+  }
+
   openBottomSheet() {
     // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
     const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
@@ -220,5 +242,48 @@ export class TrackSelectorBottomSheet {
     this.bottomSheetRef.dismiss(song);
     event.preventDefault();
   }
+}
+// ----------------------------------------------------------------------------------------------------------------
+@Component({
+  standalone: true,
+  imports: [
+    MatSliderModule,
+    MatButtonModule
+  ],
+  styles: [
+    `span { text-align: center; padding-right: 1vw; }`,
+    `.volume-slider { width: 10vw; }`,
+    `.text { text-align: center; }`,
+    `.close-button { text-align: center; }`
+  ],
+  template: `
+  <div fxLayout="row" fxLayoutAlign="space-evenly center">
+    <div fxLayout="column" class="text">
+      <span>{{ message }}</span>
+    <div>
+    <div fxLayout="column">
+      <mat-slider step="0.05" min="0" max="100" class="volume-slider">
+        <input matSliderThumb/>
+      </mat-slider>
+    <div>
+    <div fxLayout="column" class="close-button">
+        <button mat-raised-button (click)="close()">close</button>
+    <div>
+  <div>
+
+  `
+})
+export class CustomSnackbarComponent {
+  message: string;
+  action: () => void;
+
+  constructor(
+    @Inject(MAT_SNACK_BAR_DATA) public data: any,
+    private snackBarRef: MatSnackBarRef<CustomSnackbarComponent>
+  ) {
+    this.message = data.message;
+    this.action = data.action;
+  }
+  close() { this.snackBarRef.dismiss(); console.log('snackbar closed'); }
 }
 // ----------------------------------------------------------------------------------------------------------------
