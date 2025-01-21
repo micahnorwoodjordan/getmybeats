@@ -42,7 +42,7 @@
                 <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()">menu</mat-icon>
             </div>
             <div fxFlex="20vw">
-                <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()">volume_up</mat-icon>
+                <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" [ngClass]="{'disabled-icon':!browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>
             </div>
         </div>
     </div>

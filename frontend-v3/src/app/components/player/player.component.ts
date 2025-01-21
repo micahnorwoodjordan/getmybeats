@@ -50,6 +50,7 @@ export class PlayerComponent implements OnInit {
   downloadProgress: number = 0;
   snackbarRef: MatSnackBar | any;
   snackbarOpen: boolean = false;
+  browserSupportsAudioVolumeManipulation: boolean = true;
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(
@@ -120,8 +121,33 @@ export class PlayerComponent implements OnInit {
     this.paused = this.audioService.isAudioPaused();
 }
 // ----------------------------------------------------------------------------------------------------------------
+// feature detection
+doesBrowserSupportVolumeManipulation() {
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/volume
+  // iOS browsers do NOT allow Javascript to manipulate audio volume
+  // the value of `volume` is always 1
+  // setting a value has no effect on the volume of the media object
+
+  // UPDATE: https://developer.apple.com/documentation/webkitjs/htmlmediaelement/1631549-volume
+  // the latest apple documentation mentions nothing about the below:
+  // `volume` is NOT readonly, meaning that the value of `volume` is actually NOT always 1
+  // this metric cannot be used to perform a better feature detection routine
+  // unfortunately, we have to resort to user agent sniffing, which, though bad practice, will probably suffice in this case
+
+  // how many non-iphone browsers are going to send a user agent header containing the substring "iphone"?
+  if (navigator.userAgent.includes("iPhone")) {
+    return false;
+  }
+  return true;
+}
+
+setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSupportsAudioVolumeManipulation = newValue; }
+
+// ----------------------------------------------------------------------------------------------------------------
 
   async ngOnInit() {
+    this.setBrowserSupportsAudioVolumeManipulation(this.doesBrowserSupportVolumeManipulation());
+
     await this.audioService.initialize();
     this.refreshAudioArtworkImageSrc();
 
@@ -162,7 +188,7 @@ export class PlayerComponent implements OnInit {
         data: {
           audioService: this.audioService,
           duration: 2500,
-          message: 'adjust volume (unavailable on iOS for security reasons)',
+          message: 'adjust volume',
           action: () => {
             console.log('Action clicked')
           }
@@ -286,6 +312,7 @@ export class TrackSelectorBottomSheet {
       <mat-slider (input)="onSliderChange($event)" step="0.05" min="0" max="1" class="volume-slider">
         <input matSliderThumb [(ngModel)]="sliderValue"/>
       </mat-slider>
+      <span>&nbsp;&nbsp;{{ uxVolumeValue }}%</span>
     <div>
     <div fxLayout="column" class="close-button">
         <button mat-raised-button (click)="close()">close</button>
@@ -297,6 +324,7 @@ export class TrackSelectorBottomSheet {
 export class VolumeSliderSnackbar {
   sliderValue: number = 1;
   volumeValue: number = 1;
+  uxVolumeValue: number = 100;
   message: string;
   action: () => void;
 
@@ -315,6 +343,8 @@ export class VolumeSliderSnackbar {
     setInterval(
       () => {
         this.sliderValue = this.data.audioService.getVolume();
+        this.volumeValue = this.sliderValue;
+        this.uxVolumeValue = Math.floor(this.volumeValue * 100);
       }, 10  // 100x per second;
     );
   }
@@ -326,6 +356,7 @@ export class VolumeSliderSnackbar {
   onSliderChange(event: any) {
     setTimeout(() => {}, 200);
     this.volumeValue = this.sliderValue;
+    this.uxVolumeValue = Math.floor(this.volumeValue * 100);
     this.data.audioService.setVolume(this.volumeValue);
   }
 }

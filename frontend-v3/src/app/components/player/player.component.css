@@ -19,6 +19,7 @@
 .progress-bar { z-index: 1; width: 40vw; }
 .volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
 .bottom-div { padding-left: 18.75vw; padding-top: 3vh; }
+.disabled-icon { opacity: 0.5;  pointer-events: none; }
 
 .backdrop-with-image {
     margin-top: 10vh;
