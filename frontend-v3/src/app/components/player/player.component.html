@@ -43,7 +43,7 @@
                 </a>
             </div>
             <div fxLayout="column">
-                <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()">menu</mat-icon>
+                <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()" matTooltip="select a song">menu</mat-icon>
             </div>
             <div fxLayout="column">
                 <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" matTooltip="adjust audio volume" [ngClass]="{'disabled-icon':!browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>
