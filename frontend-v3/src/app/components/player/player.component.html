@@ -36,13 +36,17 @@
                 <p class="duration-time-text">&nbsp;{{ musicLength }}</p>
             </div>
         </div>
-        <div fxLayout="row" class="bottom-div">
-            <div fxFlex="20vw"></div>
-            <div fxFlex="20vw">
+        <div fxLayout="row" fxLayoutAlign="space-evenly center" class="bottom-div">
+            <div fxLayout="column">
+                <a href="{{userExperienceReportUrl}}" target="_blank">
+                    <mat-icon class="ux-writeup-navigation-icon" matTooltip="view user experience report">description</mat-icon>
+                </a>
+            </div>
+            <div fxLayout="column">
                 <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()">menu</mat-icon>
             </div>
-            <div fxFlex="20vw">
-                <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" [ngClass]="{'disabled-icon':!browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>
+            <div fxLayout="column">
+                <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" matTooltip="adjust audio volume" [ngClass]="{'disabled-icon':!browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>
             </div>
         </div>
     </div>

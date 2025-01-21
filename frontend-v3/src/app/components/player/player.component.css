@@ -18,8 +18,9 @@
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 .progress-bar { z-index: 1; width: 40vw; }
 .volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
-.bottom-div { padding-left: 18.75vw; padding-top: 3vh; }
+.bottom-div { padding-top: 3vh; text-align: center; width: 80vw; }
 .disabled-icon { opacity: 0.5;  pointer-events: none; }
+.ux-writeup-navigation-icon { color: white; cursor: pointer; }
 
 .backdrop-with-image {
     margin-top: 10vh;
@@ -110,6 +111,7 @@
     .backdrop-without-image { margin-top: 10vh; width: 85vw; height: 30vh; }
 
     .progress-bar { width: 85vw; }
-    .bottom-div { padding-left: 13vw; padding-top: 0vh;}
+    .bottom-div { padding-top: 0vh; width: 100vw; }
     .volume-up-icon { padding-left: 15vw; }
+    .ux-writeup-navigation-icon { padding-right: 15vw; }
 }

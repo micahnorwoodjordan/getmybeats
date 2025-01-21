@@ -17,6 +17,7 @@ import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
 
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -51,6 +52,7 @@ export class PlayerComponent implements OnInit {
   snackbarRef: MatSnackBar | any;
   snackbarOpen: boolean = false;
   browserSupportsAudioVolumeManipulation: boolean = true;
+  userExperienceReportUrl: string = `${environment.apiHost}/user/experience`
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(
