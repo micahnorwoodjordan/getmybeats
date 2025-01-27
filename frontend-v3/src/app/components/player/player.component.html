@@ -1,6 +1,6 @@
 <div class="player">
     <div fxLayout="column" fxLayoutAlign="center center">
-        <app-select></app-select>
+        <app-select (newAudioOptionEvent)="addAudioToQueue($event)"></app-select>
         <app-header [hasPlaybackError]="hasPlaybackError"></app-header>
         <div id="backdrop" *ngIf="!audioHasArtwork" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
@@ -23,8 +23,8 @@
             <mat-icon *ngIf="!paused" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">pause</mat-icon>
             <mat-icon [attr.aria-disabled]="loading" [ngClass]="{'disabled-ui-element': loading}" class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
 
-            <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
-            <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
+            <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">repeat_one</mat-icon>
+            <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">repeat_one</mat-icon>
         </div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
             <div fxLayout="column" fxLayoutAlign="center center">
@@ -44,7 +44,7 @@
                 </a>
             </div>
             <div fxLayout="column">
-                <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()" matTooltip="select a song">menu</mat-icon>
+                <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()" matTooltip="select a song">list</mat-icon>
             </div>
             <div fxLayout="column">
                 <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" matTooltip="adjust audio volume" [ngClass]="{'disabled-icon':!browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>

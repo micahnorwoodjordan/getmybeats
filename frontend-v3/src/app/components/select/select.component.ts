@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -33,12 +33,11 @@ export class SelectComponent implements OnInit {
     audios = new FormControl('');
     audioSelectOptions: string[] = [];
     context: MediaContextElement[] | undefined = [];
-    audioQueue: MediaContextElement[] = [];
-    selectedAudioOptions: string[] = [];
+    @Output() newAudioOptionEvent = new EventEmitter<string>();
 
     private setContext(newContext: MediaContextElement[]) { this.context = newContext; }
     private setAudioSelectOptions(newSelectOptions: string[]) { this.audioSelectOptions = newSelectOptions; }
-    private addToSelectedAudioOptions(newOption: string) { this.selectedAudioOptions.push(newOption); }
+    private addToSelectedAudioOptions(newOption: string) { this.newAudioOptionEvent.emit(newOption); }
 
     async ngOnInit() {
         let audioContext = await this.audioService.getContextSynchronously();
@@ -61,8 +60,6 @@ export class SelectComponent implements OnInit {
         let lastSongPicked = `${event.value}`.split(",").at(-1);
         if (lastSongPicked) {
             this.addToSelectedAudioOptions(lastSongPicked);
-        }
-        
-        console.log(this.selectedAudioOptions);
+        }        
     }
 }

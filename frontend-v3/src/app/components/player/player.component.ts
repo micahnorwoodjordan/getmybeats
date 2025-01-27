@@ -53,6 +53,7 @@ export class PlayerComponent implements OnInit {
   snackbarOpen: boolean = false;
   browserSupportsAudioVolumeManipulation: boolean = true;
   userExperienceReportUrl: string = `${environment.apiHost}/user/experience`
+  audioQueue: string[] = [];
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(
@@ -75,6 +76,8 @@ export class PlayerComponent implements OnInit {
     this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
     this.paused = this.audioService.isAudioPaused();
   }
+
+  addAudioToQueue(newAudioString: string) { this.audioQueue.push(newAudioString); }
   // ----------------------------------------------------------------------------------------------------------------
   // getters
   getSnackbarOpen() { return this.snackbarOpen; }
