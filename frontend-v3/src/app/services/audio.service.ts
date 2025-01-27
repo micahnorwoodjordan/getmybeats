@@ -19,6 +19,7 @@ export class AudioService {
   private audioHasArtwork: boolean = false;
   private artworkImageSrc: string = '';
   private downloadProgress: number = 0;
+  private audioQueueTitleStrings: string[] = [];
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -68,6 +69,7 @@ export class AudioService {
   public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
   public setVolume(newVolumeLevel: number) { this.audioTrack.volume = newVolumeLevel; }
+  public setAudioQueueTitleStrings(newQueueStrings: string[]) { this.audioQueueTitleStrings = newQueueStrings; }
   // ----------------------------------------------------------------------------------------------------------------
   public async initialize() { 
     await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
@@ -146,17 +148,26 @@ export class AudioService {
   public async onIndexChangePublic(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
   public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
-    if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex);
+    // order of precedence:
+    // * this.repeatEnabled
+    // *   this.audioQueue
+    // *     this.shuffleEnabled
+    // *       getNextAudioIndex
+    if (this.repeatEnabled) {
+      this.setAudioTrackCurrentTime(0);
+      if (this.autoplayOnIndexChange) {
+        this.playAudioTrack();
+      }
     } else {
-      if (this.repeatEnabled) {
-        this.setAudioTrackCurrentTime(0);
-        if (this.autoplayOnIndexChange) {
-          this.playAudioTrack();
-        }
+      if (this.audioQueueTitleStrings.length > 0) {
+        this.getNextQueuedAudio();
       } else {
-        let newIndex: number = this.getNextAudioIndex();
-        await this.onNext(newIndex);
+        if (this.shuffleEnabled) {
+          await this.onSongChangeShuffle(this.selectedAudioIndex);
+        } else {
+            let newIndex: number = this.getNextAudioIndex();
+            await this.onNext(newIndex);
+        }
       }
     }
   }
@@ -169,6 +180,68 @@ export class AudioService {
   // private core utility methods
   private async onNext(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
   private async onPrevious(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
+
+  private async getNextQueuedAudio() {
+    let audioFilenameHash;
+    let audioContext = await this.getContextSynchronously();
+    if (audioContext) {
+      this.setAudioContext(audioContext);
+      this.setNumberOfTracks(audioContext.length);
+      this.setLoading(true);
+      this.setDownloadProgress(0);
+
+      audioContext.forEach((mediaContextElement: MediaContextElement, idx: number) => {
+        if (mediaContextElement.title === this.audioQueueTitleStrings[0]) {
+          audioFilenameHash = mediaContextElement.audio_filename_hash;
+          console.log(audioFilenameHash);
+          this.setAudioTitle(mediaContextElement.title);
+        }
+      })
+
+      if (audioFilenameHash) {
+        this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
+          event => {
+            console.log('entering in');
+            switch (event.type) {
+              case HttpEventType.DownloadProgress:
+                if (event.total !== undefined) {
+                  this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
+                  console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+                }
+                break;
+              case HttpEventType.Response:
+                console.log(`getandloadaudiotrack: received server response ${event.status}`);
+                if (event.status == 200) {
+                  if (event.body !== undefined && event.body !== null) {
+                    let audioSrc = URL.createObjectURL(event.body);
+                    this.setAudioSrc(audioSrc);
+                    this.setLoading(false);
+                    this.updateAudioOndurationchange();
+                    if (this.autoplayOnIndexChange) {
+                      this.playAudioTrack();
+                    }
+                  }
+                } else {
+                  console.log('getandloadaudiotrack: ERROR fetching audio');
+                }
+                break;
+              default:
+                console.log('getandloadaudiotrack: no response from server yet');
+            }
+          },
+          error => {
+            console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+          }
+        )
+        await this.loadAudioArtworkImage();  // TODO: get correct image
+        // TODO:
+        //  * implemenet a more obvious queue reset procedure.
+        //  * audio service also needs to communicate with player component
+        //  * player component needs to then communicate with the slect component
+        this.audioQueueTitleStrings.splice(0);
+      }
+    }
+  }
 
   private getNextAudioIndex() {
     let newIndex = this.selectedAudioIndex;

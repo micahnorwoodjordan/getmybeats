@@ -77,7 +77,10 @@ export class PlayerComponent implements OnInit {
     this.paused = this.audioService.isAudioPaused();
   }
 
-  addAudioToQueue(newAudioString: string) { this.audioQueue.push(newAudioString); }
+  addAudioToQueue(newAudioString: string) {
+    this.audioQueue.push(newAudioString);
+    this.audioService.setAudioQueueTitleStrings(this.audioQueue);
+  }
   // ----------------------------------------------------------------------------------------------------------------
   // getters
   getSnackbarOpen() { return this.snackbarOpen; }
