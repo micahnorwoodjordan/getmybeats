@@ -2,7 +2,7 @@
 
 # example, since i keep forgetting: https://linuxize.com/post/how-to-back-up-and-restore-mysql-databases-with-mysqldump/
 # cd /application/getmybeats
-# mysqldump -u root -p -h db getmybeats_local_old > dev/db/db.sql
+# mysqldump -u root -pPassword1! -h db getmybeats_local_old > dev/db/db.sql
 
 # NOTE: the SQL file of a successful db dump will have insert statements for these tables:
 #   `auth_user`
