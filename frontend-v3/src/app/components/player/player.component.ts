@@ -42,7 +42,7 @@ export class PlayerComponent implements OnInit {
   repeatEnabled: boolean = false;
   paused: boolean = true;
   hasPlaybackError: boolean = false;
-  title: string = "null";
+  title: string = "loading audio...";
   loading: boolean = true;
   currentTime: string = '0:00';
   duration: number = 1;
