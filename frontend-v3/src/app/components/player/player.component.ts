@@ -1,16 +1,23 @@
 // https://stackoverflow.com/questions/45928423/get-rid-of-white-space-around-angular-material-modal-dialog
 // i attempted to remvoe whitespace around the bottom sheet (did not succeed) and stumbled upon the ViewEncapsulation meta property
 
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
+import { MatSnackBar, MAT_SNACK_BAR_DATA, MatSnackBarRef} from '@angular/material/snack-bar';
 import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+
+
 
 import { AudioService } from '../../services/audio.service';
 import { ApiService } from '../../services/api.service';
 
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -35,16 +42,24 @@ export class PlayerComponent implements OnInit {
   repeatEnabled: boolean = false;
   paused: boolean = true;
   hasPlaybackError: boolean = false;
-  title: string = "null";
+  title: string = "loading audio...";
   loading: boolean = true;
   currentTime: string = '0:00';
   duration: number = 1;
   musicLength: string = '0:00';
   sliderValue: number = 0;
   downloadProgress: number = 0;
+  snackbarRef: MatSnackBar | any;
+  snackbarOpen: boolean = false;
+  browserSupportsAudioVolumeManipulation: boolean = true;
+  userExperienceReportUrl: string = `${environment.apiHost}/user/experience`
   // ----------------------------------------------------------------------------------------------------------------
 
-  constructor(private audioService: AudioService, private bottomSheet: MatBottomSheet) { }
+  constructor(
+    private audioService: AudioService,
+    private bottomSheet: MatBottomSheet,
+    private _snackBar: MatSnackBar
+  ) { }
 
   // ----------------------------------------------------------------------------------------------------------------
   // interactive player methods
@@ -61,11 +76,14 @@ export class PlayerComponent implements OnInit {
     this.paused = this.audioService.isAudioPaused();
   }
   // ----------------------------------------------------------------------------------------------------------------
+  // getters
+  getSnackbarOpen() { return this.snackbarOpen; }
+  // ----------------------------------------------------------------------------------------------------------------
   // setters
   setLoading(value: boolean) { this.loading = value; }
   setAudioArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
   setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
-
+  setSnackbarOpen(newValue: boolean) { this.snackbarOpen = newValue; }
   // ----------------------------------------------------------------------------------------------------------------
   onClickShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
@@ -105,34 +123,85 @@ export class PlayerComponent implements OnInit {
     this.paused = this.audioService.isAudioPaused();
 }
 // ----------------------------------------------------------------------------------------------------------------
+// feature detection
+doesBrowserSupportVolumeManipulation() {
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/volume
+  // iOS browsers do NOT allow Javascript to manipulate audio volume
+  // the value of `volume` is always 1
+  // setting a value has no effect on the volume of the media object
+
+  // UPDATE: https://developer.apple.com/documentation/webkitjs/htmlmediaelement/1631549-volume
+  // the latest apple documentation mentions nothing about the below:
+  // `volume` is NOT readonly, meaning that the value of `volume` is actually NOT always 1
+  // this metric cannot be used to perform a better feature detection routine
+  // unfortunately, we have to resort to user agent sniffing, which, though bad practice, will probably suffice in this case
+
+  // how many non-iphone browsers are going to send a user agent header containing the substring "iphone"?
+  if (navigator.userAgent.includes("iPhone")) {
+    return false;
+  }
+  return true;
+}
+
+setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSupportsAudioVolumeManipulation = newValue; }
+
+// ----------------------------------------------------------------------------------------------------------------
 
   async ngOnInit() {
+    this.setBrowserSupportsAudioVolumeManipulation(this.doesBrowserSupportVolumeManipulation());
+
     await this.audioService.initialize();
     this.refreshAudioArtworkImageSrc();
 
     setInterval(() => {
         this.audioService.updateAudioMetadataState();
         this.getAudioTrackPresentationData();
-      }, 500  // every 1/2 second
+      }, 500  // 2x per second
     );
 
     // user experience: disables next and previous buttons until requested audio is loaded
     setInterval(() => {
         this.setLoading(this.audioService.getLoading());
-      }, 10  // every 1/100 second
+      }, 10  // 100x per second
     );
 
     setInterval(() => {
         this.refreshAudioArtworkImageSrc();
-      }, 250  // every quarter second
+      }, 250  // 4x per second
     );
 
     setInterval(() => {
-      if (this.loading) {
-        this.downloadProgress = this.audioService.getDownloadProgress();
+        if (this.loading) {
+          this.downloadProgress = this.audioService.getDownloadProgress();
+        }
+      }, 500  // 2x per second
+    );
+  }
+
+
+  openCustomSnackBar() {
+    if (this.snackbarOpen) {
+      if (this.snackbarRef) {
+        this.snackbarRef.dismiss();
+        this.setSnackbarOpen(false);
       }
-    }, 500  // twice per second
-  );
+    } else {
+      const snackbarRef = this._snackBar.openFromComponent(VolumeSliderSnackbar, {
+        data: {
+          audioService: this.audioService,
+          duration: 2500,
+          message: 'adjust volume',
+          action: () => {
+            console.log('Action clicked')
+          }
+        }
+      });
+      this.snackbarRef = snackbarRef;
+      this.setSnackbarOpen(true);
+      snackbarRef.afterDismissed().subscribe(() => {
+        this.setSnackbarOpen(false);
+      });
+    }
   }
 
   openBottomSheet() {
@@ -219,6 +288,78 @@ export class TrackSelectorBottomSheet {
     this.mediaContextElement = song;
     this.bottomSheetRef.dismiss(song);
     event.preventDefault();
+  }
+}
+// ----------------------------------------------------------------------------------------------------------------
+@Component({
+  standalone: true,
+  imports: [
+    MatSliderModule,
+    MatButtonModule,
+    FormsModule
+  ],
+  styles: [
+    `span { text-align: center; padding-right: 1vw; }`,
+    `.volume-slider { width: 10vw; font-color: white; }`,
+    `.text { text-align: center; }`,
+    `.close-button { text-align: center; }`,
+    `@media (max-width: 414px) { .volume-slider { width: 50vw; } }`
+  ],
+  template: `
+  <div fxLayout="row" fxLayoutAlign="space-evenly center">
+    <div fxLayout="column" class="text">
+      <span>{{ message }}</span>
+    <div>
+    <div fxLayout="column">
+      <mat-slider (input)="onSliderChange($event)" step="0.05" min="0" max="1" class="volume-slider">
+        <input matSliderThumb [(ngModel)]="sliderValue"/>
+      </mat-slider>
+      <span>&nbsp;&nbsp;{{ uxVolumeValue }}%</span>
+    <div>
+    <div fxLayout="column" class="close-button">
+        <button mat-raised-button (click)="close()">close</button>
+    <div>
+  <div>
+
+  `
+})
+export class VolumeSliderSnackbar {
+  sliderValue: number = 1;
+  volumeValue: number = 1;
+  uxVolumeValue: number = 100;
+  message: string;
+  action: () => void;
+
+  constructor(
+    @Inject(MAT_SNACK_BAR_DATA) public data: any,
+    private snackBarRef: MatSnackBarRef<VolumeSliderSnackbar>,
+
+  ) {
+    this.message = data.message;
+    this.action = data.action;
+
+    // NOTE: this very hacky: each time the slider renders, it does so with a value of 1
+    // meaning that even though a user may have already set the audio volume, the slider still renders with the incorrect value of 1
+    //
+    // using this timer gives the illusion that the above issue never takes place
+    setInterval(
+      () => {
+        this.sliderValue = this.data.audioService.getVolume();
+        this.volumeValue = this.sliderValue;
+        this.uxVolumeValue = Math.floor(this.volumeValue * 100);
+      }, 10  // 100x per second;
+    );
+  }
+
+  close() { this.snackBarRef.dismiss(); }
+  setVolumeValue(newVolumeValue: number) { this.volumeValue = newVolumeValue; }
+  getVolumeValue() { return this.volumeValue; }
+
+  onSliderChange(event: any) {
+    setTimeout(() => {}, 200);
+    this.volumeValue = this.sliderValue;
+    this.uxVolumeValue = Math.floor(this.volumeValue * 100);
+    this.data.audioService.setVolume(this.volumeValue);
   }
 }
 // ----------------------------------------------------------------------------------------------------------------

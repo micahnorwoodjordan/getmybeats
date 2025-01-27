@@ -17,6 +17,10 @@
 .right-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 .progress-bar { z-index: 1; width: 40vw; }
+.volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
+.bottom-div { padding-top: 3vh; text-align: center; width: 80vw; }
+.disabled-icon { opacity: 0.5;  pointer-events: none; }
+.ux-writeup-navigation-icon { color: white; cursor: pointer; }
 
 .backdrop-with-image {
     margin-top: 10vh;
@@ -103,7 +107,11 @@
     .shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
     .shuffle-icon-disabled { color: white; transform: scale(1.0); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
 
-    .backdrop-with-image { margin-top: 5vh; width: 85vw; height: 30vh; }
-    .backdrop-without-image { margin-top: 5vh; width: 85vw; height: 30vh; }
+    .backdrop-with-image { margin-top: 10vh; width: 85vw; height: 30vh; }
+    .backdrop-without-image { margin-top: 10vh; width: 85vw; height: 30vh; }
+
     .progress-bar { width: 85vw; }
+    .bottom-div { padding-top: 0vh; width: 100vw; }
+    .volume-up-icon { padding-left: 15vw; }
+    .ux-writeup-navigation-icon { padding-right: 15vw; }
 }
