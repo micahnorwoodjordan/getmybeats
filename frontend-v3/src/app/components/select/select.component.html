@@ -1,0 +1,7 @@
+<mat-form-field>
+    <mat-label>Songs</mat-label>
+    <mat-select [formControl]="audios" multiple>
+        <mat-option *ngFor="let audioSelectOption of audioSelectOptions" [value]="audioSelectOption">{{audioSelectOption}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  

@@ -1,5 +1,6 @@
 <div class="player">
     <div fxLayout="column" fxLayoutAlign="center center">
+        <app-select></app-select>
         <app-header [hasPlaybackError]="hasPlaybackError"></app-header>
         <div id="backdrop" *ngIf="!audioHasArtwork" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
