@@ -149,10 +149,10 @@ export class AudioService {
 
   public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
     // order of precedence:
-    // * this.repeatEnabled
-    // *   this.audioQueue
-    // *     this.shuffleEnabled
-    // *       getNextAudioIndex
+    //  1). repeatEnabled
+    //  2). queued audio
+    //  3). shuffleEnabled
+    //  4). getNextAudioIndex
     if (this.repeatEnabled) {
       this.setAudioTrackCurrentTime(0);
       if (this.autoplayOnIndexChange) {
@@ -160,7 +160,7 @@ export class AudioService {
       }
     } else {
       if (this.audioQueueTitleStrings.length > 0) {
-        this.getNextQueuedAudio();
+        await this.getNextInQueue();
       } else {
         if (this.shuffleEnabled) {
           await this.onSongChangeShuffle(this.selectedAudioIndex);
@@ -181,9 +181,26 @@ export class AudioService {
   private async onNext(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
   private async onPrevious(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
-  private async getNextQueuedAudio() {
+  private getNextAudioIndex() {
+    let newIndex = this.selectedAudioIndex;
+    this.selectedAudioIndex + 1 < this.numberOfTracks ? newIndex += 1 : newIndex = 0;
+    return newIndex;
+  }
+
+  private getPreviousAudioIndex() {
+    let newIndex = this.selectedAudioIndex;
+    newIndex - 1 >= 0 ? newIndex -= 1 : newIndex = this.numberOfTracks - 1;
+    return newIndex;
+  }
+
+  private updateQueue() { this.audioQueueTitleStrings.shift(); }
+
+  private async getNextInQueue() {
     let audioFilenameHash;
+    let audioImageHash;
+    let queuedTitleString = this.audioQueueTitleStrings[0];
     let audioContext = await this.getContextSynchronously();
+
     if (audioContext) {
       this.setAudioContext(audioContext);
       this.setNumberOfTracks(audioContext.length);
@@ -191,17 +208,16 @@ export class AudioService {
       this.setDownloadProgress(0);
 
       audioContext.forEach((mediaContextElement: MediaContextElement, idx: number) => {
-        if (mediaContextElement.title === this.audioQueueTitleStrings[0]) {
-          audioFilenameHash = mediaContextElement.audio_filename_hash;
-          console.log(audioFilenameHash);
-          this.setAudioTitle(mediaContextElement.title);
+        if (mediaContextElement.title === queuedTitleString) {
+            audioFilenameHash = mediaContextElement.audio_filename_hash;
+            audioImageHash = mediaContextElement.artwork_filename_hash;
+            this.setAudioTitle(mediaContextElement.title);
         }
-      })
+      });
 
       if (audioFilenameHash) {
         this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
           event => {
-            console.log('entering in');
             switch (event.type) {
               case HttpEventType.DownloadProgress:
                 if (event.total !== undefined) {
@@ -233,26 +249,17 @@ export class AudioService {
             console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
           }
         )
-        await this.loadAudioArtworkImage();  // TODO: get correct image
-        // TODO:
-        //  * implemenet a more obvious queue reset procedure.
-        //  * audio service also needs to communicate with player component
-        //  * player component needs to then communicate with the slect component
-        this.audioQueueTitleStrings.splice(0);
       }
+      if (audioImageHash) {
+        let imageSrc = await this.artworkService.getImageSrcURL(audioImageHash);
+        if(imageSrc !== '') {
+          console.log('loadAudioArtworkImage: retrieved image source');
+          this.setAudioHasArtwork(true);
+          this.setArtworkImageSrc(imageSrc);
+        }
+      }
+      this.updateQueue();
     }
-  }
-
-  private getNextAudioIndex() {
-    let newIndex = this.selectedAudioIndex;
-    this.selectedAudioIndex + 1 < this.numberOfTracks ? newIndex += 1 : newIndex = 0;
-    return newIndex;
-  }
-
-  private getPreviousAudioIndex() {
-    let newIndex = this.selectedAudioIndex;
-    newIndex - 1 >= 0 ? newIndex -= 1 : newIndex = this.numberOfTracks - 1;
-    return newIndex;
   }
 
   private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {

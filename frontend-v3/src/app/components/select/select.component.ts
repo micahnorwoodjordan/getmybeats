@@ -33,11 +33,12 @@ export class SelectComponent implements OnInit {
     audios = new FormControl('');
     audioSelectOptions: string[] = [];
     context: MediaContextElement[] | undefined = [];
-    @Output() newAudioOptionEvent = new EventEmitter<string>();
+    queue: string[] = [];
+    @Output() newAudioOptionEvent = new EventEmitter<string []>();
 
     private setContext(newContext: MediaContextElement[]) { this.context = newContext; }
     private setAudioSelectOptions(newSelectOptions: string[]) { this.audioSelectOptions = newSelectOptions; }
-    private addToSelectedAudioOptions(newOption: string) { this.newAudioOptionEvent.emit(newOption); }
+    private updateQueue(updatedQueue: string[]) { this.queue = updatedQueue; }
 
     async ngOnInit() {
         let audioContext = await this.audioService.getContextSynchronously();
@@ -57,9 +58,7 @@ export class SelectComponent implements OnInit {
     }
 
     onSelectionChange(event: MatSelectChange) {
-        let lastSongPicked = `${event.value}`.split(",").at(-1);
-        if (lastSongPicked) {
-            this.addToSelectedAudioOptions(lastSongPicked);
-        }        
+        this.updateQueue(event.value);
+        this.newAudioOptionEvent.emit(this.queue);      
     }
 }
