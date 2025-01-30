@@ -67,7 +67,6 @@ export class PlayerComponent implements OnInit {
   async onNext() {
     await this.audioService.onNextWrapper();
     this.refreshAudioArtworkImageSrc();
-    this.updateQueueProgrammatically(this.audioService.getAudioQueueTitleStrings());
   }
   async onPrevious() {
     await this.audioService.onPreviousWrapper();
@@ -185,6 +184,13 @@ setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSuppo
         }
       }, 500  // 2x per second
     );
+
+    // i have not found a way for the audio service to communicate when an attribute value has changed
+    // so we're polling again
+    setInterval(() => {
+      this.updateQueueProgrammatically(this.audioService.getAudioQueueTitleStrings());
+    }, 100  // 10x per second
+  );
   }
 
 
