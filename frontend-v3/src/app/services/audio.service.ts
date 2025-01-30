@@ -51,6 +51,7 @@ export class AudioService {
   public getArtworkImageSrc() { return this.artworkImageSrc; }
   public getAudioHasArtwork() { return this.audioHasArtwork; }
   public getVolume() { return this.audioTrack.volume; }
+  public getAudioQueueTitleStrings() { return this.audioQueueTitleStrings; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   private setDownloadProgress(newProgressInt: number) { this.downloadProgress = newProgressInt; }
@@ -193,7 +194,14 @@ export class AudioService {
     return newIndex;
   }
 
-  private updateQueue() { this.audioQueueTitleStrings.shift(); }
+  private updateQueue() {
+    // https://stackoverflow.com/questions/45499982/change-detection-not-registering-data-changes
+    // angular detects a change when the whole object changes, or the reference changes,
+    // so a mutation isn't going to trigger it.
+    // rather than mutating the array, you need to make it a new array
+    this.audioQueueTitleStrings = [...this.audioQueueTitleStrings];
+    this.audioQueueTitleStrings.shift();
+  }
 
   private async getNextInQueue() {
     let audioFilenameHash;

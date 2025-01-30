@@ -1,6 +1,6 @@
 <div class="player">
     <div fxLayout="column" fxLayoutAlign="center center">
-        <app-select (newAudioOptionEvent)="updateQueue($event)"></app-select>
+        <app-select (newAudioOptionEvent)="updateQueueFromSelect($event)" [updatedAudioQueue]="audioQueue"></app-select>
         <app-header [hasPlaybackError]="hasPlaybackError"></app-header>
         <div id="backdrop" *ngIf="!audioHasArtwork" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
@@ -8,10 +8,10 @@
         <div id="backdrop" *ngIf="audioHasArtwork" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="space-evenly center" [style.--backdrop-image-url]="'url(' + artworkImage.src + ')'"></div>
         <mat-progress-bar class="progress-bar" *ngIf="loading"  mode="determinate" [value]="downloadProgress"></mat-progress-bar>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
-            <h1 class="songTitle"> {{ title }}</h1>
+            <h1 class="songTitle">{{ title }}</h1>
         </div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
-            <h3 class="songArtist"> micah </h3>
+            <h3 class="songArtist">micah</h3>
         </div>
         <mat-spinner *ngIf="loading" class="progress-spinner"></mat-spinner>
         <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">

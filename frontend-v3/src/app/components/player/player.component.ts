@@ -67,6 +67,7 @@ export class PlayerComponent implements OnInit {
   async onNext() {
     await this.audioService.onNextWrapper();
     this.refreshAudioArtworkImageSrc();
+    this.updateQueueProgrammatically(this.audioService.getAudioQueueTitleStrings());
   }
   async onPrevious() {
     await this.audioService.onPreviousWrapper();
@@ -77,7 +78,9 @@ export class PlayerComponent implements OnInit {
     this.paused = this.audioService.isAudioPaused();
   }
 
-  updateQueue(updatedQueue: string[]) {
+  updateQueueProgrammatically(updatedQueue: string[]) { this.audioQueue = updatedQueue; }
+
+  updateQueueFromSelect(updatedQueue: string[]) {
     this.audioQueue = updatedQueue;
     this.audioService.setAudioQueueTitleStrings(this.audioQueue);
   }
