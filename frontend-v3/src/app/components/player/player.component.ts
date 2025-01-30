@@ -53,6 +53,7 @@ export class PlayerComponent implements OnInit {
   snackbarOpen: boolean = false;
   browserSupportsAudioVolumeManipulation: boolean = true;
   userExperienceReportUrl: string = `${environment.apiHost}/user/experience`
+  audioQueue: string[] = [];
   // ----------------------------------------------------------------------------------------------------------------
 
   constructor(
@@ -74,6 +75,13 @@ export class PlayerComponent implements OnInit {
   onPlayPauseClick() {
     this.audioService.isAudioPaused() ? this.audioService.playAudioTrack() : this.audioService.pauseAudioTrack();
     this.paused = this.audioService.isAudioPaused();
+  }
+
+  updateQueueProgrammatically(updatedQueue: string[]) { this.audioQueue = updatedQueue; }
+
+  updateQueueFromSelect(updatedQueue: string[]) {
+    this.audioQueue = updatedQueue;
+    this.audioService.setAudioQueueTitleStrings(this.audioQueue);
   }
   // ----------------------------------------------------------------------------------------------------------------
   // getters
@@ -176,6 +184,13 @@ setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSuppo
         }
       }, 500  // 2x per second
     );
+
+    // i have not found a way for the audio service to communicate when an attribute value has changed
+    // so we're polling again
+    setInterval(() => {
+      this.updateQueueProgrammatically(this.audioService.getAudioQueueTitleStrings());
+    }, 100  // 10x per second
+  );
   }
 
 

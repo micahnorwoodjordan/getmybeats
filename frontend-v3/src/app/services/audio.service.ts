@@ -19,6 +19,7 @@ export class AudioService {
   private audioHasArtwork: boolean = false;
   private artworkImageSrc: string = '';
   private downloadProgress: number = 0;
+  private audioQueueTitleStrings: string[] = [];
   public numberOfTracks: number = 0;
   public musicLength: string = '0:00';
   public duration: number = 1;
@@ -50,6 +51,7 @@ export class AudioService {
   public getArtworkImageSrc() { return this.artworkImageSrc; }
   public getAudioHasArtwork() { return this.audioHasArtwork; }
   public getVolume() { return this.audioTrack.volume; }
+  public getAudioQueueTitleStrings() { return this.audioQueueTitleStrings; }
   // ----------------------------------------------------------------------------------------------------------------
   // setters
   private setDownloadProgress(newProgressInt: number) { this.downloadProgress = newProgressInt; }
@@ -68,6 +70,7 @@ export class AudioService {
   public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
   public setAudioTitle(newTitle: string) { this.title = newTitle; }
   public setVolume(newVolumeLevel: number) { this.audioTrack.volume = newVolumeLevel; }
+  public setAudioQueueTitleStrings(newQueueStrings: string[]) { this.audioQueueTitleStrings = newQueueStrings; }
   // ----------------------------------------------------------------------------------------------------------------
   public async initialize() { 
     await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
@@ -146,17 +149,26 @@ export class AudioService {
   public async onIndexChangePublic(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
   public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
-    if (this.shuffleEnabled) {
-      await this.onSongChangeShuffle(this.selectedAudioIndex);
+    // order of precedence:
+    //  1). repeatEnabled
+    //  2). queued audio
+    //  3). shuffleEnabled
+    //  4). getNextAudioIndex
+    if (this.repeatEnabled) {
+      this.setAudioTrackCurrentTime(0);
+      if (this.autoplayOnIndexChange) {
+        this.playAudioTrack();
+      }
     } else {
-      if (this.repeatEnabled) {
-        this.setAudioTrackCurrentTime(0);
-        if (this.autoplayOnIndexChange) {
-          this.playAudioTrack();
-        }
+      if (this.audioQueueTitleStrings.length > 0) {
+        await this.getNextInQueue();
       } else {
-        let newIndex: number = this.getNextAudioIndex();
-        await this.onNext(newIndex);
+        if (this.shuffleEnabled) {
+          await this.onSongChangeShuffle(this.selectedAudioIndex);
+        } else {
+            let newIndex: number = this.getNextAudioIndex();
+            await this.onNext(newIndex);
+        }
       }
     }
   }
@@ -180,6 +192,82 @@ export class AudioService {
     let newIndex = this.selectedAudioIndex;
     newIndex - 1 >= 0 ? newIndex -= 1 : newIndex = this.numberOfTracks - 1;
     return newIndex;
+  }
+
+  private updateQueue() {
+    // https://stackoverflow.com/questions/45499982/change-detection-not-registering-data-changes
+    // angular detects a change when the whole object changes, or the reference changes,
+    // so a mutation isn't going to trigger it.
+    // rather than mutating the array, you need to make it a new array
+    this.audioQueueTitleStrings = [...this.audioQueueTitleStrings];
+    this.audioQueueTitleStrings.shift();
+  }
+
+  private async getNextInQueue() {
+    let audioFilenameHash;
+    let audioImageHash;
+    let queuedTitleString = this.audioQueueTitleStrings[0];
+    let audioContext = await this.getContextSynchronously();
+
+    if (audioContext) {
+      this.setAudioContext(audioContext);
+      this.setNumberOfTracks(audioContext.length);
+      this.setLoading(true);
+      this.setDownloadProgress(0);
+
+      audioContext.forEach((mediaContextElement: MediaContextElement, idx: number) => {
+        if (mediaContextElement.title === queuedTitleString) {
+            audioFilenameHash = mediaContextElement.audio_filename_hash;
+            audioImageHash = mediaContextElement.artwork_filename_hash;
+            this.setAudioTitle(mediaContextElement.title);
+        }
+      });
+
+      if (audioFilenameHash) {
+        this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
+          event => {
+            switch (event.type) {
+              case HttpEventType.DownloadProgress:
+                if (event.total !== undefined) {
+                  this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
+                  console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+                }
+                break;
+              case HttpEventType.Response:
+                console.log(`getandloadaudiotrack: received server response ${event.status}`);
+                if (event.status == 200) {
+                  if (event.body !== undefined && event.body !== null) {
+                    let audioSrc = URL.createObjectURL(event.body);
+                    this.setAudioSrc(audioSrc);
+                    this.setLoading(false);
+                    this.updateAudioOndurationchange();
+                    if (this.autoplayOnIndexChange) {
+                      this.playAudioTrack();
+                    }
+                  }
+                } else {
+                  console.log('getandloadaudiotrack: ERROR fetching audio');
+                }
+                break;
+              default:
+                console.log('getandloadaudiotrack: no response from server yet');
+            }
+          },
+          error => {
+            console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+          }
+        )
+      }
+      if (audioImageHash) {
+        let imageSrc = await this.artworkService.getImageSrcURL(audioImageHash);
+        if(imageSrc !== '') {
+          console.log('loadAudioArtworkImage: retrieved image source');
+          this.setAudioHasArtwork(true);
+          this.setArtworkImageSrc(imageSrc);
+        }
+      }
+      this.updateQueue();
+    }
   }
 
   private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {
