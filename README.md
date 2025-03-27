@@ -1,6 +1,6 @@
 # context 📝
 
-- this is a web application to share my music with audiophiles, while showcasing my Python/Django and Angular/TypeScript know-how to other curious techies
+- this online music player is a web application built to share my music with audiophiles, while showcasing my overall technical know-how to other curious techies.
 
 ## UPDATE MARCH 27, 2025
 
@@ -11,6 +11,27 @@
 - My goal was to pick Javascript back up and learn a framework to learn how to build a reactive, modern web app client.
 - I used to strictly classify myself as a Backend Software engineer. In my folly, I thought that the frontend was going to be "too easy", so there was no point in learning about building client applications. But in order to build a platform to share my music on, I needed to finally venture into the frontend
 
+## deployment ☁️
+
+- as a note here, deployment strategies were never in my bucket of concerns when building getmybeats.com, which is another way of me saying that my deployment strategy is still not that great 😓
+
+### current ✅
+
+- via command line or Postman, I just call DigitalOcean's `Create a New Droplet` API endpoint, simply updating the environment variables within the request body as each-release requires.
+  - this spawns a new Droplet which is able to install all bootstrapping software, packages, and necessary deployment files, thanks to the cloud init metadata included in the request payload.
+  - once the codebase is downloaded and the release branch is checked out, the Droplet installs the site's SSL certificates, bundles the frontend Angular app, starts the Django app
+  - the Django app then adds the Droplet that it's currently running on to the load balancer and firewall, removing the previous Droplet / instance from the load balancer and firewall... [see all of my wonky design decisions] (#wonky-design-decisions)
+  - The Droplet then starts all other services and finally spawns a master Nginx process.
+
+### previous 🚫
+
+- before I knew a thing about CI/CD, I would manually log into my servers, check out a release commit, then restart all services/processes. this was a nightmare, as you could imagine 😫
+
+## infrastructure
+
+- for simplicity, here's a nifty infrastructural overlook of `getmybeats.com`. It's not too complex of a system: as you can see, I've load balanced and firewalled it; from there, the Ubuntu Droplet makes outbound AWS, database, and DigitalOcean API calls
+- ![alt text](image.png)
+
 ## tech stack 🥞
 
 - At the time I was trying to save as much money as possible, and having deployed my infrastructure to AWS bare metal, the cost was high. For this reason, I decided to consolidate both client and server side apps within the same cloud compute instance
@@ -19,7 +40,7 @@
   - Gunicorn passes the request to the Django application
   - Django responds with an HTML template, which contains a script tag pointing to the already-bundled frontend
 
-### API 📟
+### api 📟
 
 - I built this backend in Python using the Django Rest Framework
 - The backend's responsibilities/tasks are to:
@@ -48,3 +69,13 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 - Client Application V3 is where the `getmybeats.com` frontend currently stands. Here is where I decided that I was done with React, and jumped ship to Angular.
 - I mapped out and rewrote the entire frontend, this time taking the time to learn about Angular, not just how to slap components together.
 - The more familiar I got with Angular, the more freedom I felt like I had. I found libraries like Angular Flex Layout and Angular Material, so tasks such as adding sliders, implementing audio seeking, and styling complex components became infinitely more simple.
+
+## challenges
+
+### AWS
+
+- TODO
+
+## wonky design decisions
+
+- TODO
