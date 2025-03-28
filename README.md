@@ -20,14 +20,14 @@
 - via command line or Postman, I just call DigitalOcean's `Create a New Droplet` API endpoint, simply updating the environment variables within the request body as each-release requires.
   - this spawns a new Droplet which is able to install all bootstrapping software, packages, and necessary deployment files, thanks to the cloud init metadata included in the request payload.
   - once the codebase is downloaded and the release branch is checked out, the Droplet installs the site's SSL certificates, bundles the frontend Angular app, starts the Django app
-  - the Django app then adds the Droplet that it's currently running on to the load balancer and firewall, removing the previous Droplet / instance from the load balancer and firewall. [Here's a writeup of all of my wonky design decisions] (#wonky-design-decisions)
+  - the Django app then adds the Droplet that it's currently running on to the load balancer and firewall, removing the previous Droplet / instance from the load balancer and firewall. [Here's a writeup of all of my wonky design decisions](#wonky-design-decisions)
   - The Droplet then starts all other services and finally spawns a master Nginx process.
 
 ### previous 🚫
 
 - before I knew a thing about CI/CD, I would manually log into my servers, check out a release commit, then restart all services/processes. this was a nightmare, as you could imagine 😫
 
-## infrastructure
+## infrastructure 🏢
 
 - for simplicity, here's a nifty infrastructural overlook of `getmybeats.com`. It's not too complex of a system: as you can see, I've load balanced and firewalled it; from there, the Ubuntu Droplet makes outbound AWS, database, and DigitalOcean API calls
 - ![alt text](image.png)
@@ -74,7 +74,7 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 - The more familiar I got with Angular, the more freedom I felt like I had. I found libraries like Angular Flex Layout and Angular Material, so tasks such as adding sliders, implementing audio seeking, and styling complex components became infinitely more simple.
 - In this iteration, Django no longer embeds audio files into the markup. I switched over to a streaming model, so now when browsers request a song, the audio binary is written to memory 🥳
 
-## challenges
+## challenges 🥵
 
 ### Audio File Encryption/Decryption
 
