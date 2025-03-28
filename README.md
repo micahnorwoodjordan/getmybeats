@@ -36,14 +36,13 @@
 
 - At the time I was trying to save as much money as possible, and having deployed my infrastructure to AWS bare metal, the cost was high. For this reason, I decided to migrate to DigitalOcean and consolidate both client and server side apps to the same Droplet
 - Here's an overview of what happens when a browser requests `getmybeats.com`
-  - The Nginx proxies the request to the Gunicorn web server gateway interface
+  - Nginx proxies the request to the Gunicorn web server gateway interface
   - Gunicorn passes the request to the Django application
   - Django responds with an HTML template, which contains a script pointing to the bundled Angular frontend
-  - the browser loads the document and voilà, the music player the user can begin listening to my music
+  - the browser loads the document and voilà, the user can begin listening to my music
 
-### api 📟
+### api: Python/Django Rest Framework 📟
 
-- I built this backend in Python using the Django Rest Framework
 - The backend's responsibilities/tasks include but are not limited to:
   - run dedicated cron tasks for regular system pruning and upkeep
   - host an admin interface to neatly and safely manage database tables/records (comes out-of-box in a Django application)
@@ -54,21 +53,21 @@
   - validate that the audio stream request came from a browser running the bundled frontend (I have a few tricks up my sleeve to ensure this so that people cannot simply call the API to download my songs)
   - serving a `user experience report` template that outlines known bugs and upcoming bug fixes and features
 
-### client application v1 🧑‍💻
+### client application v1: JavaScript/HTML/CSS 🧑‍💻
 
 - The very first iteration of the `getmybeats.com` frontend was built purely in Javascript, HTML, and CSS. I knew this was not a sustainable route, but I rushed to get my music out onto the interwebs.
 During this time, I struggled a lot with understanding Javascript's capabilities and limitations regarding playing audio in the browser.
 - What haunted me, and still haunts me to this day, is how finicky the Audio API is between different browsers. Dont' get me started on how and when it expects specific headers to be present on certain HTTP requests, and the side effects of these headers not being present 👻
 - in this iteration, the Django app embedded each audio file into the HTML document, allowing people to effectively steal my songs if they wanted to 🥷
 
-### client application v2 👨‍💻
+### client application v2: TypeScript/React 👨‍💻
 
 - Admittedly, 90% of the second iteration of the `getmybeats.com` frontend was borrowed from code I found somewhere on the internet because I had a lot of trouble with Javascript's audio playback abilities.
 - This code was basically a fully fleshed out React App, which meant that I had to learn React. I had to refactor most of this code to get the project to compile, and during this time, it was a nightmare to navigate the ungodly component lifecycle hooks, re-rendering and screen redrawing, and THEN understanding their underlying behavior differences between development mode and production mode.
 - All sorts of bugs were present, most of which had to do with audio playback 🪳
 - in this iteration, the Django app STILL embedded each audio file into the HTML document, allowing people to effectively steal my songs if they wanted to 🤦🏽‍♂️
 
-### client application v3 👩‍💻
+### client application v3: TypeScript/Angular 👩‍💻
 
 - Client Application V3 is where the `getmybeats.com` frontend currently stands. Here is where I decided that I was done with React, and jumped ship to Angular.
 - I mapped out and rewrote the entire frontend, this time taking the time to learn about Angular, not just how to slap components together.
@@ -77,6 +76,10 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 
 ## challenges
 
+### Audio File Encryption/Decryption
+
+- TODO
+
 ### AWS
 
 - TODO
@@ -84,3 +87,9 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 ## wonky design decisions
 
 - TODO
+
+## pending implementations
+
+- it's been a while since I've done any real development on `getmybeats.com`, but I have a few outstanding TODO's and features to implement. the only ones worth noting are:
+  - user feedback functionality where users can report bugs
+  - users to be able to queue songs for playback
