@@ -84,7 +84,7 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 
 - One of the primary reasons I pivoted away from AWS is because I kept consistently finding documentation to be lacking and outdated (I once stumbled upon a writeup dated 2015). AWS services are so fine-grained, which should be wonderful, but I found myself lost for hours in StackOverflow, with many people asking the exact questions as I, getting no answer. Once I migrated my architecture to DigitalOcean, it was a breath of fresh air.
 
-## [wonky design decisions] 😬
+## wonky design decisions 😬
 
 - Deployment sequence: Once the Django application is live, it makes an API call to place itself behind the site firewall and in the site load balancer node pool, dropping the previous instance from the load balancer. I don't think it gets more non-standard than this, but this was before I particularly cared about anything CI/CD.
 - Deploying the API and client applications on the same instance -- while not uncommon nor particularly aggregious, I would prefer that the overall health of the website not be so tightly coupled, wholly dependent on a single instance.
