@@ -34,41 +34,46 @@
 
 ## tech stack 🥞
 
-- At the time I was trying to save as much money as possible, and having deployed my infrastructure to AWS bare metal, the cost was high. For this reason, I decided to consolidate both client and server side apps within the same cloud compute instance
-- Here's an overview of happens when a browser requests `getmybeats.com`
-  - The Nginx process on my cloud Ubuntu instance proxies the request to the Gunicorn web server gateway interface
+- At the time I was trying to save as much money as possible, and having deployed my infrastructure to AWS bare metal, the cost was high. For this reason, I decided to migrate to DigitalOcean and consolidate both client and server side apps to the same Droplet
+- Here's an overview of what happens when a browser requests `getmybeats.com`
+  - The Nginx proxies the request to the Gunicorn web server gateway interface
   - Gunicorn passes the request to the Django application
-  - Django responds with an HTML template, which contains a script tag pointing to the already-bundled frontend
+  - Django responds with an HTML template, which contains a script pointing to the bundled Angular frontend
+  - the browser loads the document and voilà, the music player the user can begin listening to my music
 
 ### api 📟
 
 - I built this backend in Python using the Django Rest Framework
-- The backend's responsibilities/tasks are to:
+- The backend's responsibilities/tasks include but are not limited to:
+  - run dedicated cron tasks for regular system pruning and upkeep
   - host an admin interface to neatly and safely manage database tables/records (comes out-of-box in a Django application)
   - download and upload audio files, deployment files, configuration files to an AWS S3 bucket
   - automatically download existing SSL certificates during a deployment or to automatically renew SSL certificates when they expire
   - run all database migrations during a deployment
   - stream audio files to the client requesting them
-    - validating (as best as possible) that the request came from a browser running the compiled frontend Javascript/TypeScript. I have a few tricks up my sleeve to ensure this so that people cannot simply call the API to download my songs.
+  - validate that the audio stream request came from a browser running the bundled frontend (I have a few tricks up my sleeve to ensure this so that people cannot simply call the API to download my songs)
   - serving a `user experience report` template that outlines known bugs and upcoming bug fixes and features
 
 ### client application v1 🧑‍💻
 
 - The very first iteration of the `getmybeats.com` frontend was built purely in Javascript, HTML, and CSS. I knew this was not a sustainable route, but I rushed to get my music out onto the interwebs.
 During this time, I struggled a lot with understanding Javascript's capabilities and limitations regarding playing audio in the browser.
-- What haunted me, and still haunts me to this day, is how finicky the Audio API is between different browsers. Dont' get me started on how and when it expects specific headers to be present on certain HTTP requests, and the side effects of these headers not being present.
+- What haunted me, and still haunts me to this day, is how finicky the Audio API is between different browsers. Dont' get me started on how and when it expects specific headers to be present on certain HTTP requests, and the side effects of these headers not being present 👻
+- in this iteration, the Django app embedded each audio file into the HTML document, allowing people to effectively steal my songs if they wanted to 🥷
 
 ### client application v2 👨‍💻
 
 - Admittedly, 90% of the second iteration of the `getmybeats.com` frontend was borrowed from code I found somewhere on the internet because I had a lot of trouble with Javascript's audio playback abilities.
 - This code was basically a fully fleshed out React App, which meant that I had to learn React. I had to refactor most of this code to get the project to compile, and during this time, it was a nightmare to navigate the ungodly component lifecycle hooks, re-rendering and screen redrawing, and THEN understanding their underlying behavior differences between development mode and production mode.
-- All sorts of bugs were present, most of which had to do with audio playback
+- All sorts of bugs were present, most of which had to do with audio playback 🪳
+- in this iteration, the Django app STILL embedded each audio file into the HTML document, allowing people to effectively steal my songs if they wanted to 🤦🏽‍♂️
 
 ### client application v3 👩‍💻
 
 - Client Application V3 is where the `getmybeats.com` frontend currently stands. Here is where I decided that I was done with React, and jumped ship to Angular.
 - I mapped out and rewrote the entire frontend, this time taking the time to learn about Angular, not just how to slap components together.
 - The more familiar I got with Angular, the more freedom I felt like I had. I found libraries like Angular Flex Layout and Angular Material, so tasks such as adding sliders, implementing audio seeking, and styling complex components became infinitely more simple.
+- In this iteration, Django no longer embeds audio files into the markup. I switched over to a streaming model, so now when browsers request a song, the audio binary is written to memory 🥳
 
 ## challenges
 
