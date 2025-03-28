@@ -9,7 +9,7 @@
 ## goal ⚽️ 🥅
 
 - My goal was to pick Javascript back up and learn a framework to learn how to build a reactive, modern web app client.
-- I used to strictly classify myself as a Backend Software engineer. In my folly, I thought that the frontend was going to be "too easy", so there was no point in learning about building client applications. But in order to build a platform to share my music on, I needed to finally venture into the frontend
+- I used to strictly classify myself as a Backend Software engineer. In my folly, I thought that the frontend was going to be "too easy", so there was no point in learning about building client applications. But in order to build a platform to share my music on, I needed to finally venture into the frontend. I was humbled very quickly by even the simplest frontend development task, like centering a div 🫨
 
 ## deployment ☁️
 
@@ -76,7 +76,7 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 
 ## challenges 🥵
 
-### Audio File Encryption/Decryption
+### Audio File Encryption/Decryption 🔐
 
 - The most succinct way to protect my audio files would have been to encrypt them before serving them, simply decrypting them client side to load the raw binary into memory for playback. The long story short is that I'm not a cryptography wizard, and I could not find a way to bridge Pythonic encryption methods with JavaScript decryption methods without corrupting the original binary client side. So, I had to resort to my bag of tricks (which I cannot elaborate on) to protect my audio files.
 
@@ -91,7 +91,7 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 - Redis server: I use Redis as the API's cache backend, but the service is hosted by a Docker container, which isn't necessarily a problem, but I chose this route "just because"
 - Angular App: I've written some dirty code in my haste to get some creature comfort features out the door, which just ends up messying the codebase. But I think we've all been here.
 
-## pending implementations
+## pending implementations ⏰
 
 - it's been a while since I've done any real development on `getmybeats.com`, but I have a few outstanding TODO's and features to implement. the only ones worth noting are:
   - user feedback functionality where users can report bugs
