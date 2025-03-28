@@ -20,7 +20,7 @@
 - via command line or Postman, I just call DigitalOcean's `Create a New Droplet` API endpoint, simply updating the environment variables within the request body as each-release requires.
   - this spawns a new Droplet which is able to install all bootstrapping software, packages, and necessary deployment files, thanks to the cloud init metadata included in the request payload.
   - once the codebase is downloaded and the release branch is checked out, the Droplet installs the site's SSL certificates, bundles the frontend Angular app, starts the Django app
-  - the Django app then adds the Droplet that it's currently running on to the load balancer and firewall, removing the previous Droplet / instance from the load balancer and firewall... [see all of my wonky design decisions] (#wonky-design-decisions)
+  - the Django app then adds the Droplet that it's currently running on to the load balancer and firewall, removing the previous Droplet / instance from the load balancer and firewall. [Here's a writeup of all of my wonky design decisions] (#wonky-design-decisions)
   - The Droplet then starts all other services and finally spawns a master Nginx process.
 
 ### previous 🚫
@@ -78,15 +78,18 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 
 ### Audio File Encryption/Decryption
 
-- TODO
+- The most succinct way to protect my audio files would have been to encrypt them before serving them, simply decrypting them client side to load the raw binary into memory for playback. The long story short is that I'm not a cryptography wizard, and I could not find a way to bridge Pythonic encryption methods with JavaScript decryption methods without corrupting the original binary client side. So, I had to resort to my bag of tricks (which I cannot elaborate on) to protect my audio files.
 
-### AWS
+### AWS 👿
 
-- TODO
+- One of the primary reasons I pivoted away from AWS is because I kept consistently finding documentation to be lacking and outdated (I once stumbled upon a writeup dated 2015). AWS services are so fine-grained, which should be wonderful, but I found myself lost for hours in StackOverflow, with many people asking the exact questions as I, getting no answer. Once I migrated my architecture to DigitalOcean, it was a breath of fresh air.
 
-## wonky design decisions
+## [wonky design decisions] 😬
 
-- TODO
+- Deployment sequence: Once the Django application is live, it makes an API call to place itself behind the site firewall and in the site load balancer node pool, dropping the previous instance from the load balancer. I don't think it gets more non-standard than this, but this was before I particularly cared about anything CI/CD.
+- Deploying the API and client applications on the same instance -- while not uncommon nor particularly aggregious, I would prefer that the overall health of the website not be so tightly coupled, wholly dependent on a single instance.
+- Redis server: I use Redis as the API's cache backend, but the service is hosted by a Docker container, which isn't necessarily a problem, but I chose this route "just because"
+- Angular App: I've written some dirty code in my haste to get some creature comfort features out the door, which just ends up messying the codebase. But I think we've all been here.
 
 ## pending implementations
 
