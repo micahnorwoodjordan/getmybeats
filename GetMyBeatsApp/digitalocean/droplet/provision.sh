@@ -70,6 +70,7 @@ deactivate
 # download audio files
 cd $MEDIA_DIR
 aws s3 sync s3://getmybeats-audio ./
+aws s3 sync s3://getmybeats-images ./
 
 
 # install ssl certs
