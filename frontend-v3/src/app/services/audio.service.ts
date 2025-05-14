@@ -6,6 +6,7 @@ import { ApiService } from './api.service';
 import { ArtworkService } from './artwork.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { generateAudioRequestGUID } from '../utilities';
+import { CryptoService } from './crypto.service';
 
 
 @Injectable({
@@ -13,8 +14,15 @@ import { generateAudioRequestGUID } from '../utilities';
 })
 
 export class AudioService {
-  constructor(private apiService: ApiService, private artworkService: ArtworkService) { }
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly artworkService: ArtworkService,
+    private readonly cryptoService: CryptoService
+  ) {
+    this.ctx = new AudioContext();
+  }
   // ----------------------------------------------------------------------------------------------------------------
+  private ctx: AudioContext
   private audioTrack: HTMLAudioElement = new Audio();
   private audioHasArtwork: boolean = false;
   private artworkImageSrc: string = '';
@@ -182,6 +190,23 @@ export class AudioService {
     return newIndex;
   }
 
+  private async playDecryptedAudio(audioBuffer: ArrayBuffer): Promise<void> {
+    this.ctx.decodeAudioData(audioBuffer, (decoded) => {
+      const source = this.ctx.createBufferSource();
+      source.buffer = decoded;
+      source.connect(this.ctx.destination);
+      source.start(0);
+    }, (err) => {
+      console.error('Audio decode failed:', err);
+    });
+  }
+
+  // private async playEncryptedAudioFile(audioUrl: string, keyBytes: Uint8Array): Promise<void> {
+  //   const encrypted = await this.fetchEncryptedAudio(audioUrl);
+  //   const decrypted = await decryptAudioData(encrypted, keyBytes);
+  //   await this.playDecryptedAudio(decrypted);
+  // }
+
   private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {
     let audioFilenameHash;
     let audioContext = await this.getContextSynchronously();
@@ -195,7 +220,7 @@ export class AudioService {
       this.setSelectedAudioIndex(newSelectedAudioIndex);
 
       this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
-        event => {
+        async event => {
           switch (event.type) {
             case HttpEventType.DownloadProgress:
               if (event.total !== undefined) {
@@ -207,13 +232,21 @@ export class AudioService {
               console.log(`getandloadaudiotrack: received server response ${event.status}`);
               if (event.status == 200) {
                 if (event.body !== undefined && event.body !== null) {
-                  let audioSrc = URL.createObjectURL(event.body);
-                  this.setAudioSrc(audioSrc);
+                  let encrypted = new Uint8Array(await event.body.arrayBuffer());
+                  let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
+                    201, 208, 229, 250, 49, 129, 92, 10,
+                    78, 103, 200, 70, 178, 73, 30, 111,
+                    251, 43, 26, 224, 250, 121, 88, 227,
+                    209, 170, 62, 61, 96, 17, 35, 153
+                  ]));
+                  // let audioSrc = URL.createObjectURL(event.body);
+                  // this.setAudioSrc(audioSrc);
                   this.setLoading(false);
                   this.updateAudioOndurationchange();
-                  if (this.autoplayOnIndexChange) {
-                    this.playAudioTrack();
-                  }
+                  // if (this.autoplayOnIndexChange) {
+                    // this.playAudioTrack();
+                    this.playDecryptedAudio(decrypted);
+                  // }
                 }
               } else {
                 console.log('getandloadaudiotrack: ERROR fetching audio');
