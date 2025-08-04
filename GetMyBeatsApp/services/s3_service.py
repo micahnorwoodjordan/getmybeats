@@ -18,7 +18,7 @@ CONFIG = Config(
     max_pool_connections=50,  # Allow more concurrent connections
     connect_timeout=10,
     read_timeout=60,
-    s3={'addressing_style': 'virtual'}  # Configures to use subdomain/virtual calling format
+    s3={'addressing_style': 'path'}
 )
 
 
@@ -82,8 +82,8 @@ class S3AudioService:
     def get_assets_for_site_index():
         try:
             s3 = S3AudioService()
-            s3.sync_s3_to_local('audio', settings.MEDIA_ROOT)
-            s3.sync_s3_to_local('images', settings.MEDIA_ROOT)
+            s3.sync_s3_to_local(settings.S3_BUCKET_NAME + '/audio', settings.MEDIA_ROOT)
+            s3.sync_s3_to_local(settings.S3_BUCKET_NAME + '/images', settings.MEDIA_ROOT)
             print('get_assets_for_site_index SUCCESS')
         except Exception as e:
             print(f'get_assets_for_site_index ERROR: {e}')
