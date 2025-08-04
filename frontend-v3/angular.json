@@ -11,9 +11,9 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "../GetMyBeatsApp/static/js/bundle",
+            "outputPath": "dist/frontend-v3",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
