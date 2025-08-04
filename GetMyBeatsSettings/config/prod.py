@@ -50,27 +50,50 @@ CACHES = {
 del REDIS_SETTINGS
 
 LOGGING = {
-    'version': 1,  # the dictConfig format version
+    'version': 1,
     'disable_existing_loggers': False,
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'GetMyBeatsApp': {
-            'level': 'INFO',
-            'handlers': ['general']
-        }
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            
+            'propagate': False,
+        },
     },
     'handlers': {
-        'general': {
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/general.log',
-            'level': 'INFO',
+        'console': {
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+        },
+        'error_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'level': 'ERROR',
         },
     },
     'formatters': {
         'verbose': {
-            'format': DEFAULT_LOGGING_FORMAT,
-            'style': '{'
+            'format': '{levelname} {asctime} [{name}] {message}',
+            'style': '{',
         },
+        'simple': {
+            'format': '{levelname}: {message}',
+            'style': '{',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
     }
 }
 
