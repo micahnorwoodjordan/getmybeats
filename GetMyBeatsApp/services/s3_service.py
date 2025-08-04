@@ -1,6 +1,9 @@
-import boto3
 import os
 import logging
+
+import boto3
+import botocore
+from botocore.exceptions import ClientError
 
 from django.conf import settings
 
@@ -14,16 +17,33 @@ class ModelNotConfiguredForS3DownloadException(Exception):
 
 # TODO: `S3AudioService` to become a generic S3 wrapper (`S3Service`) with some audio-specifc methods
 class S3AudioService:
-    def __init__(self, bucket=None):
-        self.resource = boto3.resource('s3')
-        self.bucket = self.resource.Bucket(bucket or settings.S3_AUDIO_BUCKET)
+    def __init__(self):
+        session = boto3.session.Session()
+        self.client = session.client(
+            's3',
+            endpoint_url=settings.S3_BUCKET,
+            config=botocore.config.Config(s3={'addressing_style': 'virtual'}),  # Configures to use subdomain/virtual calling format.
+            region_name=settings.REGION,
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+        )
+        self.bucket = settings.S3_BUCKET
 
-    def upload(self, local_filepath, remote_filepath):
-        self.bucket.upload_file(local_filepath, remote_filepath)
+    def upload(self, local_filepath: str, key: str):
+        try:
+            with open(local_filepath, 'rb') as f:
+                self.client.upload_fileobj(f, Bucket=self.bucket, Key=key)
+        except ClientError as e:
+            print(f"Failed to upload {local_filepath}: {e.response['Error']['Message']}")
 
-    def download(self, remote_filepath, local_filepath):
-        s3_object = self.resource.Object(self.bucket._name, remote_filepath)
-        s3_object.download_file(local_filepath)
+    def download(self, key: str, local_filepath: str):
+        try:
+            response = self.client.get_object(Bucket=self.bucket, Key=key)
+            with open(local_filepath, 'wb') as f:
+                for chunk in response['Body'].iter_chunks(chunk_size=8192):
+                    f.write(chunk)
+        except ClientError as e:
+            print(f"Failed to download {key} from {self.bucket}: {e.response['Error']['Message']}")
     
     @staticmethod
     def get_assets_for_site_index():
@@ -35,15 +55,16 @@ class S3AudioService:
         # note to self: this is tech debt that needs cleaning after a reliable virtualization mechanism is achieved
         for model in [Audio, AudioArtwork]:
             if model == Audio:
-                s3 = S3AudioService(bucket=settings.S3_AUDIO_BUCKET)
+                key_prefix = 'audio'
             elif model == AudioArtwork:
-                s3 = S3AudioService(bucket=settings.S3_ARTWORK_BUCKET)
+                key_prefix = 'images'
             else:
                 raise ModelNotConfiguredForS3DownloadException(f'model has not been properly configured: {model}')
 
+            s3 = S3AudioService()
             for instance in model.objects.all():
                 filepath = instance.file.path
-                filename = os.path.basename(filepath)
+                filename = f'{key_prefix}/{os.path.basename(filepath)}'
 
                 if not os.path.exists(filepath):
                     create_filepath = f'{settings.MEDIA_ROOT}/{filename}'

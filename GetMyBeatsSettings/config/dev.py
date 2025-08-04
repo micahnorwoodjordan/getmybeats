@@ -76,6 +76,3 @@ LOGGING = {
         },
     }
 }
-
-S3_AUDIO_BUCKET = 'getmybeats-audio-dev'
-S3_ARTWORK_BUCKET = 'getmybeats-images-dev'
