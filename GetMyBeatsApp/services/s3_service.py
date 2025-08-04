@@ -32,11 +32,14 @@ class S3AudioService:
         self.client = session.client(
             's3',
             endpoint_url=settings.S3_BUCKET_URL,
-            config=botocore.config.Config(s3={'addressing_style': 'virtual'}),  # Configures to use subdomain/virtual calling format.
+            config=botocore.config.Config(s3={
+                'addressing_style': 'virtual'  # Configures to use subdomain/virtual calling format.
+                } |
+                CONFIG
+            ),
             region_name=settings.REGION,
             aws_access_key_id=settings.AWS_ACCESS_KEY,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            config=CONFIG
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
         )
         self.bucket_name = settings.S3_BUCKET_NAME
 
