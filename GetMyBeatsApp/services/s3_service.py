@@ -17,7 +17,8 @@ CONFIG = Config(
     retries={'max_attempts': 5},
     max_pool_connections=50,  # Allow more concurrent connections
     connect_timeout=10,
-    read_timeout=60
+    read_timeout=60,
+    s3={'addressing_style': 'virtual'}  # Configures to use subdomain/virtual calling format
 )
 
 
@@ -32,11 +33,7 @@ class S3AudioService:
         self.client = session.client(
             's3',
             endpoint_url=settings.S3_BUCKET_URL,
-            config=botocore.config.Config(s3={
-                'addressing_style': 'virtual'  # Configures to use subdomain/virtual calling format.
-                } |
-                CONFIG
-            ),
+            config=CONFIG,
             region_name=settings.REGION,
             aws_access_key_id=settings.AWS_ACCESS_KEY,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
