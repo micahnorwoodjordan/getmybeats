@@ -82,7 +82,7 @@ class S3AudioService:
     def get_assets_for_site_index():
         try:
             s3 = S3AudioService()
-            s3.sync_s3_to_local('audio', settings.MMEDIA_ROOTE)
+            s3.sync_s3_to_local('audio', settings.MEDIA_ROOT)
             s3.sync_s3_to_local('images', settings.MEDIA_ROOT)
             print(f'get_assets_for_site_index SUCCESS')
         except Exception as e:
