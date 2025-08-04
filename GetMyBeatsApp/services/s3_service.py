@@ -21,29 +21,29 @@ class S3AudioService:
         session = boto3.session.Session()
         self.client = session.client(
             's3',
-            endpoint_url=settings.S3_BUCKET,
+            endpoint_url=settings.S3_BUCKET_URL,
             config=botocore.config.Config(s3={'addressing_style': 'virtual'}),  # Configures to use subdomain/virtual calling format.
             region_name=settings.REGION,
             aws_access_key_id=settings.AWS_ACCESS_KEY,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
         )
-        self.bucket = settings.S3_BUCKET
+        self.bucket_name = settings.S3_BUCKET_NAME
 
     def upload(self, local_filepath: str, key: str):
         try:
             with open(local_filepath, 'rb') as f:
-                self.client.upload_fileobj(f, Bucket=self.bucket, Key=key)
+                self.client.upload_fileobj(f, Bucket=self.bucket_name, Key=key)
         except ClientError as e:
             print(f"Failed to upload {local_filepath}: {e.response['Error']['Message']}")
 
     def download(self, key: str, local_filepath: str):
         try:
-            response = self.client.get_object(Bucket=self.bucket, Key=key)
+            response = self.client.get_object(Bucket=self.bucket_name, Key=key)
             with open(local_filepath, 'wb') as f:
                 for chunk in response['Body'].iter_chunks(chunk_size=8192):
                     f.write(chunk)
         except ClientError as e:
-            print(f"Failed to download {key} from {self.bucket}: {e.response['Error']['Message']}")
+            print(f"Failed to download {key} from {self.bucket_name}: {e.response['Error']['Message']}")
     
     @staticmethod
     def get_assets_for_site_index():

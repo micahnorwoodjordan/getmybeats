@@ -9,7 +9,7 @@ DEBUG = False
 
 CSRF_TRUSTED_ORIGINS = ['https://getmybeats.com']
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # TODO: dont forget to update
 
 DIGITALOCEAN_SETTINGS = json.loads(os.environ['DIGITALOCEAN_SETTINGS'])
 DIGITALOCEAN_API_HOST = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_API_HOST']

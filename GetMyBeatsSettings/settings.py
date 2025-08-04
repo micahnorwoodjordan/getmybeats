@@ -100,5 +100,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # TODO: rename to DigitalOcean and consolidate
 AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-S3_BUCKET = os.environ['S3_BUCKET']
+S3_BUCKET_URL = os.environ['S3_BUCKET_URL']
+S3_BUCKET_NAME = os.environ['S3_BUCKET_NAME']
 REGION = os.environ['REGION']
