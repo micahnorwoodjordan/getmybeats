@@ -10,7 +10,7 @@ from GetMyBeatsSettings.urlconfs.media_urls import urlpatterns as media_url_patt
 
 urlpatterns = [
     path('settings/admin/', admin.site.urls),
-    path('', views.home, name='home'),
+    path('', views.health_check, name='health_check'),
     path('health-check', views.health_check, name='health_check'),
     path('releases/<str:release_id>/', views.get_release),
 ]
