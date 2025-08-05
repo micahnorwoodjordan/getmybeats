@@ -124,10 +124,12 @@ def get_audio_by_hash(request, filename_hash):
         # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
         # must NEVER forget that Google Chrome bugs out when headers aren't properly set
         # prone to error when implementing custom server-side streaming logic
-        response['Content-Type'] = 'audio/mpeg'
+        response['Content-Type'] = 'application/octet-stream'
         response['Content-Length'] = content_file.size
         response['Content-Disposition'] = f'attachment; filename={filename_hash}'
         response['Accept-Ranges'] = 'bytes'
+        response['Content-Encoding'] = 'identity'
+        response['Cache-Control'] = 'no-store'
         return response
     except KeyError as e:  # missing Audio-Request-Id header
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
