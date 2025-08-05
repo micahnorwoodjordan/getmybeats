@@ -232,21 +232,21 @@ export class AudioService {
               console.log(`getandloadaudiotrack: received server response ${event.status}`);
               if (event.status == 200) {
                 if (event.body !== undefined && event.body !== null) {
-                  let encrypted = new Uint8Array(await event.body.arrayBuffer());
-                  let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
-                    201, 208, 229, 250, 49, 129, 92, 10,
-                    78, 103, 200, 70, 178, 73, 30, 111,
-                    251, 43, 26, 224, 250, 121, 88, 227,
-                    209, 170, 62, 61, 96, 17, 35, 153
-                  ]));
-                  // let audioSrc = URL.createObjectURL(event.body);
-                  // this.setAudioSrc(audioSrc);
+                  // let encrypted = new Uint8Array(await event.body.arrayBuffer());
+                  // let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
+                  //   201, 208, 229, 250, 49, 129, 92, 10,
+                  //   78, 103, 200, 70, 178, 73, 30, 111,
+                  //   251, 43, 26, 224, 250, 121, 88, 227,
+                  //   209, 170, 62, 61, 96, 17, 35, 153
+                  // ]));
+                  let audioSrc = URL.createObjectURL(event.body);
+                  this.setAudioSrc(audioSrc);
                   this.setLoading(false);
                   this.updateAudioOndurationchange();
-                  // if (this.autoplayOnIndexChange) {
-                    // this.playAudioTrack();
-                    this.playDecryptedAudio(decrypted);
-                  // }
+                  if (this.autoplayOnIndexChange) {
+                    this.playAudioTrack();
+                    // this.playDecryptedAudio(decrypted);
+                  }
                 }
               } else {
                 console.log('getandloadaudiotrack: ERROR fetching audio');
