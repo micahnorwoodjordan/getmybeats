@@ -44,12 +44,6 @@ def health_check(request):
     return HttpResponse()
 
 
-@api_view(['GET'])
-def home(request):
-    recorded_site_visit = record_request_information(request)
-    return render(request, 'home.html')
-
-
 @validate_user_agent
 @api_view(['GET'])
 def audio_filenames(request):
