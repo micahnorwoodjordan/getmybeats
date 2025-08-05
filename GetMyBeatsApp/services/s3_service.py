@@ -21,6 +21,14 @@ CONFIG = Config(
     s3={'addressing_style': 'path'}
 )
 
+VALID_S3_OBJECT_KEY_EXTENSIONS = (
+    '.wav',
+    '.mp3',
+    '.png',
+    '.jpg',
+    '.jpeg'
+)
+
 
 class ModelNotConfiguredForS3DownloadException(Exception):
     pass
@@ -48,7 +56,6 @@ class S3AudioService:
             print(f"Failed to upload {local_filepath}: {e.response['Error']['Message']}")
 
     def download(self, key: str, local_filepath: str):
-        print(local_filepath)
         try:
             response = self.client.get_object(Bucket=self.bucket_name, Key=key)
             with open(local_filepath, 'wb') as f:
@@ -69,9 +76,14 @@ class S3AudioService:
         for page in pages:
             for obj in page.get('Contents', []):
                 key = obj['Key']
-                relative_path = key[len(prefix):].lstrip('/')
-                dest_path = local_dir / relative_path
-                download_tasks.append((self.bucket_name, key, dest_path))
+                filename = os.path.basename(key)
+                dest_path = os.path.join(settings.MEDIA_ROOT, filename)
+
+                is_valid_target = any(ext in filename for ext in VALID_S3_OBJECT_KEY_EXTENSIONS)
+                if not is_valid_target:
+                    continue
+
+                download_tasks.append((key, dest_path))
 
         # Download in parallel using thread pool
         with ThreadPoolExecutor(max_workers=10) as executor:
@@ -83,8 +95,8 @@ class S3AudioService:
     def get_assets_for_site_index():
         try:
             s3 = S3AudioService()
-            s3.sync_s3_to_local(settings.S3_BUCKET_NAME + '/audio', settings.MEDIA_ROOT)
-            s3.sync_s3_to_local(settings.S3_BUCKET_NAME + '/images', settings.MEDIA_ROOT)
+            s3.sync_s3_to_local('audio', settings.MEDIA_ROOT)
+            s3.sync_s3_to_local('images', settings.MEDIA_ROOT)
             print('get_assets_for_site_index SUCCESS')
         except Exception as e:
             print(f'get_assets_for_site_index ERROR: {e}')
