@@ -48,6 +48,7 @@ class S3AudioService:
             print(f"Failed to upload {local_filepath}: {e.response['Error']['Message']}")
 
     def download(self, key: str, local_filepath: str):
+        print(local_filepath)
         try:
             response = self.client.get_object(Bucket=self.bucket_name, Key=key)
             with open(local_filepath, 'wb') as f:
