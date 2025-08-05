@@ -1,6 +1,8 @@
 import json
 import os
 
+from corsheaders.defaults import default_headers
+
 from GetMyBeatsSettings.settings import *
 
 
@@ -9,10 +11,10 @@ DEBUG = False
 
 CSRF_TRUSTED_ORIGINS = ['https://getmybeats.com']
 
-ALLOWED_HOSTS = [
-    '.getmybeats.com',
-    'cloud.digitalocean.com'
-]
+ALLOWED_HOSTS = ['*']  # TODO: dont forget to update
+
+CORS_ALLOW_HEADERS = list(default_headers) + ['Audio-Request-Id']
+CORS_ALLOWED_ORIGINS = ["https://ui.getmybeats.com"]
 
 DIGITALOCEAN_SETTINGS = json.loads(os.environ['DIGITALOCEAN_SETTINGS'])
 DIGITALOCEAN_API_HOST = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_API_HOST']
@@ -50,29 +52,49 @@ CACHES = {
 del REDIS_SETTINGS
 
 LOGGING = {
-    'version': 1,  # the dictConfig format version
+    'version': 1,
     'disable_existing_loggers': False,
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'GetMyBeatsApp': {
-            'level': 'INFO',
-            'handlers': ['general']
-        }
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            
+            'propagate': False,
+        },
     },
     'handlers': {
-        'general': {
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/general.log',
-            'level': 'INFO',
+        'console': {
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+        },
+        'error_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'level': 'ERROR',
         },
     },
     'formatters': {
         'verbose': {
-            'format': DEFAULT_LOGGING_FORMAT,
-            'style': '{'
+            'format': '{levelname} {asctime} [{name}] {message}',
+            'style': '{',
         },
+        'simple': {
+            'format': '{levelname}: {message}',
+            'style': '{',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
     }
 }
-
-S3_AUDIO_BUCKET = 'getmybeats-audio'
-S3_ARTWORK_BUCKET = 'getmybeats-images'

@@ -92,13 +92,12 @@ services:
       - 80:80
     command: /bin/bash -c "
       systemctl start cron &&
-      cd /application/media && aws s3 sync s3://getmybeats-audio-dev ./ &&
-      cd /application/media && aws s3 sync s3://getmybeats-images-dev ./ &&
       cd /application/getmybeats &&
       python3 dev/cron/prepare_env.py &&
       . /opt/venvs/getmybeats/bin/activate &&
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py collectstatic --no-input &&
+      ./manage.py download_missing_audio &&
       echo 'starting gunicorn' && 
       /opt/venvs/getmybeats/bin/gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi --daemon --reload &&
       echo 'echo starting nginx' && sudo systemctl restart nginx &&

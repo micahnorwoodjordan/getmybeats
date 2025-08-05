@@ -12,3 +12,4 @@ class Command(BaseCommand):
             print('SUCCESS: finished downloading audio files.')
         except Exception as e:
             print(e)
+            raise

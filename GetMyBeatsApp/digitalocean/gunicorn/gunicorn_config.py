@@ -1,7 +1,5 @@
-command = '/usr/local/bin/gunicorn'
-pythonpath = '/application/getmybeats'
-workers = 3
-bind = '127.0.0.1:8000'
+
+bind = "0.0.0.0:443"
+workers = 2
+timeout = 30
 loglevel = "info"
-capture_output = True
-errorlog = "/var/log/gunicorn/error.log"

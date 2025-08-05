@@ -1,7 +1,6 @@
 getmybeats/__pycache__/
 *.sql
 *.pyc
-*.txt
 venv/
 .DS_Store
 media/
