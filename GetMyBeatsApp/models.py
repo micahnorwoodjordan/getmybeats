@@ -56,6 +56,7 @@ class AudioArtwork(models.Model):
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
         if self.pk:
+            key_prefix = 'images'
             old_instance = AudioArtwork.objects.get(pk=self.pk)
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
                 old_file_content = oldf.read()
@@ -80,8 +81,8 @@ class AudioArtwork(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(f'images/{temp_file.name}', filename)
-            self.s3_upload_path = os.path.join('s3://', settings.S3_ARTWORK_BUCKET, filename)
+                S3AudioService().upload(f'{key_prefix}/{temp_file.name}', filename)
+            self.s3_upload_path = os.path.join(settings.S3_BUCKET_URL, settings.S3_BUCKET_NAME, key_prefix, filename)
             super().save(*args, **kwargs)
 
     class Meta:
@@ -115,6 +116,7 @@ class Audio(models.Model):
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
         if self.pk:
+            key_prefix = 'audio'
             old_instance = Audio.objects.get(pk=self.pk)
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
                 old_file_content = oldf.read()
@@ -140,8 +142,8 @@ class Audio(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(f'audio/{temp_file.name}', filename)
-            self.s3_upload_path = os.path.join('s3://', settings.S3_AUDIO_BUCKET, filename)
+                S3AudioService().upload(f'{key_prefix}/{temp_file.name}', filename)
+            self.s3_upload_path = os.path.join(settings.S3_BUCKET_URL, settings.S3_BUCKET_NAME, key_prefix, filename)
             super().save(*args, **kwargs)
 
     class Status(Enum):
