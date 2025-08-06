@@ -2,6 +2,8 @@ name: Getmybeats CICD
 
 on:
   push:
+    branches:
+      - 'api/**'
 
 jobs:
   test-api:
