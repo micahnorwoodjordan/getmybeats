@@ -55,8 +55,8 @@ class AudioArtwork(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
+        key_prefix = 'images'
         if self.pk:
-            key_prefix = 'images'
             old_instance = AudioArtwork.objects.get(pk=self.pk)
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
                 old_file_content = oldf.read()
@@ -115,8 +115,8 @@ class Audio(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
+        key_prefix = 'audio'
         if self.pk:
-            key_prefix = 'audio'
             old_instance = Audio.objects.get(pk=self.pk)
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
                 old_file_content = oldf.read()
