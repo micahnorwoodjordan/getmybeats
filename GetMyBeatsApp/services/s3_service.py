@@ -48,6 +48,10 @@ class S3AudioService:
         )
         self.bucket_name = settings.S3_BUCKET_NAME
 
+    def ls(self):
+        results = self.client.list_objects_v2(self.bucket_name)
+        print(results)
+
     def upload(self, key: str, local_filepath: str):
         try:
             with open(local_filepath, 'rb') as f:
