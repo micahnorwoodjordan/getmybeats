@@ -14,7 +14,7 @@ CSRF_TRUSTED_ORIGINS = ['https://getmybeats.com']
 ALLOWED_HOSTS = ['*']  # TODO: dont forget to update
 
 CORS_ALLOW_HEADERS = list(default_headers) + ['Audio-Request-Id']
-CORS_ALLOWED_ORIGINS = ["https://ui.getmybeats.com"]
+CORS_ALLOWED_ORIGINS = ["https://getmybeats.com"]
 
 DIGITALOCEAN_SETTINGS = json.loads(os.environ['DIGITALOCEAN_SETTINGS'])
 DIGITALOCEAN_API_HOST = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_API_HOST']
