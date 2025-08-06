@@ -4,36 +4,6 @@ on:
   push:
 
 jobs:
-  test-ui:
-    runs-on: ubuntu-22.04
-
-    strategy:
-      matrix:
-        node-version: [22.3.0]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache-dependency-path: frontend-v3/package-lock.json
-          cache: 'npm'
-
-      - name: Install dependencies
-        working-directory: frontend-v3
-        run: npm install
-
-      - name: Run Node App
-        env:
-          NODE_ENV: ${{ vars.NODE_ENV }}
-          NODE_VERBOSE: ${{ vars.NODE_VERBOSE }}
-          NODE_OPTIONS: ${{ vars.NODE_OPTIONS }}
-        working-directory: frontend-v3
-        run: npm start
-
   test-api:
     runs-on: ubuntu-22.04
     strategy:
