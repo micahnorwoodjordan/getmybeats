@@ -67,7 +67,7 @@ class AudioArtwork(models.Model):
                     for chunk in self.file.chunks():
                         temp_file.write(chunk)
                     filename = space_to_charx(self.file.name, UNDERSCORE).lower()
-                    S3AudioService(settings.S3_ARTWORK_BUCKET).upload(temp_file.name, filename)
+                    S3AudioService().upload(f'images/{temp_file.name}', filename)
             super().save(*args, **kwargs)
             with open(self.file.path, 'wb') as file:
                 file.write(new_file_content)
@@ -80,7 +80,7 @@ class AudioArtwork(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService(settings.S3_ARTWORK_BUCKET).upload(temp_file.name, filename)
+                S3AudioService().upload(f'images/{temp_file.name}', filename)
             self.s3_upload_path = os.path.join('s3://', settings.S3_ARTWORK_BUCKET, filename)
             super().save(*args, **kwargs)
 
@@ -126,7 +126,7 @@ class Audio(models.Model):
                     for chunk in self.file.chunks():
                         temp_file.write(chunk)
                     filename = space_to_charx(self.file.name, UNDERSCORE).lower()
-                    S3AudioService().upload(temp_file.name, filename)
+                    S3AudioService().upload(f'audio/{temp_file.name}', filename)
             super().save(*args, **kwargs)
             with open(self.file.path, 'wb') as file:
                 file.write(new_file_content)
@@ -140,7 +140,7 @@ class Audio(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(temp_file.name, filename)
+                S3AudioService().upload(f'audio/{temp_file.name}', filename)
             self.s3_upload_path = os.path.join('s3://', settings.S3_AUDIO_BUCKET, filename)
             super().save(*args, **kwargs)
 
