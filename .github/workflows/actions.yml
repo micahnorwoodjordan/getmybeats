@@ -24,6 +24,7 @@ jobs:
     - name: Run Tests
       env:
         DJANGO_SECRET_KEY: ${{ vars.DJANGO_SECRET_KEY }}
+        DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
         AWS_ACCESS_KEY: ${{ vars.AWS_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ vars.AWS_SECRET_ACCESS_KEY }}
         DATABASE_SETTINGS: ${{ vars.DATABASE_SETTINGS }}
