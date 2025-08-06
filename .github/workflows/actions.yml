@@ -25,6 +25,10 @@ jobs:
         run: npm install
 
       - name: Run Node App
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          NODE_VERBOSE: ${{ vars.NODE_VERBOSE }}
+          NODE_OPTIONS: ${{ vars.NODE_OPTIONS }}
         run: npm start
 
   test-api:
