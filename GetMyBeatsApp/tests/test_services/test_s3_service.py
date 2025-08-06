@@ -5,12 +5,14 @@ from django.conf import settings
 from GetMyBeatsApp.services.s3_service import S3AudioService
 
 
-def _instantiate():
+def get_s3():
     s3 = S3AudioService()
     assert s3.client is not None
-    s3.ls()  # a valid service constructor should be able stat the bucket at a minimum
+    assert s3.bucket_name is not None
     return s3
 
 
-def test_service_constructor():
-    _instantiate()
+# a valid service constructor should be able stat the bucket at a minimum
+def test_ls():
+    s3 = get_s3()
+    s3.ls()
