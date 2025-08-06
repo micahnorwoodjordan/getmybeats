@@ -68,7 +68,7 @@ class AudioArtwork(models.Model):
                     for chunk in self.file.chunks():
                         temp_file.write(chunk)
                     filename = space_to_charx(self.file.name, UNDERSCORE).lower()
-                    S3AudioService().upload(f'images/{temp_file.name}', filename)
+                    S3AudioService().upload(f'images/{filename}', temp_file.name)
             super().save(*args, **kwargs)
             with open(self.file.path, 'wb') as file:
                 file.write(new_file_content)
@@ -81,7 +81,7 @@ class AudioArtwork(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(f'{key_prefix}/{temp_file.name}', filename)
+                S3AudioService().upload(f'{key_prefix}/{filename}', temp_file.name)
             self.s3_upload_path = os.path.join(settings.S3_BUCKET_URL, settings.S3_BUCKET_NAME, key_prefix, filename)
             super().save(*args, **kwargs)
 
@@ -128,7 +128,7 @@ class Audio(models.Model):
                     for chunk in self.file.chunks():
                         temp_file.write(chunk)
                     filename = space_to_charx(self.file.name, UNDERSCORE).lower()
-                    S3AudioService().upload(f'audio/{temp_file.name}', filename)
+                    S3AudioService().upload(f'audio/{filename}', temp_file.name)
             super().save(*args, **kwargs)
             with open(self.file.path, 'wb') as file:
                 file.write(new_file_content)
@@ -142,7 +142,7 @@ class Audio(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(f'{key_prefix}/{temp_file.name}', filename)
+                S3AudioService().upload(f'{key_prefix}/{filename}', temp_file.name)
             self.s3_upload_path = os.path.join(settings.S3_BUCKET_URL, settings.S3_BUCKET_NAME, key_prefix, filename)
             super().save(*args, **kwargs)
 
