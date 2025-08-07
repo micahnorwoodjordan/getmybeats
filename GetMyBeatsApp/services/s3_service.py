@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG = Config(
     retries={'max_attempts': 5},
-    max_pool_connections=50,  # Allow more concurrent connections
+    max_pool_connections=5,  # concurrent connections
     connect_timeout=10,
     read_timeout=60,
     s3={'addressing_style': 'path'}
@@ -29,9 +29,7 @@ VALID_S3_OBJECT_KEY_EXTENSIONS = (
     '.jpeg'
 )
 
-
-class ModelNotConfiguredForS3DownloadException(Exception):
-    pass
+DEFAULT_CHUNK_SIZE_BYTES = 8192
 
 
 # TODO: `S3AudioService` to become a generic S3 wrapper (`S3Service`) with some audio-specifc methods
@@ -48,6 +46,10 @@ class S3AudioService:
         )
         self.bucket_name = settings.S3_BUCKET_NAME
 
+    def ls(self):
+        results = self.client.list_objects_v2(Bucket=self.bucket_name)
+        print(results)
+
     def upload(self, key: str, local_filepath: str):
         try:
             with open(local_filepath, 'rb') as f:
@@ -59,19 +61,17 @@ class S3AudioService:
         try:
             response = self.client.get_object(Bucket=self.bucket_name, Key=key)
             with open(local_filepath, 'wb') as f:
-                for chunk in response['Body'].iter_chunks(chunk_size=8192):
+                for chunk in response['Body'].iter_chunks(chunk_size=DEFAULT_CHUNK_SIZE_BYTES):
                     f.write(chunk)
         except ClientError as e:
             print(f"Failed to download {key} from {self.bucket_name}: {e.response['Error']['Message']}")
 
-    def sync_s3_to_local(self, prefix: str, local_dir: str):
+    def sync(self, prefix: str, local_dir: str):
+        """sync the contents of a remote spaces object storage bucket to local filesystem"""
+        download_tasks = []
         local_dir = Path(local_dir)
-
-        # Paginate through all objects under the prefix
         paginator = self.client.get_paginator('list_objects_v2')
         pages = paginator.paginate(Bucket=self.bucket_name, Prefix=prefix)
-
-        download_tasks = []
 
         for page in pages:
             for obj in page.get('Contents', []):
@@ -95,8 +95,8 @@ class S3AudioService:
     def get_assets_for_site_index():
         try:
             s3 = S3AudioService()
-            s3.sync_s3_to_local('audio', settings.MEDIA_ROOT)
-            s3.sync_s3_to_local('images', settings.MEDIA_ROOT)
+            s3.sync('audio', settings.MEDIA_ROOT)
+            s3.sync('images', settings.MEDIA_ROOT)
             print('get_assets_for_site_index SUCCESS')
         except Exception as e:
             print(f'get_assets_for_site_index ERROR: {e}')
