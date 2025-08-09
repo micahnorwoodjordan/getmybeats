@@ -55,7 +55,7 @@ class AudioArtwork(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
-        key_prefix = 'images'
+        key_prefix = 'getmybeats/images'
         if self.pk:
             old_instance = AudioArtwork.objects.get(pk=self.pk)
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
@@ -68,7 +68,7 @@ class AudioArtwork(models.Model):
                     for chunk in self.file.chunks():
                         temp_file.write(chunk)
                     filename = space_to_charx(self.file.name, UNDERSCORE).lower()
-                    S3AudioService().upload(f'images/{filename}', temp_file.name)
+                    S3AudioService().upload(os.path.join(key_prefix, filename), temp_file.name)
             super().save(*args, **kwargs)
             with open(self.file.path, 'wb') as file:
                 file.write(new_file_content)
@@ -81,7 +81,7 @@ class AudioArtwork(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(f'{key_prefix}/{filename}', temp_file.name)
+                S3AudioService().upload(os.path.join(key_prefix, filename), temp_file.name)
             self.s3_upload_path = os.path.join(settings.S3_BUCKET_URL, settings.S3_BUCKET_NAME, key_prefix, filename)
             super().save(*args, **kwargs)
 
@@ -115,7 +115,7 @@ class Audio(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
-        key_prefix = 'audio'
+        key_prefix = 'getmybeats/audio'
         if self.pk:
             old_instance = Audio.objects.get(pk=self.pk)
             with open(old_instance.file.path, 'rb') as oldf, open(self.file.path, 'rb') as newf:
@@ -128,7 +128,7 @@ class Audio(models.Model):
                     for chunk in self.file.chunks():
                         temp_file.write(chunk)
                     filename = space_to_charx(self.file.name, UNDERSCORE).lower()
-                    S3AudioService().upload(f'audio/{filename}', temp_file.name)
+                    S3AudioService().upload(os.path.join(key_prefix, filename), temp_file.name)
             super().save(*args, **kwargs)
             with open(self.file.path, 'wb') as file:
                 file.write(new_file_content)
@@ -142,7 +142,7 @@ class Audio(models.Model):
             with tempfile.NamedTemporaryFile() as temp_file:
                 for chunk in self.file.chunks():
                     temp_file.write(chunk)
-                S3AudioService().upload(f'{key_prefix}/{filename}', temp_file.name)
+                S3AudioService().upload(os.path.join(key_prefix, filename), temp_file.name)
             self.s3_upload_path = os.path.join(settings.S3_BUCKET_URL, settings.S3_BUCKET_NAME, key_prefix, filename)
             super().save(*args, **kwargs)
 

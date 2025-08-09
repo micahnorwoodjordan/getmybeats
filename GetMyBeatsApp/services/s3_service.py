@@ -82,7 +82,7 @@ class S3AudioService:
                 is_valid_target = any(ext in filename for ext in VALID_S3_OBJECT_KEY_EXTENSIONS)
                 if not is_valid_target:
                     continue
-
+                print(dest_path)
                 download_tasks.append((key, dest_path))
 
         # Download in parallel using thread pool
@@ -95,8 +95,8 @@ class S3AudioService:
     def get_assets_for_site_index():
         try:
             s3 = S3AudioService()
-            s3.sync('audio', settings.MEDIA_ROOT)
-            s3.sync('images', settings.MEDIA_ROOT)
+            s3.sync('getmybeats/audio', settings.MEDIA_ROOT)
+            s3.sync('getmybeats/images', settings.MEDIA_ROOT)
             print('get_assets_for_site_index SUCCESS')
         except Exception as e:
             print(f'get_assets_for_site_index ERROR: {e}')
