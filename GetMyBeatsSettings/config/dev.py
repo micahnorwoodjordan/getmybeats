@@ -51,28 +51,3 @@ CACHES = {
     }
 }
 del REDIS_SETTINGS
-
-LOGGING = {
-    'version': 1,  # the dictConfig format version
-    'disable_existing_loggers': False,
-    'loggers': {
-        'GetMyBeatsApp': {
-            'level': 'INFO',
-            'handlers': ['general']
-        }
-    },
-    'handlers': {
-        'general': {
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/general.log',
-            'level': 'INFO',
-            'formatter': 'verbose',
-        },
-    },
-    'formatters': {
-        'verbose': {
-            'format': DEFAULT_LOGGING_FORMAT,
-            'style': '{'
-        },
-    }
-}
