@@ -82,7 +82,7 @@ class S3AudioService:
                 is_valid_target = any(ext in filename for ext in VALID_S3_OBJECT_KEY_EXTENSIONS)
                 if not is_valid_target:
                     continue
-
+                print(dest_path)
                 download_tasks.append((key, dest_path))
 
         # Download in parallel using thread pool
