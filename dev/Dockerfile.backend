@@ -1,61 +1,33 @@
-FROM ubuntu:22.04
+FROM python:3.12.7
 
 
-# https://stackoverflow.com/questions/71040681/qemu-x86-64-could-not-open-lib64-ld-linux-x86-64-so-2-no-such-file-or-direc
-# uncomment when running on mac m1
-# FROM --platform=linux/amd64 ubuntu:22.04
-
-# for github actions
-ENV DJANGO_SETTINGS_MODULE='GetMyBeatsSettings.config.dev'
-ENV DJANGO_SECRET_KEY='noodles'
-ENV REDIS_SETTINGS='{"USER": "default", "PASSWORD": "Password1!", "HOST": "redis", "PORT": "6379"}'
-ENV DATABASE_SETTINGS='{"DBHOST": "db", "DBNAME": "getmybeats_local_old", "DBPASSWORD": "Password1!", "DBUSER": "mysql", "DBPORT": 3306}'
-ENV DIGITALOCEAN_SETTINGS='{"DIGITALOCEAN_API_HOST": "", "DIGITALOCEAN_BEARER_TOKEN": "", "DIGITALOCEAN_LOAD_BALANCER_ID": "", "DIGITALOCEAN_FIREWALL_ID": ""}'
-
-
-ARG application_directory="/application/getmybeats"
-ARG venv_directory="/opt/venvs/getmybeats"
+ARG DJANGO_SETTINGS_MODULE
+ARG DJANGO_SECRET_KEY
+ARG REDIS_SETTINGS
+ARG DATABASE_SETTINGS
+ARG DIGITALOCEAN_SETTINGS
+ARG AWS_ACCESS_KEY
+ARG AWS_SECRET_ACCESS_KEY
+ARG S3_BUCKET_NAME
+ARG S3_BUCKET_URL
+ARG REGION
 
 
-# first things first
-RUN apt update
-RUN apt install -y sudo curl iputils-ping nginx redis-tools python3 python3-pip mysql-client net-tools python3.10-venv unzip systemctl cron vim
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+ENV REDIS_SETTINGS=${REDIS_SETTINGS}
+ENV DATABASE_SETTINGS=${DATABASE_SETTINGS}
+ENV DIGITALOCEAN_SETTINGS=${DIGITALOCEAN_SETTINGS}
+ENV AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ENV S3_BUCKET_NAME=${S3_BUCKET_NAME}
+ENV S3_BUCKET_URL=${S3_BUCKET_URL}
+ENV REGION=${REGION}
 
+WORKDIR /srv/api
 
-# install crontab
-COPY dev/cron/crontab /etc/cron.d/
-RUN (crontab -l; cat dev/cron/crontab) | crontab -
-RUN chmod 0644 /etc/cron.d/crontab
-RUN touch /var/log/cron.log
+COPY ../requirements.txt .
 
+RUN pip install -r requirements.txt
 
-# set up directories
-RUN mkdir -p "$application_directory"
-RUN mkdir -p /var/log/django/
-RUN mkdir -p /var/log/gunicorn/
-RUN mkdir -p /application/media
-RUN mkdir -p "$venv_directory"
-RUN mkdir -p /root/.aws
-
-
-# set up core files
-RUN touch /var/log/gunicorn/error.log
-RUN touch /var/log/django/general.log
-RUN python3 -m venv "$venv_directory"
-COPY ./ "$application_directory"
-
-
-# configure awscli auth
-RUN cp "$application_directory"/dev/.aws/credentials /root/.aws
-RUN cp "$application_directory"/dev/.aws/config /root/.aws
-
-
-# install awscli
-RUN cd && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-RUN cd && unzip awscliv2.zip
-RUN cd && sudo ./aws/install
-
-
-RUN cd "$application_directory" && . /opt/venvs/getmybeats/bin/activate && pip3 install -r requirements.txt
-
-CMD systemctl start cron
+COPY .. .
