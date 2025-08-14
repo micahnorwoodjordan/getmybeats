@@ -52,11 +52,11 @@ services:
           S3_BUCKET_NAME: ${S3_BUCKET_NAME}
           S3_BUCKET_URL: ${S3_BUCKET_URL}
           REGION: ${REGION}
+
     ports:
       - 8000:8000
       - 80:80
     command: /bin/bash -c "
-      ls -ahl && sleep 5 &&
       ./manage.py migrate GetMyBeatsApp &&
       ./manage.py collectstatic --no-input &&
       ./manage.py download_missing_audio &&
@@ -74,15 +74,15 @@ services:
         condition: service_started
       dbimport:
         condition: service_started
-  frontend-testing:
+  ui:
     build:
         dockerfile: dev/Dockerfile.frontend
-        context: ./..
+        context: ..
     volumes:
-      - ../:/application/getmybeats
+      - ../frontend-v3:/srv/ui
     command: bash -c "
-      cd /application/getmybeats/frontend-v3/src &&
-      npm install -g @angular/cli && npm install --package-lock-only &&
-      npm install --save-dev @angular-devkit/build-angular@17.3.3 &&
-      ng build --configuration development"
-
+      npm install --save-dev @rollup/rollup-linux-x64-gnu &&
+      npx ng serve --host 0.0.0.0
+      "
+    # depends_on:
+    #   - api
