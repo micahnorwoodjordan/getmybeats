@@ -7,15 +7,11 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = False
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost']
 
-CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
-    'http://127.0.0.1',
-    'http://getmybeats.api.local'
-]
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # local development only
-CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = ['*']
 CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_ALL_ORIGINS = True
 
 DIGITALOCEAN_SETTINGS = json.loads(os.environ['DIGITALOCEAN_SETTINGS'])
 DIGITALOCEAN_API_HOST = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_API_HOST']

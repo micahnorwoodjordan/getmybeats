@@ -54,7 +54,6 @@ services:
           REGION: ${REGION}
 
     ports:
-      - 8000:8000
       - 80:80
     command: /bin/bash -c "
       ./manage.py migrate GetMyBeatsApp &&
@@ -80,9 +79,11 @@ services:
         context: ..
     volumes:
       - ../frontend-v3:/srv/ui
+    ports:
+      - 4200:4200
     command: bash -c "
       npm install --save-dev @rollup/rollup-linux-x64-gnu &&
       npx ng serve --host 0.0.0.0
       "
-    # depends_on:
-    #   - api
+    depends_on:
+      - api
