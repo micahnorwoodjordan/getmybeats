@@ -21,6 +21,8 @@ from GetMyBeatsApp.helpers.request_utilities import (
     GENERIC_404_MSG, GENERIC_500_MSG
 )
 
+from GetMyBeatsApp.services.encryption_service import EncryptionService
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,15 @@ def handler500(request, template_name="500.html"):
 @api_view(['GET'])
 def health_check(request):
     return HttpResponse()
+
+@validate_user_agent
+@api_view(['GET'])
+def get_encrypted_audio_by_hash(request, filename_hash):
+    audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
+    audio = get_audio_by_filename_hash(filename_hash)
+    record_audio_request_information(audio_request_id)
+    encrypted = EncryptionService().get_encrypted_file(audio.file.path)
+    return HttpResponse(encrypted, content_type='application/octet-stream')
 
 
 @validate_user_agent
