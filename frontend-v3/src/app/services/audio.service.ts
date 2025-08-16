@@ -201,12 +201,6 @@ export class AudioService {
     });
   }
 
-  // private async playEncryptedAudioFile(audioUrl: string, keyBytes: Uint8Array): Promise<void> {
-  //   const encrypted = await this.fetchEncryptedAudio(audioUrl);
-  //   const decrypted = await decryptAudioData(encrypted, keyBytes);
-  //   await this.playDecryptedAudio(decrypted);
-  // }
-
   private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {
     let audioFilenameHash;
     let audioContext = await this.getContextSynchronously();
@@ -232,20 +226,17 @@ export class AudioService {
               console.log(`getandloadaudiotrack: received server response ${event.status}`);
               if (event.status == 200) {
                 if (event.body !== undefined && event.body !== null) {
-                  // let encrypted = new Uint8Array(await event.body.arrayBuffer());
-                  // let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
-                  //   201, 208, 229, 250, 49, 129, 92, 10,
-                  //   78, 103, 200, 70, 178, 73, 30, 111,
-                  //   251, 43, 26, 224, 250, 121, 88, 227,
-                  //   209, 170, 62, 61, 96, 17, 35, 153
-                  // ]));
-                  let audioSrc = URL.createObjectURL(event.body);
-                  this.setAudioSrc(audioSrc);
+                  let encrypted = await event.body.arrayBuffer();
+                  let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
+                    197, 161, 34, 196, 208, 241, 221, 120,
+                    26, 52, 83, 178, 189, 208, 70, 253,
+                    80, 178, 134, 158, 29, 129, 199, 202,
+                    188, 187, 60, 249, 22, 254, 247, 149
+                  ]));
                   this.setLoading(false);
                   this.updateAudioOndurationchange();
                   if (this.autoplayOnIndexChange) {
-                    this.playAudioTrack();
-                    // this.playDecryptedAudio(decrypted);
+                    this.playDecryptedAudio(decrypted);
                   }
                 }
               } else {
