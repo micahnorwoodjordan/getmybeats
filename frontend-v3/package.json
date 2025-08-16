@@ -2,7 +2,7 @@
   "name": "frontend-v3",
   "version": "0.0.0",
   "engines": {
-    "node": "22.3.0"
+    "node": "22.10.0"
   },
   "scripts": {
     "ng": "ng",
