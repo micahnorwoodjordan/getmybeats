@@ -7,15 +7,11 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = False
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost']
 
-CSRF_TRUSTED_ORIGINS = [  # https://docs.djangoproject.com/en/4.2/ref/settings/
-    'http://127.0.0.1',
-    'http://getmybeats.api.local'
-]
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # local development only
-CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = ['*']
 CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_ALL_ORIGINS = True
 
 DIGITALOCEAN_SETTINGS = json.loads(os.environ['DIGITALOCEAN_SETTINGS'])
 DIGITALOCEAN_API_HOST = DIGITALOCEAN_SETTINGS['DIGITALOCEAN_API_HOST']
@@ -51,28 +47,3 @@ CACHES = {
     }
 }
 del REDIS_SETTINGS
-
-LOGGING = {
-    'version': 1,  # the dictConfig format version
-    'disable_existing_loggers': False,
-    'loggers': {
-        'GetMyBeatsApp': {
-            'level': 'INFO',
-            'handlers': ['general']
-        }
-    },
-    'handlers': {
-        'general': {
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/general.log',
-            'level': 'INFO',
-            'formatter': 'verbose',
-        },
-    },
-    'formatters': {
-        'verbose': {
-            'format': DEFAULT_LOGGING_FORMAT,
-            'style': '{'
-        },
-    }
-}

@@ -1,0 +1,89 @@
+services:
+  db:
+    ports:
+      - 3307:3306
+    command: "mysqld --sql-mode NO_ENGINE_SUBSTITUTION --disable-log-bin"
+    image: mysql:8
+    volumes:    
+      - ./db:/root/db
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "getmybeats_local_old"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 5s
+        retries: 1
+  dbimport:
+    volumes:    
+      - ./db:/root/db
+    image: mysql:8
+    entrypoint: "sh /root/db/import_db.sh"
+    environment:
+      MYSQL_USER: "mysql"
+      MYSQL_DATABASE: "getmybeats_local_old"
+      MYSQL_PASSWORD: "Password1!"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "Password1!"
+      MYSQL_HOST: "db"
+    depends_on:
+      db:
+        # https://stackoverflow.com/questions/42567475/docker-compose-check-if-mysql-connection-is-ready
+        condition: service_healthy
+  redis:
+    command: redis-server
+    image: redis
+    env_file:
+      - .env
+  api:
+    build:
+        dockerfile: dev/Dockerfile.backend
+        context: ..
+        args:
+          DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
+          DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+          REDIS_SETTINGS: ${REDIS_SETTINGS}
+          DATABASE_SETTINGS: ${DATABASE_SETTINGS}
+          DIGITALOCEAN_SETTINGS: ${DIGITALOCEAN_SETTINGS}
+          AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+          AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+          S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+          S3_BUCKET_URL: ${S3_BUCKET_URL}
+          REGION: ${REGION}
+
+    ports:
+      - 80:80
+    command: /bin/bash -c "
+      ./manage.py migrate GetMyBeatsApp &&
+      ./manage.py collectstatic --no-input &&
+      ./manage.py download_missing_audio &&
+      echo 'starting gunicorn' &&
+      gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi
+      "
+    volumes:
+      - ../:/srv/api
+    env_file:
+      .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      dbimport:
+        condition: service_started
+  ui:
+    build:
+        dockerfile: dev/Dockerfile.frontend
+        context: ..
+    volumes:
+      - ../frontend-v3:/srv/ui
+    ports:
+      - 4200:4200
+    command: bash -c "
+      npm install --save-dev @rollup/rollup-linux-x64-gnu &&
+      npx ng serve --host 0.0.0.0
+      "
+    depends_on:
+      - api
