@@ -48,12 +48,31 @@ def health_check(request):
 @validate_user_agent
 @api_view(['GET'])
 def get_encrypted_audio_by_hash(request, filename_hash):
-    audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
-    audio = get_audio_by_filename_hash(filename_hash)
-    record_audio_request_information(audio_request_id)
-    encrypted = EncryptionService().get_encrypted_file(audio.file.path)
-    return HttpResponse(encrypted, content_type='application/octet-stream')
-
+    try:
+        audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
+        audio = get_audio_by_filename_hash(filename_hash)
+        record_audio_request_information(audio_request_id)
+        encrypted = EncryptionService().get_encrypted_file(audio.file.path)
+        response = StreamingHttpResponse(streaming_content=read_in_chunks(raw_material=encrypted))
+        # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
+        # must NEVER forget that Google Chrome bugs out when headers aren't properly set
+        # prone to error when implementing custom server-side streaming logic
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Length'] = len(encrypted)
+        response['Content-Disposition'] = f'attachment; filename={filename_hash}'
+        response['Accept-Ranges'] = 'bytes'
+        response['Content-Encoding'] = 'identity'
+        response['Cache-Control'] = 'no-store'
+        return response
+    except KeyError as e:  # missing Audio-Request-Id header
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=400, reason=GENERIC_400_MSG)
+    except ObjectDoesNotExist as e:
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=404, reason=GENERIC_404_MSG)
+    except Exception as e:
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 @validate_user_agent
 @api_view(['GET'])
@@ -106,7 +125,7 @@ def get_audio_artwork_by_hash(request, filename_hash):
     try:
         artwork = get_audio_artwork_by_filename_hash(filename_hash)
         content_file = ContentFile(open(artwork.file.path, 'rb').read())
-        response = StreamingHttpResponse(streaming_content=read_in_chunks(content_file))
+        response = StreamingHttpResponse(streaming_content=read_in_chunks(infile=content_file))
         return response
     except ObjectDoesNotExist as e:
         logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
