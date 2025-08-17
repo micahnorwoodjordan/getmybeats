@@ -1,0 +1,9 @@
+<div>
+    <button (click)="togglePlay()">
+        {{ getIsPlaying() ? 'Pause' : 'Play' }}
+    </button>
+    <input type="range" min="0" [max]="getDuration()" [value]="getCurrentTime()" step="0.01" (input)="onSeek($event)"/>
+    <span>
+        {{ getCurrentTime() }} / {{ getDuration() }}
+    </span>
+</div>
