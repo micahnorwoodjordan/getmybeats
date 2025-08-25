@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { Audio2Service } from '../../services/audio2.service';
 
@@ -11,12 +11,20 @@ import { Audio2Service } from '../../services/audio2.service';
 export class Player2Component implements OnInit, OnDestroy {
     constructor(private audio2Service: Audio2Service, private apiService: ApiService) { }
 
-    getIsPlaying() { return this.audio2Service.isPlaying(); }
-    getCurrentTime() { return this.audio2Service.currentTime; }
-    getDuration() { return this.audio2Service.duration; }
+    public getIsPlaying() { return this.audio2Service.isPlaying(); }
+    public getCurrentTime() { return this.audio2Service.currentTime(); }
+    public getDuration() { return this.audio2Service.duration; }
+    private setCurrentTime(newValue: number) { this.currentPlaybackTime = newValue; }
+
+    public currentPlaybackTime: number = 0;
+    private currentPlaybackTimeRepaintMillis: number = 500;
 
   async ngOnInit() {
     this.audio2Service.getDecryptedAudio();
+    setInterval(() => {
+      this.setCurrentTime(this.getCurrentTime());
+    }, this.currentPlaybackTimeRepaintMillis);
+
     // await this.audio2Service.loadFromArrayBuffer(decrypted);
   }
 
