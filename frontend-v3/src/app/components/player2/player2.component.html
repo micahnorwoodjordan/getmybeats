@@ -1,8 +1,61 @@
-<div>
-    <button (click)="togglePlay()">
-        {{ getIsPlaying() ? 'Pause' : 'Play' }}
-    </button>
-    <mat-slider (input)="onSeek($event)" step="0.005" min="0" max="getDuration()" class="slider">
-        <input matSliderThumb [(ngModel)]="currentPlaybackTime"/>
-    </mat-slider>
+<div class="player">
+    <div fxLayout="column" fxLayoutAlign="center center">
+        <app-header [hasPlaybackError]="hasPlaybackError"></app-header>
+        <!-- TODO  audioHasArtwork -->
+        <div id="backdrop" *ngIf="!audioHasArtwork" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
+            <mat-icon class="headset-backdrop-icon">headset</mat-icon>
+        </div>
+        <div id="backdrop" *ngIf="audioHasArtwork" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="space-evenly center" [style.--backdrop-image-url]="'url(' + artworkImage.src + ')'"></div>
+        <mat-progress-bar class="progress-bar" *ngIf="getLoading()"  mode="determinate" [value]="getDownloadProgress()"></mat-progress-bar>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <h1 class="songTitle"> {{ getTitle() }}</h1>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <h3 class="songArtist"> micah </h3>
+        </div>
+        <mat-spinner *ngIf="getLoading()" class="progress-spinner"></mat-spinner>
+        <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
+            <!-- TODO  onClickShuffle -->
+            <mat-icon *ngIf="getShuffleEnabled()" class="shuffle-icon-enabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
+            <mat-icon  *ngIf="!getShuffleEnabled()" class="shuffle-icon-disabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
+
+            <!-- TODO onPrevious -->
+            <mat-icon [attr.aria-disabled]="getLoading()" [ngClass]="{'disabled-ui-element': getLoading()}" class="left-control-arrow" (click)="onPrevious()" fxFlex="15">skip_previous</mat-icon>
+            <!-- TODO onPlayPauseClick -->
+            <mat-icon *ngIf="!getIsPlaying()"  class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">play_arrow</mat-icon>
+            <mat-icon *ngIf="getIsPlaying()" class="play-pause-control" (click)="onPlayPauseClick()" fxFlex="40">pause</mat-icon>
+            <mat-icon [attr.aria-disabled]="getLoading()" [ngClass]="{'disabled-ui-element': getLoading()}" class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
+
+            <!-- TODO onClickRepeat -->
+            <mat-icon *ngIf="getRepeatEnabled()" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
+            <mat-icon *ngIf="!getRepeatEnabled()" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center">
+            <div fxLayout="column" fxLayoutAlign="center center">
+                <p class="current-time-text">{{ getCurrentTime() }}&nbsp;&nbsp;</p>
+            </div>
+            <mat-slider (input)="onSeek($event)" step="0.005" min="0" max="getDuration()" class="slider">
+                <input matSliderThumb [(ngModel)]="currentPlaybackTime"/>
+            </mat-slider>
+            <div fxLayout="column" fxLayoutAlign="center center">
+                <p class="duration-time-text">&nbsp;{{ getDuration() }}</p>
+            </div>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="space-evenly center" class="bottom-div">
+            <div fxLayout="column">
+                <a href="{{userExperienceReportUrl}}" target="_blank">
+                    <mat-icon class="ux-writeup-navigation-icon" matTooltip="view user experience report">description</mat-icon>
+                </a>
+            </div>
+            <div fxLayout="column">
+                <mat-icon class="bottom-sheet-expand-icon" (click)="openBottomSheet()" matTooltip="select a song">menu</mat-icon>
+            </div>
+            <div fxLayout="column">
+                <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" matTooltip="adjust audio volume" [ngClass]="{'disabled-icon':!browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>
+            </div>
+        </div>
+        <!-- <button (click)="togglePlay()">
+            {{ getIsPlaying() ? 'Pause' : 'Play' }}
+        </button> -->
+    </div>
 </div>
