@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { Audio3Service } from '../../services/audio3.service';
+import { Audio2Service } from '../../services/audio2.service';
 
 @Component({
   selector: 'app-player2',
@@ -37,7 +37,7 @@ export class Player2Component implements OnInit, OnDestroy {
     this.durationHumanReadable = `${minutes}` + ':' + (seconds < 10 ? `0${seconds}` : `${seconds}`);
   }
 
-  constructor(public audio: Audio3Service) {}
+  constructor(public audio: Audio2Service) {}
 
   async ngOnInit() {
     await this.audio.getDecryptedAudio();
