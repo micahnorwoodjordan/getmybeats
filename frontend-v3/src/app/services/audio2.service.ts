@@ -14,14 +14,13 @@ import { generateAudioRequestGUID } from '../utilities';
 @Injectable({ providedIn: 'root' })
 export class Audio2Service {
     //----------------------------------------------------------------------------------------------------
-    constructor(private apiService: ApiService, private cryptoService: CryptoService) {}
+    constructor(private apiService: ApiService, private cryptoService: CryptoService) {  }
     private audioContext = new AudioContext();
     private buffer: AudioBuffer | null = null;
     private source: AudioBufferSourceNode | null = null;
     private startTime = 0;   // when playback started
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
-    private mediaContext: MediaContextElement[] = [];
     private title: string = 'loading title...';
     public audioFetchCycle: WritableSignal<number> = signal(0);
     //----------------------------------------------------------------------------------------------------
@@ -32,15 +31,10 @@ export class Audio2Service {
         if (!this.buffer) return 0;
         return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
     }
-
-    public getMediaContext() { return this.mediaContext; }
     //----------------------------------------------------------------------------------------------------
-    private setMediaContext(newContext: MediaContextElement[]) { this.mediaContext = newContext; }
     private setTitle(newValue: string) { this.title = newValue; }
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
     //----------------------------------------------------------------------------------------------------
-    public async initialize(audioIndex: number) { await this.getDecryptedAudio(audioIndex, false); }
-
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, shouldAutoplay: boolean = false): Promise<void> {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         if (shouldAutoplay) {
@@ -48,57 +42,60 @@ export class Audio2Service {
         }
     }
 
-    public async getDecryptedAudio(audioIndex: number, shouldAutoplay: boolean = false) {
-        console.log(audioIndex);
+    public async onNext(mediaContext: MediaContextElement[], audioIndex: number, shouldAutoplay: boolean = true){
+        this.loadMediaContextElement(mediaContext, audioIndex, shouldAutoplay);
+    }
+
+    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number, shouldAutoplay: boolean = false){
+        this.loadMediaContextElement(mediaContext, audioIndex, shouldAutoplay);
+    }
+
+    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number, shouldAutoplay: boolean = false) {
         let audioFilenameHash;
-        this.setMediaContext(await this.getContextSynchronously() || []);
-        if (this.mediaContext.length > 0) {
-            let currentMediaContextElement: MediaContextElement = this.mediaContext[audioIndex];
+        if (mediaContext.length > 0) {
+            let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
             // this.setLoading(true);
             // this.setDownloadProgress(0);
-            audioFilenameHash = this.mediaContext[audioIndex].audio_filename_hash;
+            audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
             this.setTitle(currentMediaContextElement.title);
             this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
                 async event => {
                     switch (event.type) {
-                    case HttpEventType.DownloadProgress:
-                        // if (event.total !== undefined) {
-                        //     this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
-                        //     console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
-                        // }
-                        break;
-                    case HttpEventType.Response:
-                        console.log(`getandloadaudiotrack: received server response ${event.status}`);
-                        if (event.status == 200) {
-                        if (event.body !== undefined && event.body !== null) {
-                            let encrypted = await event.body.arrayBuffer();
-                            let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
-                            197, 161, 34, 196, 208, 241, 221, 120,
-                            26, 52, 83, 178, 189, 208, 70, 253,
-                            80, 178, 134, 158, 29, 129, 199, 202,
-                            188, 187, 60, 249, 22, 254, 247, 149
-                            ]));
-                            // this.setLoading(false);
-                            this.stop();
-                            this.loadFromArrayBuffer(decrypted, shouldAutoplay);
-                        }
-                        } else {
-                        console.log('getandloadaudiotrack: ERROR fetching audio');
-                        }
-                        break;
-                    default:
-                        console.log('getandloadaudiotrack: no response from server yet');
+                        case HttpEventType.DownloadProgress:
+                            // if (event.total !== undefined) {
+                            //     this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
+                            //     console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+                            // }
+                            break;
+                        case HttpEventType.Response:
+                            console.log(`getandloadaudiotrack: received server response ${event.status}`);
+                            if (event.status == 200) {
+                            if (event.body !== undefined && event.body !== null) {
+                                let encrypted = await event.body.arrayBuffer();
+                                let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
+                                197, 161, 34, 196, 208, 241, 221, 120,
+                                26, 52, 83, 178, 189, 208, 70, 253,
+                                80, 178, 134, 158, 29, 129, 199, 202,
+                                188, 187, 60, 249, 22, 254, 247, 149
+                                ]));
+                                // this.setLoading(false);
+                                this.stop();
+                                this.loadFromArrayBuffer(decrypted, shouldAutoplay);
+                            }
+                            } else {
+                            console.log('getandloadaudiotrack: ERROR fetching audio');
+                            }
+                            break;
+                        default:
+                            console.log('getandloadaudiotrack: no response from server yet');
                     }
                 },
                 error => {
                     console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
                 }
-            )
+            );
         }
-        // await this.loadAudioArtworkImage();
     }
-
-    public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
     //----------------------------------------------------------------------------------------------------
 
     play() {
