@@ -32,7 +32,7 @@ export class Player2Component implements OnInit, OnDestroy {
           this.onNext();
         }
 
-        if (playbackComplete !== lastPlaybackCompleteState && playbackComplete) {
+        if (playbackComplete && !lastPlaybackCompleteState) {
           this.reset();
         }
 
@@ -56,6 +56,7 @@ export class Player2Component implements OnInit, OnDestroy {
   private mediaContext: MediaContextElement[] = [];
   private selectedAudioIndex = 0;
   private intervalId: any;
+  private userHasInteractedWithUI: boolean = false;  // control to keep player from auto playing on load
 //----------------------------------------------------------------------------------------------------
 // TODO: refactor snackbar out of this component entirely
   snackbarOpen: boolean = false;
@@ -70,6 +71,7 @@ export class Player2Component implements OnInit, OnDestroy {
   private setShuffleEnabled(newValue: boolean) { this.shuffleEnabled = newValue; }
   private setRepeatEnabled(newValue: boolean) { this.repeatEnabled = newValue; }
   private setCurrentTime(newValue: number) { this.currentTime = newValue; }
+  private setUserHasInteractedWithUI(newValue: boolean) { this.userHasInteractedWithUI = newValue; }
 
   public getTitle() { return this.audio2Service.getTitle(); }
   public getIsLoading() { return this.audio2Service.getIsLoading(); }
@@ -120,10 +122,12 @@ export class Player2Component implements OnInit, OnDestroy {
 
   private reset() {
     console.log('Player2Component.reset');
-    this.audio2Service.stop();
-    this.setIsPlaying(false);
-    this.audio2Service.play();
-    this.setIsPlaying(true);
+    if (this.userHasInteractedWithUI) {
+      this.audio2Service.stop();
+      this.setIsPlaying(false);
+      this.audio2Service.play();
+      this.setIsPlaying(true);
+    }
   }
 
   private async getMediaContextAsPromise() { return await this.apiService.getMediaContextAsPromise(); }
@@ -153,6 +157,10 @@ export class Player2Component implements OnInit, OnDestroy {
   }
 //----------------------------------------------------------------------------------------------------
   public togglePlay() {
+    if (!this.userHasInteractedWithUI) {
+      this.setUserHasInteractedWithUI(true);
+    }
+
     if (this.isPlaying) {
       this.audio2Service.pause();
     } else {
