@@ -1,9 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-
 import { environment } from 'src/environments/environment';
-import { ApiService } from '../../services/api.service';
-import { Audio2Service } from '../../services/audio2.service';
-
+import { Audio3Service } from '../../services/audio3.service';
 
 @Component({
   selector: 'app-player2',
@@ -11,84 +8,70 @@ import { Audio2Service } from '../../services/audio2.service';
   styleUrl: './player2.component.css'
 })
 export class Player2Component implements OnInit, OnDestroy {
-    constructor(private audio2Service: Audio2Service, private apiService: ApiService) { }
+  public audioHasArtwork: boolean = false;  // TODO
+  public downloadProgress: number = 0;  // TODO
+  public title: string = 'null';  // TODO
+  public loading: boolean = false;  // TODO
+  public shuffleEnabled: boolean = false;  // TODO
+  public repeatEnabled: boolean = false;  // TODO
+  public hasPlaybackError: boolean = false;  // TODO
+  public artworkImage: HTMLImageElement = new Image();  // TODO
+  public browserSupportsAudioVolumeManipulation: boolean = true;  // TODO
+  public userExperienceReportUrl: string = `${environment.apiHost}/user/experience`;
+  public currentTime: number = 0;
+  public currentTimeHumanReadable: string = '';
+  public duration: number = 0;
+  public durationHumanReadable: string = '';
+  public isPlaying = false;
+  private intervalId: any;
 
-    public userExperienceReportUrl: string = `${environment.apiHost}/user/experience`
-    public browserSupportsAudioVolumeManipulation: boolean = true;
+  private setCurrentTimeHumanReadable() {
+    let currentMinutes = Math.floor(this.currentTime / 60);
+    let currentSeconds = Math.round(this.currentTime % 60);
+    this.currentTimeHumanReadable = `${currentMinutes}` + ':' + (currentSeconds < 10 ? `0${currentSeconds}` : `${currentSeconds}`);
+  }
 
-    public getIsPlaying() { return this.audio2Service.getIsPlaying(); }
-    public getCurrentTime() { return this.audio2Service.getCurrentTime(); }
-    public getDuration() { return this.audio2Service.getDuration(); }
-    public getAudioArtworkImageSrc() { return this.audio2Service.getArtworkImageSrc(); }
-    public getLoading() { return this.audio2Service.getLoading(); }
-    public getDownloadProgress() { return this.audio2Service.getDownloadProgress(); }
-    public getTitle() { return this.audio2Service.getTitle(); }
-    public getShuffleEnabled() { return this.audio2Service.getShuffleEnabled(); }
-    public getRepeatEnabled() { return this.audio2Service.getRepeatEnabled();  }
+  private setDurationHumanReadable() {
+    let minutes = Math.floor(this.duration / 60);
+    let seconds = Math.round(this.duration % 60);
+    this.durationHumanReadable = `${minutes}` + ':' + (seconds < 10 ? `0${seconds}` : `${seconds}`);
+  }
 
-    private setCurrentPlaybackTime(newValue: number) { this.currentPlaybackTime = newValue; }
-
-    public currentPlaybackTime: number = 0;
-    public artworkImage: HTMLImageElement = new Image();
-    public audioHasArtwork: boolean = false;
-    public hasPlaybackError: boolean = false;
-    private currentPlaybackTimeRepaintMillis: number = 500;
+  constructor(public audio: Audio3Service) {}
 
   async ngOnInit() {
-    this.audio2Service.getDecryptedAudio();
-    setInterval(() => {
-      this.setCurrentPlaybackTime(this.getCurrentTime());
-    }, this.currentPlaybackTimeRepaintMillis);
+    await this.audio.getDecryptedAudio();
 
-    // await this.audio2Service.loadFromArrayBuffer(decrypted);
+    this.intervalId = setInterval(() => {
+      this.currentTime = this.audio.getCurrentTime();
+      this.duration = this.audio.getDuration();
+      this.setCurrentTimeHumanReadable();
+      this.setDurationHumanReadable();
+    }, 500);
   }
 
   ngOnDestroy() {
-    this.audio2Service.destroy();
+    clearInterval(this.intervalId);
   }
 
   togglePlay() {
-    if (this.getIsPlaying()) {
-      this.audio2Service.pause();
+    if (this.isPlaying) {
+      this.audio.pause();
     } else {
-      this.audio2Service.play();
+      this.audio.play();
     }
+    this.isPlaying = !this.isPlaying;
   }
 
-  onSeek(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.audio2Service.seek(parseFloat(input.value));
+  onSeek(e: Event) {
+    const val = +(e.target as HTMLInputElement).value;
+    this.audio.seek(val);
+    this.currentTime = val;
   }
-
-  onClickShuffle() { }
   onPrevious() { }
   onNext() { }
-  onPlayPauseClick() { }
+  onClickShuffle() { }
   onClickRepeat() { }
   openBottomSheet() { }
   openCustomSnackBar() { }
-  // ----------------------------------------------------------------------------------------------------------------
-  // feature detection
-  doesBrowserSupportVolumeManipulation() {
-    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/volume
-    // iOS browsers do NOT allow Javascript to manipulate audio volume
-    // the value of `volume` is always 1
-    // setting a value has no effect on the volume of the media object
-
-    // UPDATE: https://developer.apple.com/documentation/webkitjs/htmlmediaelement/1631549-volume
-    // the latest apple documentation mentions nothing about the below:
-    // `volume` is NOT readonly, meaning that the value of `volume` is actually NOT always 1
-    // this metric cannot be used to perform a better feature detection routine
-    // unfortunately, we have to resort to user agent sniffing, which, though bad practice, will probably suffice in this case
-
-    // how many non-iphone browsers are going to send a user agent header containing the substring "iphone"?
-    if (navigator.userAgent.includes("iPhone")) {
-      return false;
-    }
-    return true;
-  }
-
-  setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSupportsAudioVolumeManipulation = newValue; }
-
-// ----------------------------------------------------------------------------------------------------------------
 }

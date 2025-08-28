@@ -1,5 +1,5 @@
-import { Injectable, signal } from '@angular/core';
-
+import { Injectable } from '@angular/core';
+import { duration as momentDuration } from 'moment';
 import { HttpEventType } from '@angular/common/http';
 
 import { ApiService } from './api.service';
@@ -13,118 +13,74 @@ import { generateAudioRequestGUID } from '../utilities';
 
 @Injectable({ providedIn: 'root' })
 export class Audio2Service {
-constructor(
-    private readonly apiService: ApiService,
-    private readonly artworkService: ArtworkService,
-    private readonly cryptoService: CryptoService
-) {}
-    private audioContext!: AudioContext;
-    private sourceNode?: AudioBufferSourceNode;
-    private buffer!: AudioBuffer;
-    private startTime = 0;
-    private pausedAt = 0;
-    private rafId?: number;
+    constructor(private apiService: ApiService, private cryptoService: CryptoService) {}
+    private audioCtx = new AudioContext();
+  private buffer: AudioBuffer | null = null;
+  private source: AudioBufferSourceNode | null = null;
 
-    private isPlaying = signal(false);
-    private currentTime = signal(0);
-    private duration = 0;
-    private loading: boolean = false;
-    private title: string = "null";
-    private shuffleEnabled: boolean = false;
-    private repeatEnabled: boolean = false;
-    private downloadProgress: number = 0;
-    private hasPlaybackError: boolean = false;
-    private artworkImageSrc: string = '';
-    private mediaContext: MediaContextElement[] | undefined = [];  // placeholder for `context` attribute to avoid compilation errors during refactor
+  private startTime = 0;   // when playback started
+  private pauseTime = 0;   // accumulated paused offset
+  private isPlaying = false;
 
-    public getHasPlaybackError() { return this.hasPlaybackError; }
-    public getArtworkImageSrc() { return this.artworkImageSrc; }
-    public getLoading() { return this.loading; }
-    public getDownloadProgress() { return this.downloadProgress; }
-    public getTitle() { return this.title; }
-    public getShuffleEnabled() { return this.shuffleEnabled; }
-    public getIsPlaying() { return this.isPlaying(); }
-    public getRepeatEnabled() { return this.repeatEnabled; }
-    public getCurrentTime() { return this.currentTime(); }
-    public getDuration() { return this.duration; }
+  async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
+    this.buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+  }
 
-    private setHasPlaybackError(newValue: boolean) { this.hasPlaybackError = newValue; }
+  play() {
+    if (!this.buffer) return;
 
-    private ensureContext() {
-        if (!this.audioContext) {
-            this.audioContext = new AudioContext();
+    this.source = this.audioCtx.createBufferSource();
+    this.source.buffer = this.buffer;
+    this.source.connect(this.audioCtx.destination);
+
+    const offset = this.pauseTime;
+    this.startTime = this.audioCtx.currentTime - offset;
+
+    this.source.start(0, offset);
+    this.isPlaying = true;
+
+    this.source.onended = () => {
+      this.source = null;
+      this.pauseTime = 0;
+    };
+  }
+
+  pause() {
+    if (!this.isPlaying || !this.source) return;
+
+    this.source.onended = null;
+    this.source.stop();
+    this.pauseTime = this.audioCtx.currentTime - this.startTime;
+    this.isPlaying = false;
+    this.source = null;
+  }
+
+  seek(seconds: number) {
+    if (!this.buffer) return;
+    if (seconds < 0) seconds = 0;
+    if (seconds > this.buffer.duration) seconds = this.buffer.duration;
+
+    this.pauseTime = Math.max(0, Math.min(seconds, this.buffer.duration));
+
+    if (this.isPlaying) {
+        if (this.source) {
+        this.source.onended = null; // prevent reset
+        this.source.stop();
+        this.source = null;
         }
+        this.play(); // start from new offset
     }
+  }
 
-    async loadFromArrayBuffer(arrBuf: ArrayBuffer) {
-        this.ensureContext();
-        await this.decodeBuffer(arrBuf);
-    }
+  getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
 
-    private async decodeBuffer(arrBuf: ArrayBuffer) {
-        this.buffer = await this.audioContext.decodeAudioData(arrBuf);
-        this.duration = this.buffer.duration;
-    }
+  getCurrentTime(): number {
+    if (!this.buffer) return 0;
+    return this.source ? this.audioCtx.currentTime - this.startTime : this.pauseTime;
+  }
 
-    play(offset = this.pausedAt) {
-        if (!this.buffer) return;
 
-        this.stop();
-
-        this.sourceNode = this.audioContext.createBufferSource();
-        this.sourceNode.buffer = this.buffer;
-        this.sourceNode.connect(this.audioContext.destination);
-        this.sourceNode.start(0, offset);
-
-        this.startTime = this.audioContext.currentTime - offset;
-        this.isPlaying.set(true);
-
-        this.trackProgress();
-    }
-
-    pause() {
-        if (!this.isPlaying()) return;
-        this.pausedAt = this.audioContext.currentTime - this.startTime;
-        this.stop();
-    }
-
-    seek(time: number) {
-        this.pausedAt = time;
-        this.currentTime.set(time);
-        if (this.isPlaying()) {
-            this.play(time);
-        }
-    }
-
-    stop() {
-        this.isPlaying.set(false);
-        if (this.sourceNode) {
-            this.sourceNode.stop();
-            this.sourceNode.disconnect();
-            this.sourceNode = undefined;
-        }
-        if (this.rafId) cancelAnimationFrame(this.rafId);
-    }
-
-    private trackProgress() {
-        const update = () => {
-            if (this.isPlaying()) {
-            const elapsed = this.audioContext.currentTime - this.startTime;
-            this.currentTime.set(Math.min(elapsed, this.duration));
-            this.rafId = requestAnimationFrame(update);
-            }
-        };
-        update();
-    }
-
-    async destroy() {
-        this.stop();
-        if (this.audioContext) {
-            await this.audioContext.close();
-        }
-    }
-
-    async getDecryptedAudio() {
+async getDecryptedAudio() {
         // const resp = await fetch('assets/test.mp3');
         let audioFilenameHash;
         let mediaContext = await this.getContextSynchronously();
