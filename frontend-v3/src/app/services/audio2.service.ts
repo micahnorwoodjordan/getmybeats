@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, WritableSignal, effect } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 import { HttpEventType } from '@angular/common/http';
 
@@ -15,39 +15,49 @@ import { generateAudioRequestGUID } from '../utilities';
 export class Audio2Service {
     //----------------------------------------------------------------------------------------------------
     constructor(private apiService: ApiService, private cryptoService: CryptoService) {}
-    private audioCtx = new AudioContext();
+    private audioContext = new AudioContext();
     private buffer: AudioBuffer | null = null;
     private source: AudioBufferSourceNode | null = null;
-
     private startTime = 0;   // when playback started
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
-
-    public selectedAudioIndex = 0;
+    private mediaContext: MediaContextElement[] = [];
+    private title: string = 'loading title...';
+    public audioFetchCycle: WritableSignal<number> = signal(0);
     //----------------------------------------------------------------------------------------------------
-    getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
+    public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
+    public getTitle() { return this.title; }
 
-    getCurrentTime(): number {
+    public getCurrentTime(): number {
         if (!this.buffer) return 0;
-        return this.source ? this.audioCtx.currentTime - this.startTime : this.pauseTime;
-    }
-    //----------------------------------------------------------------------------------------------------
-    async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
-        this.buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+        return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
     }
 
-    async getDecryptedAudio() {
-        // const resp = await fetch('assets/test.mp3');
+    public getMediaContext() { return this.mediaContext; }
+    //----------------------------------------------------------------------------------------------------
+    private setMediaContext(newContext: MediaContextElement[]) { this.mediaContext = newContext; }
+    private setTitle(newValue: string) { this.title = newValue; }
+    private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
+    //----------------------------------------------------------------------------------------------------
+    public async initialize(audioIndex: number) { await this.getDecryptedAudio(audioIndex, false); }
+
+    public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, shouldAutoplay: boolean = false): Promise<void> {
+        this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        if (shouldAutoplay) {
+            this.play();
+        }
+    }
+
+    public async getDecryptedAudio(audioIndex: number, shouldAutoplay: boolean = false) {
+        console.log(audioIndex);
         let audioFilenameHash;
-        let mediaContext = await this.getContextSynchronously();
-        if (mediaContext) {
-            // this.setAudioContext(mediaContext);
-            // this.setNumberOfTracks(mediaContext.length);
+        this.setMediaContext(await this.getContextSynchronously() || []);
+        if (this.mediaContext.length > 0) {
+            let currentMediaContextElement: MediaContextElement = this.mediaContext[audioIndex];
             // this.setLoading(true);
             // this.setDownloadProgress(0);
-            audioFilenameHash = mediaContext[1].audio_filename_hash;
-            // this.setAudioTitle(audioContext[newSelectedAudioIndex].title);
-            // this.setSelectedAudioIndex(newSelectedAudioIndex);
+            audioFilenameHash = this.mediaContext[audioIndex].audio_filename_hash;
+            this.setTitle(currentMediaContextElement.title);
             this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
                 async event => {
                     switch (event.type) {
@@ -69,10 +79,8 @@ export class Audio2Service {
                             188, 187, 60, 249, 22, 254, 247, 149
                             ]));
                             // this.setLoading(false);
-                            // this.updateAudioOndurationchange();
-                            // if (this.autoplayOnIndexChange) {
-                            this.loadFromArrayBuffer(decrypted);
-                            // }
+                            this.stop();
+                            this.loadFromArrayBuffer(decrypted, shouldAutoplay);
                         }
                         } else {
                         console.log('getandloadaudiotrack: ERROR fetching audio');
@@ -96,12 +104,12 @@ export class Audio2Service {
     play() {
         if (!this.buffer) return;
 
-        this.source = this.audioCtx.createBufferSource();
+        this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
-        this.source.connect(this.audioCtx.destination);
+        this.source.connect(this.audioContext.destination);
 
         const offset = this.pauseTime;
-        this.startTime = this.audioCtx.currentTime - offset;
+        this.startTime = this.audioContext.currentTime - offset;
 
         this.source.start(0, offset);
         this.isPlaying = true;
@@ -109,6 +117,7 @@ export class Audio2Service {
         this.source.onended = () => {
             this.source = null;
             this.pauseTime = 0;
+            this.setAudioFetchCycle(this.audioFetchCycle() + 1);
         };
     }
 
@@ -117,9 +126,15 @@ export class Audio2Service {
 
         this.source.onended = null;
         this.source.stop();
-        this.pauseTime = this.audioCtx.currentTime - this.startTime;
+        this.pauseTime = this.audioContext.currentTime - this.startTime;
         this.isPlaying = false;
         this.source = null;
+    }
+
+    stop() {
+        this.source?.disconnect();
+        this.source = null;
+        this.pauseTime = 0;
     }
 
     seek(seconds: number) {
