@@ -34,9 +34,7 @@ export class Player2Component implements OnInit, OnDestroy {
     });
   }
   //----------------------------------------------------------------------------------------------------
-  public downloadProgress: number = 0;  // TODO
   public title: string = 'null';
-  public loading: boolean = false;  // TODO
   public shuffleEnabled: boolean = false;  // TODO
   public repeatEnabled: boolean = false;  // TODO
   public hasPlaybackError: boolean = false;  // TODO
@@ -64,6 +62,8 @@ export class Player2Component implements OnInit, OnDestroy {
   private setMediaContext(newcontext: MediaContextElement[]) { this.mediaContext = newcontext; }
 
   public getTitle() { return this.audio2Service.getTitle(); }
+  public getIsLoading() { return this.audio2Service.getIsLoading(); }
+  public getDownloadProgress() { return this,this.audio2Service.getDownloadProgress(); }
   public getArtworkIsValid() { return this.artworkService.getArtworkIsValid(); }
   public getArtworkImageSrc() { return this.artworkService.getArtworkImageSrc(); }
   //----------------------------------------------------------------------------------------------------

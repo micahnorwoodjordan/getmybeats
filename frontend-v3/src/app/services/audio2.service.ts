@@ -21,13 +21,17 @@ export class Audio2Service {
     private startTime = 0;   // when playback started
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
+    private isLoading: boolean = false;
     private title: string = 'loading title...';
     private volume: number = 1;
+    private downloadProgress: number = 0;
     public audioFetchCycle: WritableSignal<number> = signal(0);
     //----------------------------------------------------------------------------------------------------
     public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
     public getTitle() { return this.title; }
     public getVolume() { return this.volume; }
+    public getIsLoading() { return this.isLoading; }
+    public getDownloadProgress() { return this.downloadProgress; }
 
     public getCurrentTime(): number {
         if (!this.buffer) return 0;
@@ -35,6 +39,8 @@ export class Audio2Service {
     }
     //----------------------------------------------------------------------------------------------------
     private setTitle(newValue: string) { this.title = newValue; }
+    private setDownloadProgress(newValue: number) { this.downloadProgress = newValue; }
+    private setIsLoading(newValue: boolean) { this.isLoading = newValue; }
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
     public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
         this.volume = value;
@@ -45,6 +51,7 @@ export class Audio2Service {
     //----------------------------------------------------------------------------------------------------
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, shouldAutoplay: boolean = false): Promise<void> {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        this.setIsLoading(false);
         if (shouldAutoplay) {
             this.play();
         }
@@ -62,18 +69,18 @@ export class Audio2Service {
         let audioFilenameHash;
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
-            // this.setLoading(true);
-            // this.setDownloadProgress(0);
+            this.setIsLoading(true);
+            this.setDownloadProgress(0);
             audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
             this.setTitle(currentMediaContextElement.title);
             this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
                 async event => {
                     switch (event.type) {
                         case HttpEventType.DownloadProgress:
-                            // if (event.total !== undefined) {
-                            //     this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
-                            //     console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
-                            // }
+                            if (event.total !== undefined) {
+                                this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
+                                console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+                            }
                             break;
                         case HttpEventType.Response:
                             console.log(`getandloadaudiotrack: received server response ${event.status}`);
@@ -86,7 +93,6 @@ export class Audio2Service {
                                 80, 178, 134, 158, 29, 129, 199, 202,
                                 188, 187, 60, 249, 22, 254, 247, 149
                                 ]));
-                                // this.setLoading(false);
                                 this.stop();
                                 this.loadFromArrayBuffer(decrypted, shouldAutoplay);
                             }
