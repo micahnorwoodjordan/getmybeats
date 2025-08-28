@@ -1,4 +1,8 @@
-import { Component, OnInit, OnDestroy, effect, computed } from '@angular/core';
+import { Inject, Component, OnInit, OnDestroy, effect } from '@angular/core';
+import { MatSnackBar, MAT_SNACK_BAR_DATA, MatSnackBarRef} from '@angular/material/snack-bar';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
 import { environment } from 'src/environments/environment';
 import { Audio2Service } from '../../services/audio2.service';
 import { ArtworkService } from 'src/app/services/artwork.service';
@@ -14,7 +18,8 @@ export class Player2Component implements OnInit, OnDestroy {
   constructor(
     private audio2Service: Audio2Service,
     private artworkService: ArtworkService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private _snackBar: MatSnackBar
   ) {
     let lastAudioFetchCycle = 0;
 
@@ -36,7 +41,7 @@ export class Player2Component implements OnInit, OnDestroy {
   public repeatEnabled: boolean = false;  // TODO
   public hasPlaybackError: boolean = false;  // TODO
   public artworkImage: HTMLImageElement = new Image();
-  public browserSupportsAudioVolumeManipulation: boolean = true;  // TODO
+  public browserSupportsAudioVolumeManipulation: boolean = true;
   public userExperienceReportUrl: string = `${environment.apiHost}/user/experience`;
   public currentTime: number = 0;
   public currentTimeHumanReadable: string = '';
@@ -46,6 +51,12 @@ export class Player2Component implements OnInit, OnDestroy {
   private mediaContext: MediaContextElement[] = [];
   private selectedAudioIndex = 0;
   private intervalId: any;
+//----------------------------------------------------------------------------------------------------
+// TODO: refactor snackbar out of this component entirely
+  snackbarOpen: boolean = false;
+  snackbarRef: MatSnackBar | any;
+  getSnackbarOpen() { return this.snackbarOpen; }
+  setSnackbarOpen(newValue: boolean) { this.snackbarOpen = newValue; }
 //----------------------------------------------------------------------------------------------------
   private setSelectedAudioIndex(newIndex: number) { this.selectedAudioIndex = newIndex; }
   private setIsPlaying(newValue: boolean) { this.isPlaying = newValue; }
@@ -80,6 +91,7 @@ export class Player2Component implements OnInit, OnDestroy {
   //----------------------------------------------------------------------------------------------------
 
   async ngOnInit() {
+    this.setBrowserSupportsAudioVolumeManipulation(this.doesBrowserSupportVolumeManipulation());
     let mediaContext = await this.getMediaContextAsPromise();
 
     if (mediaContext !== undefined) {
@@ -159,5 +171,109 @@ export class Player2Component implements OnInit, OnDestroy {
   onClickShuffle() { }
   onClickRepeat() { }
   openBottomSheet() { }
-  openCustomSnackBar() { }
+  openCustomSnackBar() {
+      if (this.snackbarOpen) {
+        if (this.snackbarRef) {
+          this.snackbarRef.dismiss();
+          this.setSnackbarOpen(false);
+        }
+      } else {
+        const snackbarRef = this._snackBar.openFromComponent(VolumeSliderSnackbar, {
+          data: {
+            audio2Service: this.audio2Service,
+            duration: 2500,
+            message: 'adjust volume',
+            action: () => {
+              console.log('Action clicked')
+            }
+          }
+        });
+        this.snackbarRef = snackbarRef;
+        this.setSnackbarOpen(true);
+        snackbarRef.afterDismissed().subscribe(() => {
+          this.setSnackbarOpen(false);
+        });
+      }
+    }
+//----------------------------------------------------------------------------------------------------
+// feature detection
+  doesBrowserSupportVolumeManipulation() {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/volume
+    // iOS browsers do NOT allow Javascript to manipulate audio volume
+    // the value of `volume` is always 1
+    // setting a value has no effect on the volume of the media object
+
+    // UPDATE: https://developer.apple.com/documentation/webkitjs/htmlmediaelement/1631549-volume
+    // the latest apple documentation mentions nothing about the below:
+    // `volume` is NOT readonly, meaning that the value of `volume` is actually NOT always 1
+    // this metric cannot be used to perform a better feature detection routine
+    // unfortunately, we have to resort to user agent sniffing, which, though bad practice, will probably suffice in this case
+
+    // how many non-iphone browsers are going to send a user agent header containing the substring "iphone"?
+    if (navigator.userAgent.includes("iPhone")) {
+      return false;
+    }
+    return true;
+  }
+
+  setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSupportsAudioVolumeManipulation = newValue; }
+}
+
+
+
+@Component({
+  standalone: true,
+  imports: [
+    MatSliderModule,
+    MatButtonModule,
+    FormsModule
+  ],
+  styles: [
+    `span { text-align: center; padding-right: 1vw; }`,
+    `.volume-slider { width: 10vw; font-color: white; }`,
+    `.text { text-align: center; }`,
+    `.close-button { text-align: center; }`,
+    `@media (max-width: 414px) { .volume-slider { width: 50vw; } }`
+  ],
+  template: `
+  <div fxLayout="row" fxLayoutAlign="space-evenly center">
+    <div fxLayout="column" class="text">
+      <span>{{ message }}</span>
+    <div>
+    <div fxLayout="column">
+      <mat-slider (input)="onSliderChange($event)" step="0.05" min="0" max="1" class="volume-slider">
+        <input matSliderThumb [value]="getVolumeValue()"/>
+      </mat-slider>
+      <span>&nbsp;&nbsp;{{ uxVolumeValue }}%</span>
+    <div>
+    <div fxLayout="column" class="close-button">
+        <button mat-raised-button (click)="close()">close</button>
+    <div>
+  <div>
+
+  `
+})
+export class VolumeSliderSnackbar {
+  sliderValue: number = 1;
+  volumeValue: number = 1;
+  uxVolumeValue: number = 100;
+  message: string;
+  action: () => void;
+
+  constructor(
+    @Inject(MAT_SNACK_BAR_DATA) public data: any,
+    private snackBarRef: MatSnackBarRef<VolumeSliderSnackbar>,
+
+  ) {
+    this.message = data.message;
+    this.action = data.action;
+  }
+
+  close() { this.snackBarRef.dismiss(); }
+  getVolumeValue() { return this.data.audio2Service.getVolume(); }
+
+  onSliderChange(event: any) {
+    const volume = Number(event.value ?? event.target?.value);
+    this.data.audio2Service.setVolume(volume);
+  }
 }

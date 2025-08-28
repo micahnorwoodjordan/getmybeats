@@ -4,7 +4,6 @@ import { HttpEventType } from '@angular/common/http';
 
 import { ApiService } from './api.service';
 import { CryptoService } from './crypto.service';
-import { ArtworkService } from './artwork.service';
 
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 
@@ -14,18 +13,21 @@ import { generateAudioRequestGUID } from '../utilities';
 @Injectable({ providedIn: 'root' })
 export class Audio2Service {
     //----------------------------------------------------------------------------------------------------
-    constructor(private apiService: ApiService, private cryptoService: CryptoService) {  }
+    constructor(private apiService: ApiService, private cryptoService: CryptoService) { }
     private audioContext = new AudioContext();
+    private gainNode: GainNode | null = null;
     private buffer: AudioBuffer | null = null;
     private source: AudioBufferSourceNode | null = null;
     private startTime = 0;   // when playback started
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
     private title: string = 'loading title...';
+    private volume: number = 1;
     public audioFetchCycle: WritableSignal<number> = signal(0);
     //----------------------------------------------------------------------------------------------------
     public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
     public getTitle() { return this.title; }
+    public getVolume() { return this.volume; }
 
     public getCurrentTime(): number {
         if (!this.buffer) return 0;
@@ -34,6 +36,12 @@ export class Audio2Service {
     //----------------------------------------------------------------------------------------------------
     private setTitle(newValue: string) { this.title = newValue; }
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
+    public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
+        this.volume = value;
+        if (this.gainNode) {
+            this.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
+        }
+    }
     //----------------------------------------------------------------------------------------------------
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, shouldAutoplay: boolean = false): Promise<void> {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
@@ -100,17 +108,16 @@ export class Audio2Service {
 
     play() {
         if (!this.buffer) return;
+        const offset = this.pauseTime;
 
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
-        this.source.connect(this.audioContext.destination);
-
-        const offset = this.pauseTime;
+        this.gainNode = this.audioContext.createGain();
+        this.source.connect(this.gainNode);
+        this.gainNode.connect(this.audioContext.destination);
         this.startTime = this.audioContext.currentTime - offset;
-
         this.source.start(0, offset);
         this.isPlaying = true;
-
         this.source.onended = () => {
             this.source = null;
             this.pauseTime = 0;
