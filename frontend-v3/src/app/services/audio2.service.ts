@@ -79,7 +79,7 @@ export class Audio2Service {
         return this.source ? this.audioCtx.currentTime - this.startTime : this.pauseTime;
     }
 
-async getDecryptedAudio() {
+    async getDecryptedAudio() {
         // const resp = await fetch('assets/test.mp3');
         let audioFilenameHash;
         let mediaContext = await this.getContextSynchronously();
@@ -131,7 +131,6 @@ async getDecryptedAudio() {
             )
         }
         // await this.loadAudioArtworkImage();
-        // return resp.arrayBuffer();
     }
 
     public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
