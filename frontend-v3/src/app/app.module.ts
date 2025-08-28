@@ -8,7 +8,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './components/header/header.component';
 import { PlayerComponent } from './components/player/player.component';
-import { Player2Component } from './components/player2/player2.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HttpClientModule } from '@angular/common/http';
@@ -24,7 +23,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     AppComponent,
     HeaderComponent,
     PlayerComponent,
-    Player2Component,
     FooterComponent
   ],
   imports: [
