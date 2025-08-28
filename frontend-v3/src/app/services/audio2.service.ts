@@ -13,6 +13,7 @@ import { generateAudioRequestGUID } from '../utilities';
 
 @Injectable({ providedIn: 'root' })
 export class Audio2Service {
+    //----------------------------------------------------------------------------------------------------
     constructor(private apiService: ApiService, private cryptoService: CryptoService) {}
     private audioCtx = new AudioContext();
     private buffer: AudioBuffer | null = null;
@@ -22,61 +23,17 @@ export class Audio2Service {
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
 
-    async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
-        this.buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
-    }
-
-    play() {
-        if (!this.buffer) return;
-
-        this.source = this.audioCtx.createBufferSource();
-        this.source.buffer = this.buffer;
-        this.source.connect(this.audioCtx.destination);
-
-        const offset = this.pauseTime;
-        this.startTime = this.audioCtx.currentTime - offset;
-
-        this.source.start(0, offset);
-        this.isPlaying = true;
-
-        this.source.onended = () => {
-            this.source = null;
-            this.pauseTime = 0;
-        };
-    }
-
-    pause() {
-        if (!this.isPlaying || !this.source) return;
-
-        this.source.onended = null;
-        this.source.stop();
-        this.pauseTime = this.audioCtx.currentTime - this.startTime;
-        this.isPlaying = false;
-        this.source = null;
-    }
-
-    seek(seconds: number) {
-        if (!this.buffer) return;
-        if (seconds < 0) seconds = 0;
-        if (seconds > this.buffer.duration) seconds = this.buffer.duration;
-
-        this.pauseTime = Math.max(0, Math.min(seconds, this.buffer.duration));
-
-        if (this.isPlaying) {
-            if (this.source) {
-                this.source.onended = null; // prevent reset
-                this.source.stop();
-                this.source = null;
-            }
-            this.play(); // start from new offset
-        }
-    }
-
+    public selectedAudioIndex = 0;
+    //----------------------------------------------------------------------------------------------------
     getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
 
     getCurrentTime(): number {
         if (!this.buffer) return 0;
         return this.source ? this.audioCtx.currentTime - this.startTime : this.pauseTime;
+    }
+    //----------------------------------------------------------------------------------------------------
+    async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
+        this.buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
     }
 
     async getDecryptedAudio() {
@@ -134,4 +91,52 @@ export class Audio2Service {
     }
 
     public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
+    //----------------------------------------------------------------------------------------------------
+
+    play() {
+        if (!this.buffer) return;
+
+        this.source = this.audioCtx.createBufferSource();
+        this.source.buffer = this.buffer;
+        this.source.connect(this.audioCtx.destination);
+
+        const offset = this.pauseTime;
+        this.startTime = this.audioCtx.currentTime - offset;
+
+        this.source.start(0, offset);
+        this.isPlaying = true;
+
+        this.source.onended = () => {
+            this.source = null;
+            this.pauseTime = 0;
+        };
+    }
+
+    pause() {
+        if (!this.isPlaying || !this.source) return;
+
+        this.source.onended = null;
+        this.source.stop();
+        this.pauseTime = this.audioCtx.currentTime - this.startTime;
+        this.isPlaying = false;
+        this.source = null;
+    }
+
+    seek(seconds: number) {
+        if (!this.buffer) return;
+        if (seconds < 0) seconds = 0;
+        if (seconds > this.buffer.duration) seconds = this.buffer.duration;
+
+        this.pauseTime = Math.max(0, Math.min(seconds, this.buffer.duration));
+
+        if (this.isPlaying) {
+            if (this.source) {
+                this.source.onended = null; // prevent reset
+                this.source.stop();
+                this.source = null;
+            }
+            this.play(); // start from new offset
+        }
+    }
+    //----------------------------------------------------------------------------------------------------
 }
