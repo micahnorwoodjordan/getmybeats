@@ -1,8 +1,13 @@
-import { Inject, Component, OnInit, OnDestroy, effect } from '@angular/core';
+import { Inject, Component, OnInit, OnDestroy, effect, ViewEncapsulation } from '@angular/core';
 import { MatSnackBar, MAT_SNACK_BAR_DATA, MatSnackBarRef} from '@angular/material/snack-bar';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
+import { MatListModule } from '@angular/material/list';
+import { HttpEventType } from '@angular/common/http';
+import { MatBottomSheet, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import { CommonModule } from '@angular/common';
+
 import { environment } from 'src/environments/environment';
 import { Audio2Service } from '../../services/audio2.service';
 import { ArtworkService } from 'src/app/services/artwork.service';
@@ -19,7 +24,8 @@ export class Player2Component implements OnInit, OnDestroy {
     private audio2Service: Audio2Service,
     private artworkService: ArtworkService,
     private apiService: ApiService,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private bottomSheet: MatBottomSheet
   ) {
       let lastAudioFetchCycle = 0;
       let lastPlaybackCompleteState = false;
@@ -175,7 +181,7 @@ export class Player2Component implements OnInit, OnDestroy {
     this.currentTime = val;
   }
 
-  public async onNext() {
+  public async onNext(indexOverride: number | null = null) {
     if (this.repeatEnabled) {
       this.restart();
       return;
@@ -185,7 +191,16 @@ export class Player2Component implements OnInit, OnDestroy {
 
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
-      this.shuffleEnabled ? this.shuffle(this.mediaContext, this.selectedAudioIndex) : this.setNextAudioIndex();
+
+      if (this.shuffleEnabled) {
+        this.shuffle(this.mediaContext, this.selectedAudioIndex);
+      } else {
+        if (indexOverride !== null) {
+          this.setSelectedAudioIndex(indexOverride);
+        } else {
+          this.setNextAudioIndex();
+        }
+      }
       await this.audio2Service.onNext(this.mediaContext, this.selectedAudioIndex);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
@@ -220,7 +235,6 @@ export class Player2Component implements OnInit, OnDestroy {
     this.durationHumanReadable = `${minutes}` + ':' + (seconds < 10 ? `0${seconds}` : `${seconds}`);
   }
 //----------------------------------------------------------------------------------------------------
-  openBottomSheet() { }
   openCustomSnackBar() {
       if (this.snackbarOpen) {
         if (this.snackbarRef) {
@@ -267,6 +281,93 @@ export class Player2Component implements OnInit, OnDestroy {
   }
 
   setBrowserSupportsAudioVolumeManipulation(newValue: boolean) { this.browserSupportsAudioVolumeManipulation = newValue; }
+
+  async openBottomSheet() {
+      // https://stackoverflow.com/questions/60359019/how-to-return-data-from-matbottomsheet-to-its-parent-component
+      const bottomSheetRef = this.bottomSheet.open(TrackSelectorBottomSheet);
+      bottomSheetRef.afterDismissed().subscribe(async (unvalidatedContextElement: MediaContextElement) => {
+        let mediaContext = await this.getMediaContextAsPromise();
+        let index;
+  
+        if (mediaContext) {
+          mediaContext.forEach((mediaContextElement: MediaContextElement, idk: number) => {
+            if (mediaContextElement.id === unvalidatedContextElement.id) {
+              index = mediaContextElement.id;
+            }
+          });
+          await this.onNext(index);
+        }
+      });
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------
+// TODO: completely decouple bottomsheet from this component
+@Component({
+  standalone: true,
+  imports: [MatListModule, CommonModule],
+  encapsulation: ViewEncapsulation.None,
+  template: `
+      <h1>tracks</h1>
+      <mat-nav-list>
+          <mat-list-item *ngFor="let mediaContextElement of context" (click)="getSelectedSong(mediaContextElement, $event)">
+              <span matListItemTitle>{{ mediaContextElement.title }}</span>
+          </mat-list-item>
+      </mat-nav-list>
+  `,
+  styles: [
+      `html { font-family: Inconsolata, Roboto, "Helvetica Neue", sans-serif;  }`,
+      `mat-list-item:hover { background-color: rgb(158, 94, 242); }`,
+      `span { text-align: center; color: rgb(0, 0, 0); }`,
+      `h1 { text-align: center; color: rgb(0, 0, 0); }`,
+  ]
+})
+
+export class TrackSelectorBottomSheet {
+  context: Array<MediaContextElement> = [];
+  mediaContextElement: MediaContextElement = {
+    audio_filename_hash: '',
+    artwork_filename_hash: '',
+    artwork_width: '',
+    artwork_height: '',
+    title: '',
+    id: 0
+  };
+
+  constructor(
+    private apiService: ApiService,
+    private bottomSheetRef: MatBottomSheetRef<TrackSelectorBottomSheet>
+  ) {}
+
+  ngOnInit() {
+    this.apiService.getMediaContext().subscribe(
+      event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            console.log(`matbottomsheet ngOnInit: received server response ${event.status}`);
+            if (event.status == 200) {
+              if (event.body !== undefined && event.body !== null) {
+                this.context = event.body;
+              } else {
+                console.log('matbottomsheet ngOnInit: ERROR');
+              }
+            }
+            break;
+          default:
+            console.log('matbottomsheet ngOnInit: no response from server yet');
+          }
+      },
+      error => {
+        console.log(`matbottomsheet ngOnInit ERROR: ${error.toString()}`);
+      }
+    );
+  }
+
+  getSelectedSong(song: MediaContextElement, event: MouseEvent) {
+    this.mediaContextElement = song;
+    this.bottomSheetRef.dismiss(song);
+    event.preventDefault();
+  }
 }
 
 
