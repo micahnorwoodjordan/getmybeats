@@ -21,22 +21,29 @@ export class Player2Component implements OnInit, OnDestroy {
     private apiService: ApiService,
     private _snackBar: MatSnackBar
   ) {
-    let lastAudioFetchCycle = 0;
+      let lastAudioFetchCycle = 0;
+      let lastPlaybackCompleteState = false;
 
-    effect(() => {
-      const currentAudioFetchCycle = this.audio2Service.audioFetchCycle();
+      effect(() => {
+        const currentAudioFetchCycle = this.audio2Service.audioFetchCycle();
+        const playbackComplete = this.audio2Service.playbackComplete();
 
-      if (currentAudioFetchCycle > lastAudioFetchCycle) {
-        this.onNext();
-      }
+        if (currentAudioFetchCycle > lastAudioFetchCycle) {
+          this.onNext();
+        }
 
-      lastAudioFetchCycle = currentAudioFetchCycle;
-    });
+        if (playbackComplete !== lastPlaybackCompleteState && playbackComplete) {
+          this.reset();
+        }
+
+        lastPlaybackCompleteState = playbackComplete;
+        lastAudioFetchCycle = currentAudioFetchCycle;
+      });
   }
   //----------------------------------------------------------------------------------------------------
   public title: string = 'null';
-  public shuffleEnabled: boolean = false;  // TODO
-  public repeatEnabled: boolean = false;  // TODO
+  public shuffleEnabled: boolean = false;
+  public repeatEnabled: boolean = false;
   public hasPlaybackError: boolean = false;  // TODO
   public artworkImage: HTMLImageElement = new Image();
   public browserSupportsAudioVolumeManipulation: boolean = true;
@@ -60,6 +67,9 @@ export class Player2Component implements OnInit, OnDestroy {
   private setIsPlaying(newValue: boolean) { this.isPlaying = newValue; }
   private setAudioArtworkImageSrc(newSrc: string) { this.artworkImage.src = newSrc; }
   private setMediaContext(newcontext: MediaContextElement[]) { this.mediaContext = newcontext; }
+  private setShuffleEnabled(newValue: boolean) { this.shuffleEnabled = newValue; }
+  private setRepeatEnabled(newValue: boolean) { this.repeatEnabled = newValue; }
+  private setCurrentTime(newValue: number) { this.currentTime = newValue; }
 
   public getTitle() { return this.audio2Service.getTitle(); }
   public getIsLoading() { return this.audio2Service.getIsLoading(); }
@@ -77,16 +87,45 @@ export class Player2Component implements OnInit, OnDestroy {
     }
   }
 
-    private setPreviousAudioIndex() {
-      let currentIndex = this.selectedAudioIndex;
+  private setPreviousAudioIndex() {
+    let currentIndex = this.selectedAudioIndex;
 
-      if (currentIndex - 1 >= 0) {
-        this.setSelectedAudioIndex(currentIndex - 1);
-      } else {
-        this.setSelectedAudioIndex(this.mediaContext.length - 1);
-      }
+    if (currentIndex - 1 >= 0) {
+      this.setSelectedAudioIndex(currentIndex - 1);
+    } else {
+      this.setSelectedAudioIndex(this.mediaContext.length - 1);
     }
-  
+  }
+
+  public onClickShuffle() { this.setShuffleEnabled(!this.shuffleEnabled); this.setRepeatEnabled(false); }
+  public onClickRepeat() { this.setRepeatEnabled(!this.repeatEnabled); this.setShuffleEnabled(false); }
+
+  private shuffle(mediaContext: MediaContextElement[], currentAudioIndex: number): number {
+    let lowerBound = 0;
+    let upperBound = mediaContext.length;
+    let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
+
+    if (randomTrackIndex === currentAudioIndex) {
+        console.log(`recursing: new index ${randomTrackIndex} === previous ${currentAudioIndex}`);
+        return this.shuffle(mediaContext, currentAudioIndex);
+    }
+    this.setSelectedAudioIndex(randomTrackIndex);
+    return -1;
+  }
+
+  private restart() {
+    this.audio2Service.seek(0);
+    this.setCurrentTime(0);
+  }
+
+  private reset() {
+    console.log('Player2Component.reset');
+    this.audio2Service.stop();
+    this.setIsPlaying(false);
+    this.audio2Service.play();
+    this.setIsPlaying(true);
+  }
+
   private async getMediaContextAsPromise() { return await this.apiService.getMediaContextAsPromise(); }
   //----------------------------------------------------------------------------------------------------
 
@@ -96,7 +135,7 @@ export class Player2Component implements OnInit, OnDestroy {
 
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
-      await this.audio2Service.loadMediaContextElement(this.mediaContext, this.selectedAudioIndex, false);
+      await this.audio2Service.loadMediaContextElement(this.mediaContext, this.selectedAudioIndex);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
     }
@@ -113,7 +152,7 @@ export class Player2Component implements OnInit, OnDestroy {
     clearInterval(this.intervalId);
   }
 //----------------------------------------------------------------------------------------------------
-  togglePlay() {
+  public togglePlay() {
     if (this.isPlaying) {
       this.audio2Service.pause();
     } else {
@@ -122,32 +161,37 @@ export class Player2Component implements OnInit, OnDestroy {
     this.setIsPlaying(!this.isPlaying);
   }
 
-  onSeek(e: Event) {
+  public onSeek(e: Event) {
     const val = +(e.target as HTMLInputElement).value;
     this.audio2Service.seek(val);
     this.currentTime = val;
   }
 
-  async onNext() {
-    let mediaContext = await this.getMediaContextAsPromise();
-    if (mediaContext !== undefined) {
-      this.setMediaContext(mediaContext);
-      this.setNextAudioIndex();
-      await this.audio2Service.onNext(this.mediaContext, this.selectedAudioIndex, true);
-      this.setIsPlaying(true);
-      await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
-      this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
+  public async onNext() {
+    if (this.repeatEnabled) {
+      this.restart();
       return;
     }
-    console.log('PlayerComponent.onNext: could not get media context');
+
+    let mediaContext = await this.getMediaContextAsPromise();
+
+    if (mediaContext !== undefined) {
+      this.setMediaContext(mediaContext);
+      this.shuffleEnabled ? this.shuffle(this.mediaContext, this.selectedAudioIndex) : this.setNextAudioIndex();
+      await this.audio2Service.onNext(this.mediaContext, this.selectedAudioIndex);
+      await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
+      this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
+    } else {
+      console.log('PlayerComponent.onNext: could not get media context');
+    }
   }
 
-  async onPrevious() {
+  public async onPrevious() {
     let mediaContext = await this.getMediaContextAsPromise();
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
       this.setPreviousAudioIndex();
-      await this.audio2Service.onPrevious(this.mediaContext, this.selectedAudioIndex, false);
+      await this.audio2Service.onPrevious(this.mediaContext, this.selectedAudioIndex);
       this.setIsPlaying(false);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
@@ -168,8 +212,6 @@ export class Player2Component implements OnInit, OnDestroy {
     this.durationHumanReadable = `${minutes}` + ':' + (seconds < 10 ? `0${seconds}` : `${seconds}`);
   }
 //----------------------------------------------------------------------------------------------------
-  onClickShuffle() { }
-  onClickRepeat() { }
   openBottomSheet() { }
   openCustomSnackBar() {
       if (this.snackbarOpen) {

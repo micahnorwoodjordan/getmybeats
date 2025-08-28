@@ -26,6 +26,7 @@ export class Audio2Service {
     private volume: number = 1;
     private downloadProgress: number = 0;
     public audioFetchCycle: WritableSignal<number> = signal(0);
+    public playbackComplete: WritableSignal<boolean> = signal(false);
     //----------------------------------------------------------------------------------------------------
     public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
     public getTitle() { return this.title; }
@@ -42,6 +43,7 @@ export class Audio2Service {
     private setDownloadProgress(newValue: number) { this.downloadProgress = newValue; }
     private setIsLoading(newValue: boolean) { this.isLoading = newValue; }
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
+    private setPlaybackComplete(newValue: boolean) { this.playbackComplete.set(newValue); }
     public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
         this.volume = value;
         if (this.gainNode) {
@@ -49,23 +51,22 @@ export class Audio2Service {
         }
     }
     //----------------------------------------------------------------------------------------------------
-    public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, shouldAutoplay: boolean = false): Promise<void> {
+    public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         this.setIsLoading(false);
-        if (shouldAutoplay) {
-            this.play();
-        }
+        this.setPlaybackComplete(true);
     }
 
-    public async onNext(mediaContext: MediaContextElement[], audioIndex: number, shouldAutoplay: boolean = true){
-        this.loadMediaContextElement(mediaContext, audioIndex, shouldAutoplay);
+    public async onNext(mediaContext: MediaContextElement[], audioIndex: number){
+        this.loadMediaContextElement(mediaContext, audioIndex);
     }
 
-    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number, shouldAutoplay: boolean = false){
-        this.loadMediaContextElement(mediaContext, audioIndex, shouldAutoplay);
+    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number){
+        this.loadMediaContextElement(mediaContext, audioIndex);
     }
 
-    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number, shouldAutoplay: boolean = false) {
+    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number) {
+        this.setPlaybackComplete(false);
         let audioFilenameHash;
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
@@ -94,7 +95,7 @@ export class Audio2Service {
                                 188, 187, 60, 249, 22, 254, 247, 149
                                 ]));
                                 this.stop();
-                                this.loadFromArrayBuffer(decrypted, shouldAutoplay);
+                                this.loadFromArrayBuffer(decrypted);
                             }
                             } else {
                             console.log('getandloadaudiotrack: ERROR fetching audio');
