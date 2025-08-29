@@ -35,15 +35,16 @@ export class PlayerComponent implements OnInit, OnDestroy {
         const playbackComplete = this.audioService.playbackComplete();
 
         if (currentAudioFetchCycle > lastAudioFetchCycle) {
+          console.log('PlayerComponent picked up audioFetchCycle signal update');
           this.onNext();
+          lastAudioFetchCycle = currentAudioFetchCycle;
         }
 
-        if (playbackComplete && !lastPlaybackCompleteState) {
+        else if (playbackComplete && !lastPlaybackCompleteState) {
+          console.log('PlayerComponent picked up playbackComplete signal update');
           this.reset();
+          lastPlaybackCompleteState = playbackComplete;
         }
-
-        lastPlaybackCompleteState = playbackComplete;
-        lastAudioFetchCycle = currentAudioFetchCycle;
       });
   }
   //----------------------------------------------------------------------------------------------------
