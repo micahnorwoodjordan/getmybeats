@@ -14,9 +14,6 @@ DEBUG = False
 
 PROHIBITED_USER_AGENT_SUBSTRINGS = ['curl']
 
-ENCRYPTION_KEY = base64.b64decode(os.environ['ENCRYPTION_KEY'])
-
-
 # Application definition
 INSTALLED_APPS = [
     'corsheaders',

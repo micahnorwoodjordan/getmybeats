@@ -61,15 +61,13 @@ def post_playback_request(request):
     return HttpResponse()
 
 
-@validate_audio_request_id
 @validate_user_agent
 @api_view(['GET'])
 def get_encrypted_audio_by_hash(request, filename_hash):
     try:
         audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
         audio = get_audio_by_filename_hash(filename_hash)
-        record_audio_request_information(audio_request_id)
-        encrypted = EncryptionService().get_encrypted_file(audio.file.path)
+        encrypted = EncryptionService().get_encrypted_file(audio_request_id, audio.file.path)
         response = StreamingHttpResponse(streaming_content=read_in_chunks(raw_material=encrypted))
         # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
         # must NEVER forget that Google Chrome bugs out when headers aren't properly set
