@@ -13,6 +13,11 @@ import { AudioService } from '../../services/audio.service';
 import { ArtworkService } from 'src/app/services/artwork.service';
 import { MediaContextElement } from 'src/app/interfaces/MediaContextElement';
 import { ApiService } from 'src/app/services/api.service';
+import { CryptoService } from 'src/app/services/crypto.service';
+
+
+import { generateAudioRequestGUID } from '../../utilities';
+
 
 @Component({
   selector: 'app-player',
@@ -24,6 +29,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     private audioService: AudioService,
     private artworkService: ArtworkService,
     private apiService: ApiService,
+    private cryptoService: CryptoService,
     private _snackBar: MatSnackBar,
     private bottomSheet: MatBottomSheet
   ) {
@@ -133,7 +139,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
-      await this.audioService.loadMediaContextElement(this.mediaContext, this.selectedAudioIndex);
+      let key = await this.getEncryptionKey();
+      let requestGUID = generateAudioRequestGUID();
+      let response = await this.apiService.postNewEncryptionKey(key, requestGUID);
+      await this.audioService.loadMediaContextElement(this.mediaContext, this.selectedAudioIndex, false, requestGUID);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
     }
@@ -150,6 +159,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
     clearInterval(this.intervalId);
   }
 //----------------------------------------------------------------------------------------------------
+  public async getEncryptionKey() { return await this.cryptoService.getNewEncryptionKey(); }
+
   public togglePlay() {
     if (!this.userHasInteractedWithUI) {
       this.setUserHasInteractedWithUI(true);
@@ -171,6 +182,9 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   public async onNext(autoplay: boolean = false, indexOverride: number | null = null) {
     let mediaContext = await this.getMediaContextAsPromise();
+    let key = await this.getEncryptionKey();
+    let requestGUID = generateAudioRequestGUID();
+    let response = await this.apiService.postNewEncryptionKey(key, requestGUID);
 
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
@@ -185,7 +199,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
           } else {
               this.setNextAudioIndex();
             }
-      await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex, autoplay);
+      await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex, autoplay, requestGUID);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
     } else {
@@ -195,10 +209,13 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   public async onPrevious() {
     let mediaContext = await this.getMediaContextAsPromise();
+    let key = await this.getEncryptionKey();
+    let requestGUID = generateAudioRequestGUID();
+    let response = await this.apiService.postNewEncryptionKey(key, requestGUID);
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
       this.setPreviousAudioIndex();
-      await this.audioService.onPrevious(this.mediaContext, this.selectedAudioIndex);
+      await this.audioService.onPrevious(this.mediaContext, this.selectedAudioIndex, requestGUID);
       this.setIsPlaying(false);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());

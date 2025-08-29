@@ -13,6 +13,14 @@ import { MediaContextElement } from '../interfaces/MediaContextElement';
 export class ApiService {
   constructor(private httpClient: HttpClient) { }
 
+  postNewEncryptionKey(key: Uint8Array, requestGUID: string) {
+    let location = '/media/audio/playbackrequest/';
+    let url = environment.apiHost + location;
+    let requestHeaders = new HttpHeaders().set('Audio-Request-Id', requestGUID);
+    let payload = { playbackRequestKey: key };
+    return this.httpClient.post(url, payload, { responseType: 'json', headers: requestHeaders }).toPromise();
+  }
+
   getMediaContext() {
     let location = '/media/context/';
     let url = environment.apiHost + location;
@@ -53,19 +61,6 @@ export class ApiService {
     let requestHeaders = new HttpHeaders().set('Audio-Request-Id', requestGUID);
     return this.httpClient.get(url, { responseType: 'blob', headers: requestHeaders }).toPromise();
   }
-
-  // getMaskedAudioArtworkImage(filenameHash: string) {
-  //   let location = '/media/image/hash/' + filenameHash;
-  //   let url = environment.apiHost + location;
-  //   return this.httpClient.get(
-  //     url,
-  //     {
-  //       observe: 'events',
-  //       responseType: 'blob',
-  //       reportProgress: true
-  //     }
-  //   );
-  // }
 
   downloadArtworkImageAsPromise(filenameHash: string) {
     let location = '/media/image/hash/' + filenameHash;

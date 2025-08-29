@@ -7,9 +7,6 @@ import { CryptoService } from './crypto.service';
 
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 
-import { generateAudioRequestGUID } from '../utilities';
-
-
 @Injectable({ providedIn: 'root' })
 export class AudioService {
     //----------------------------------------------------------------------------------------------------
@@ -58,15 +55,20 @@ export class AudioService {
         }
     }
 
-    public async onNext(mediaContext: MediaContextElement[], audioIndex: number, autoplay: boolean = false){
-        this.loadMediaContextElement(mediaContext, audioIndex, autoplay);
+    public async onNext(mediaContext: MediaContextElement[], audioIndex: number, autoplay: boolean = false, requestGUID: string){
+        this.loadMediaContextElement(mediaContext, audioIndex, autoplay, requestGUID);
     }
 
-    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number){
-        this.loadMediaContextElement(mediaContext, audioIndex);
+    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number, requestGUID: string){
+        this.loadMediaContextElement(mediaContext, audioIndex, false, requestGUID);
     }
 
-    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number, autoplay: boolean = false) {
+    public async loadMediaContextElement(
+        mediaContext: MediaContextElement[],
+        audioIndex: number,
+        autoplay: boolean = false,
+        requestGUID: string
+    ) {
         let audioFilenameHash;
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
@@ -74,7 +76,7 @@ export class AudioService {
             this.setDownloadProgress(0);
             audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
             this.setTitle(currentMediaContextElement.title);
-            this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
+            this.apiService.downloadAudioTrack(audioFilenameHash, requestGUID).subscribe(
                 async event => {
                     switch (event.type) {
                         case HttpEventType.DownloadProgress:
