@@ -7,7 +7,7 @@ from GetMyBeatsSettings.settings import *
 USE_LINUX = False
 DEBUG = True
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost', 'http://localhost:4200']
 
 ALLOWED_HOSTS = ['*']
 CORS_ALLOW_HEADERS = ['*']
