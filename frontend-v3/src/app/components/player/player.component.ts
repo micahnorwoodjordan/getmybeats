@@ -117,6 +117,9 @@ export class PlayerComponent implements OnInit, OnDestroy {
   private restart() {
     this.audioService.seek(0);
     this.setCurrentTime(0);
+    if (!this.audioService.getIsPlaying()) {
+      this.audioService.play();
+    }
   }
 
   private async getMediaContextAsPromise() { return await this.apiService.getMediaContextAsPromise(); }

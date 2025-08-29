@@ -31,6 +31,7 @@ export class AudioService {
     public getTitle() { return this.title; }
     public getVolume() { return this.volume; }
     public getIsLoading() { return this.isLoading; }
+    public getIsPlaying() { return this.isPlaying; }
     public getDownloadProgress() { return this.downloadProgress; }
 
     public getCurrentTime(): number {
