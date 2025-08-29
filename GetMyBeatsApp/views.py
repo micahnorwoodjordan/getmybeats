@@ -4,9 +4,11 @@ import logging
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
+from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.conf import settings
+
 
 from GetMyBeatsApp.decorators.views.asset_security import validate_user_agent, validate_audio_request_id
 from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
@@ -46,14 +48,17 @@ def health_check(request):
     return HttpResponse()
 
 
+@csrf_exempt
 @validate_audio_request_id
 @validate_user_agent
 @api_view(['POST'])
 def post_playback_request(request):
+    encryption_service = EncryptionService()
+    key = '.'.join([str(byte_value) for idx, byte_value in json.loads(request.body.decode("utf-8"))['playbackRequestKey'].items()])
+    audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
+    record_audio_request_information(audio_request_id)
+    encryption_service.cache_playback_request_ticket_with_ttl(audio_request_id, key)
     return HttpResponse()
-    # encryption_service = EncryptionService()
-    # audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
-    # record_audio_request_information(audio_request_id)
 
 
 @validate_audio_request_id

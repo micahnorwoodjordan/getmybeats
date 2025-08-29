@@ -3,6 +3,12 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from django.conf import settings
 
+from django.core.cache import cache
+
+
+DEFAULT_PLAYBACK_REQUEST_TICKET_TTL = 30  # seconds
+CACHE_PREFIX = 'PLAYBACK_REQUEST_TICKET'
+
 
 class EncryptionService:
     def __init__(self):
@@ -20,3 +26,7 @@ class EncryptionService:
     def get_encrypted_file(self, filepath):
         # key = bytes.fromhex(self.key)
         return self.encrypt_file(filepath)
+
+    def cache_playback_request_ticket_with_ttl(self, audio_request_id, encryption_key, ttl=DEFAULT_PLAYBACK_REQUEST_TICKET_TTL):
+        cache_key = CACHE_PREFIX + '-' + audio_request_id
+        cache.add(cache_key, encryption_key, timeout=ttl)
