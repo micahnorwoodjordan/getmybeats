@@ -1,14 +1,17 @@
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.cache import cache
+from django.db import transaction
 
 from GetMyBeatsApp.models import Audio, AudioFetchRequest
 
+from GetMyBeatsApp.data_access.utilities import record_audio_request_information
 
-DEFAULT_NONCE_LENGTH = 12
-DEFAULT_PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
+
+NONCE_LENGTH = 12
+PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
 CACHE_PREFIX = 'PLAYBACK_REQUEST_TICKET'
 
 
@@ -21,14 +24,14 @@ class EncryptionService:
             data = f.read()
 
         aesgcm = AESGCM(key)
-        nonce = os.urandom(DEFAULT_NONCE_LENGTH)
+        nonce = os.urandom(NONCE_LENGTH)
         encrypted = aesgcm.encrypt(nonce, data, None)
         return nonce + encrypted
 
     def _get_encrypted_file(self, filepath, key):
         return self.encrypt_file(filepath, key)
 
-    def cache_playback_request_ticket_with_ttl(self, audio_request_id, encryption_key, ttl=DEFAULT_PLAYBACK_REQUEST_TICKET_TTL):
+    def cache_playback_request_ticket_with_ttl(self, audio_request_id, encryption_key, ttl=PLAYBACK_REQUEST_TICKET_TTL):
         cache_key = CACHE_PREFIX + '-' + audio_request_id
         cache.add(cache_key, encryption_key, timeout=ttl)
 
@@ -40,3 +43,16 @@ class EncryptionService:
         key = bytes([int(part) for part in cached_value.split('.')])
         cache.delete(cached_value)
         return self._get_encrypted_file(filepath, key)
+
+    def process_new_key(self, audio_request_id: str, encoded_key: dict):
+        try:
+            with transaction.atomic():
+                key = '.'.join([str(byte_value) for idx, byte_value in encoded_key.items()])
+                record_audio_request_information(audio_request_id)
+                self.cache_playback_request_ticket_with_ttl(audio_request_id, key)
+        except ValidationError as e:
+            print('error saving audio fetch request', e)
+            raise
+        except Exception as e:
+            print('an unknown error occurred', e)
+            raise
