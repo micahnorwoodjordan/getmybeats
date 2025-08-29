@@ -48,6 +48,16 @@ def health_check(request):
 
 @validate_audio_request_id
 @validate_user_agent
+@api_view(['POST'])
+def post_playback_request(request):
+    return HttpResponse()
+    # encryption_service = EncryptionService()
+    # audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
+    # record_audio_request_information(audio_request_id)
+
+
+@validate_audio_request_id
+@validate_user_agent
 @api_view(['GET'])
 def get_encrypted_audio_by_hash(request, filename_hash):
     try:
