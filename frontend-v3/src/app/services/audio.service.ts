@@ -49,20 +49,23 @@ export class AudioService {
         }
     }
     //----------------------------------------------------------------------------------------------------
-    public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
+    public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, autoplay: boolean = false): Promise<void> {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         this.setIsLoading(false);
+        if (autoplay) {
+            this.play();
+        }
     }
 
-    public async onNext(mediaContext: MediaContextElement[], audioIndex: number){
-        this.loadMediaContextElement(mediaContext, audioIndex);
+    public async onNext(mediaContext: MediaContextElement[], audioIndex: number, autoplay: boolean = false){
+        this.loadMediaContextElement(mediaContext, audioIndex, autoplay);
     }
 
     public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number){
         this.loadMediaContextElement(mediaContext, audioIndex);
     }
 
-    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number) {
+    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number, autoplay: boolean = false) {
         let audioFilenameHash;
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
@@ -91,7 +94,7 @@ export class AudioService {
                                 188, 187, 60, 249, 22, 254, 247, 149
                                 ]));
                                 this.stop();
-                                this.loadFromArrayBuffer(decrypted);
+                                this.loadFromArrayBuffer(decrypted, autoplay);
                             }
                             } else {
                             console.log('getandloadaudiotrack: ERROR fetching audio');
@@ -111,19 +114,31 @@ export class AudioService {
 
     play() {
         if (!this.buffer) return;
+
+        this.cleanUpSource();  // revent playback stream overlap
+
         const offset = this.pauseTime;
 
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
+
         this.gainNode = this.audioContext.createGain();
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.audioContext.destination);
+
         this.startTime = this.audioContext.currentTime - offset;
         this.source.start(0, offset);
+
         this.isPlaying = true;
+
         this.source.onended = () => {
-            this.source = null;
+            if (!this.isPlaying) return;  // avoid race with pause/stop
+
+            this.cleanUpSource();
             this.pauseTime = 0;
+            this.isPlaying = false;
+
+            console.log('AudioService buffer source ended. promoting new fetch cycle');
             this.setAudioFetchCycle(this.audioFetchCycle() + 1);
         };
     }
@@ -131,34 +146,40 @@ export class AudioService {
     pause() {
         if (!this.isPlaying || !this.source) return;
 
-        this.source.onended = null;
-        this.source.stop();
+        this.cleanUpSource();
         this.pauseTime = this.audioContext.currentTime - this.startTime;
         this.isPlaying = false;
-        this.source = null;
     }
 
     stop() {
-        this.source?.disconnect();
-        this.source = null;
+        this.cleanUpSource();
         this.pauseTime = 0;
+        this.isPlaying = false;
     }
 
     seek(seconds: number) {
         if (!this.buffer) return;
-        if (seconds < 0) seconds = 0;
-        if (seconds > this.buffer.duration) seconds = this.buffer.duration;
 
-        this.pauseTime = Math.max(0, Math.min(seconds, this.buffer.duration));
+        // Clamp to valid range
+        seconds = Math.max(0, Math.min(seconds, this.buffer.duration));
+        this.pauseTime = seconds;
 
         if (this.isPlaying) {
-            if (this.source) {
-                this.source.onended = null; // prevent reset
-                this.source.stop();
-                this.source = null;
-            }
-            this.play(); // start from new offset
+            this.cleanUpSource();
+            this.play(); // restart from new offset
         }
     }
     //----------------------------------------------------------------------------------------------------
+    private cleanUpSource() {
+        if (this.source) {
+            this.source.onended = null;
+            try {
+                this.source.stop();
+            } catch (_) {
+                // ignore if already stopped
+            }
+            this.source.disconnect();
+            this.source = null;
+        }
+    }
 }

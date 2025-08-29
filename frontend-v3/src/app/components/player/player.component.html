@@ -20,7 +20,7 @@
             <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="left-control-arrow" (click)="onPrevious()" fxFlex="15">skip_previous</mat-icon>
             <mat-icon *ngIf="!isPlaying"  class="play-pause-control" (click)="togglePlay()" fxFlex="40">play_arrow</mat-icon>
             <mat-icon *ngIf="isPlaying" class="play-pause-control" (click)="togglePlay()" fxFlex="40">pause</mat-icon>
-            <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
+            <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="right-control-arrow" (click)="onNext(this.userHasInteractedWithUI ? true : false)" fxFlex="10">skip_next</mat-icon>
 
             <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
             <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>

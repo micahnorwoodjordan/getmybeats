@@ -28,14 +28,13 @@ export class PlayerComponent implements OnInit, OnDestroy {
     private bottomSheet: MatBottomSheet
   ) {
       let lastAudioFetchCycle = 0;
-      let lastPlaybackCompleteState = false;
 
-      effect(() => {
+      effect(async () => {
         const currentAudioFetchCycle = this.audioService.audioFetchCycle();
 
         if (currentAudioFetchCycle > lastAudioFetchCycle) {
           console.log(`PlayerComponent picked up audioFetchCycle signal update: ${lastAudioFetchCycle} -> ${currentAudioFetchCycle}`);
-          this.onNext();
+          await this.onNext(this.userHasInteractedWithUI ? true : false);
           lastAudioFetchCycle = currentAudioFetchCycle;
         }
       });
@@ -53,10 +52,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
   public duration: number = 0;
   public durationHumanReadable: string = '';
   public isPlaying = false;
+  public userHasInteractedWithUI: boolean = false;  // control to keep player from auto playing on load
   private mediaContext: MediaContextElement[] = [];
   private selectedAudioIndex = 0;
   private intervalId: any;
-  private userHasInteractedWithUI: boolean = false;  // control to keep player from auto playing on load
 //----------------------------------------------------------------------------------------------------
 // TODO: refactor snackbar out of this component entirely
   snackbarOpen: boolean = false;
@@ -165,7 +164,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.currentTime = val;
   }
 
-  public async onNext(indexOverride: number | null = null) {
+  public async onNext(autoplay: boolean = false, indexOverride: number | null = null) {
     let mediaContext = await this.getMediaContextAsPromise();
 
     if (mediaContext !== undefined) {
@@ -181,7 +180,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
           } else {
               this.setNextAudioIndex();
             }
-      await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex);
+      await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex, autoplay);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
     } else {
@@ -275,7 +274,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
               index = mediaContextElement.id;
             }
           });
-          await this.onNext(index);
+          await this.onNext(this.userHasInteractedWithUI ? true : false, index);
         }
       });
     }
