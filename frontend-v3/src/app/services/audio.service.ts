@@ -55,18 +55,30 @@ export class AudioService {
         }
     }
 
-    public async onNext(mediaContext: MediaContextElement[], audioIndex: number, autoplay: boolean = false, requestGUID: string){
-        this.loadMediaContextElement(mediaContext, audioIndex, autoplay, requestGUID);
+    public async onNext(
+        mediaContext: MediaContextElement[],
+        audioIndex: number,
+        autoplay: boolean = false,
+        key: Uint8Array,
+        requestGUID: string
+    ){
+        this.loadMediaContextElement(mediaContext, audioIndex, autoplay, key, requestGUID);
     }
 
-    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number, requestGUID: string){
-        this.loadMediaContextElement(mediaContext, audioIndex, false, requestGUID);
+    public async onPrevious(
+        mediaContext: MediaContextElement[],
+        audioIndex: number,
+        key: Uint8Array,
+        requestGUID: string
+    ){
+        this.loadMediaContextElement(mediaContext, audioIndex, false, key, requestGUID);
     }
 
     public async loadMediaContextElement(
         mediaContext: MediaContextElement[],
         audioIndex: number,
         autoplay: boolean = false,
+        key: Uint8Array,
         requestGUID: string
     ) {
         let audioFilenameHash;
@@ -90,12 +102,7 @@ export class AudioService {
                             if (event.status == 200) {
                             if (event.body !== undefined && event.body !== null) {
                                 let encrypted = await event.body.arrayBuffer();
-                                let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
-                                    197, 161, 34, 196, 208, 241, 221, 120,
-                                    26, 52, 83, 178, 189, 208, 70, 253,
-                                    80, 178, 134, 158, 29, 129, 199, 202,
-                                    188, 187, 60, 249, 22, 254, 247, 149
-                                ]));
+                                let decrypted = await this.cryptoService.decryptAudioData(encrypted, key);
                                 this.stop();
                                 this.loadFromArrayBuffer(decrypted, autoplay);
                             }
