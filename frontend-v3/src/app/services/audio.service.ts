@@ -26,7 +26,6 @@ export class AudioService {
     private volume: number = 1;
     private downloadProgress: number = 0;
     public audioFetchCycle: WritableSignal<number> = signal(0);
-    public playbackComplete: WritableSignal<boolean> = signal(false);
     //----------------------------------------------------------------------------------------------------
     public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
     public getTitle() { return this.title; }
@@ -43,7 +42,6 @@ export class AudioService {
     private setDownloadProgress(newValue: number) { this.downloadProgress = newValue; }
     private setIsLoading(newValue: boolean) { this.isLoading = newValue; }
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
-    private setPlaybackComplete(newValue: boolean) { this.playbackComplete.set(newValue); }
     public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
         this.volume = value;
         if (this.gainNode) {
@@ -54,7 +52,6 @@ export class AudioService {
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         this.setIsLoading(false);
-        this.setPlaybackComplete(true);
     }
 
     public async onNext(mediaContext: MediaContextElement[], audioIndex: number){
@@ -66,7 +63,6 @@ export class AudioService {
     }
 
     public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number) {
-        this.setPlaybackComplete(false);
         let audioFilenameHash;
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];

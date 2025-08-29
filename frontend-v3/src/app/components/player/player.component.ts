@@ -32,18 +32,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
       effect(() => {
         const currentAudioFetchCycle = this.audioService.audioFetchCycle();
-        const playbackComplete = this.audioService.playbackComplete();
 
         if (currentAudioFetchCycle > lastAudioFetchCycle) {
-          console.log('PlayerComponent picked up audioFetchCycle signal update');
+          console.log(`PlayerComponent picked up audioFetchCycle signal update: ${lastAudioFetchCycle} -> ${currentAudioFetchCycle}`);
           this.onNext();
           lastAudioFetchCycle = currentAudioFetchCycle;
-        }
-
-        else if (playbackComplete && !lastPlaybackCompleteState) {
-          console.log('PlayerComponent picked up playbackComplete signal update');
-          this.reset();
-          lastPlaybackCompleteState = playbackComplete;
         }
       });
   }
@@ -127,16 +120,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.setCurrentTime(0);
   }
 
-  private reset() {
-    console.log('PlayerComponent.reset');
-    if (this.userHasInteractedWithUI) {
-      this.audioService.stop();
-      this.setIsPlaying(false);
-      this.audioService.play();
-      this.setIsPlaying(true);
-    }
-  }
-
   private async getMediaContextAsPromise() { return await this.apiService.getMediaContextAsPromise(); }
   //----------------------------------------------------------------------------------------------------
 
@@ -183,25 +166,21 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   public async onNext(indexOverride: number | null = null) {
-    if (this.repeatEnabled) {
-      this.restart();
-      return;
-    }
-
     let mediaContext = await this.getMediaContextAsPromise();
 
     if (mediaContext !== undefined) {
       this.setMediaContext(mediaContext);
 
-      if (this.shuffleEnabled) {
-        this.shuffle(this.mediaContext, this.selectedAudioIndex);
-      } else {
-        if (indexOverride !== null) {
-          this.setSelectedAudioIndex(indexOverride);
-        } else {
-          this.setNextAudioIndex();
-        }
-      }
+      if (indexOverride !== null) {
+        this.setSelectedAudioIndex(indexOverride);
+      } else if (this.repeatEnabled) {
+          this.restart();
+          return;
+        } else if (this.shuffleEnabled) {
+            this.shuffle(this.mediaContext, this.selectedAudioIndex);
+          } else {
+              this.setNextAudioIndex();
+            }
       await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
