@@ -71,6 +71,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
   private setRepeatEnabled(newValue: boolean) { this.repeatEnabled = newValue; }
   private setCurrentTime(newValue: number) { this.currentTime = newValue; }
   private setUserHasInteractedWithUI(newValue: boolean) { this.userHasInteractedWithUI = newValue; }
+  private setCurrentTimeHumanReadable(newValue: string) { this.currentTimeHumanReadable = newValue; }
+  private setDurationHumanReadable(newValue: string) { this.durationHumanReadable = newValue; }
 
   public getTitle() { return this.audioService.getTitle(); }
   public getIsLoading() { return this.audioService.getIsLoading(); }
@@ -139,8 +141,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.intervalId = setInterval(() => {
       this.currentTime = this.audioService.getCurrentTime();
       this.duration = this.audioService.getDuration();
-      this.setCurrentTimeHumanReadable();
-      this.setDurationHumanReadable();
+      this.setCurrentTimeHumanReadable(this.formatTimeToHumanReadableTimestamp(this.currentTime));
+      this.setDurationHumanReadable(this.formatTimeToHumanReadableTimestamp(this.duration));
     }, 500);
   }
 
@@ -205,16 +207,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
     console.log('PlayerComponent.onPrevious: could not get media context');
   }
 
-   private setCurrentTimeHumanReadable() {
-    let currentMinutes = Math.floor(this.currentTime / 60);
-    let currentSeconds = Math.round(this.currentTime % 60);
-    this.currentTimeHumanReadable = `${currentMinutes}` + ':' + (currentSeconds < 10 ? `0${currentSeconds}` : `${currentSeconds}`);
-  }
-
-  private setDurationHumanReadable() {
-    let minutes = Math.floor(this.duration / 60);
-    let seconds = Math.round(this.duration % 60);
-    this.durationHumanReadable = `${minutes}` + ':' + (seconds < 10 ? `0${seconds}` : `${seconds}`);
+  private formatTimeToHumanReadableTimestamp(timestamp: number) {
+    let minutesString = Math.floor(timestamp / 60);
+    let secondsString = Math.floor(timestamp % 60);
+    return `${minutesString}` + ':' + (secondsString < 10 ? `0${secondsString}` : `${secondsString}`);
   }
 //----------------------------------------------------------------------------------------------------
   openCustomSnackBar() {

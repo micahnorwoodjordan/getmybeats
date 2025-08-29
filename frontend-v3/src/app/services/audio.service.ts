@@ -89,10 +89,10 @@ export class AudioService {
                             if (event.body !== undefined && event.body !== null) {
                                 let encrypted = await event.body.arrayBuffer();
                                 let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
-                                197, 161, 34, 196, 208, 241, 221, 120,
-                                26, 52, 83, 178, 189, 208, 70, 253,
-                                80, 178, 134, 158, 29, 129, 199, 202,
-                                188, 187, 60, 249, 22, 254, 247, 149
+                                    197, 161, 34, 196, 208, 241, 221, 120,
+                                    26, 52, 83, 178, 189, 208, 70, 253,
+                                    80, 178, 134, 158, 29, 129, 199, 202,
+                                    188, 187, 60, 249, 22, 254, 247, 149
                                 ]));
                                 this.stop();
                                 this.loadFromArrayBuffer(decrypted, autoplay);
