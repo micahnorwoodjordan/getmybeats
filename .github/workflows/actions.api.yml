@@ -39,5 +39,6 @@ jobs:
         DIGITALOCEAN_SETTINGS: ${{ vars.DIGITALOCEAN_SETTINGS }}
         REDIS_SETTINGS: ${{ vars.REDIS_SETTINGS }}
         REGION: ${{ vars.REGION }}
+        ENCRYPTION_KEY: ${{ vars.ENCRYPTION_KEY }}
       run: |
         python manage.py test
