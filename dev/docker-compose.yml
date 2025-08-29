@@ -60,8 +60,7 @@ services:
       ./manage.py collectstatic --no-input &&
       ./manage.py download_missing_audio &&
       echo 'starting gunicorn' &&
-      gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi
-      "
+      gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi"
     volumes:
       - ../:/srv/api
     env_file:
@@ -81,9 +80,6 @@ services:
       - ../frontend-v3:/srv/ui
     ports:
       - 4200:4200
-    command: bash -c "
-      npm install --save-dev @rollup/rollup-linux-x64-gnu &&
-      npx ng serve --host 0.0.0.0
-      "
+    command: bash -c "npm install --save-dev @rollup/rollup-linux-x64-gnu && npx ng serve --host 0.0.0.0"
     depends_on:
       - api
