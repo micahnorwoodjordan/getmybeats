@@ -4,21 +4,19 @@ import logging
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.core.files.base import ContentFile
-from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.conf import settings
+
 
 from GetMyBeatsApp.decorators.views.asset_security import validate_user_agent, validate_audio_request_id
 from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
-from GetMyBeatsApp.data_access.utilities import (
-    get_release_by_id,
-    get_audio_context, get_audio_by_filename_hash, get_current_user_experience_report,
-    record_audio_request_information, get_audio_artwork_by_filename_hash
-)
+from GetMyBeatsApp.data_access.utilities import get_release_by_id, get_audio_context, get_audio_by_filename_hash
 from GetMyBeatsApp.helpers.request_utilities import (
     GENERIC_200_MSG, GENERIC_400_MSG,
-    GENERIC_404_MSG, GENERIC_500_MSG
+    GENERIC_404_MSG, GENERIC_422_MSG, GENERIC_500_MSG
 )
 
 from GetMyBeatsApp.services.encryption_service import EncryptionService
@@ -46,15 +44,31 @@ def health_check(request):
     return HttpResponse()
 
 
+@csrf_exempt
 @validate_audio_request_id
+@validate_user_agent
+@api_view(['POST'])
+def post_playback_request(request):
+    try:
+        encoded_key = json.loads(request.body.decode("utf-8"))['playbackRequestKey']  # comes over the wire as a dict
+        audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
+        EncryptionService().process_new_key(audio_request_id, encoded_key)
+    except ValidationError as e:
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=422, reason=GENERIC_422_MSG)
+    except Exception as e:
+        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)
+    return HttpResponse()
+
+
 @validate_user_agent
 @api_view(['GET'])
 def get_encrypted_audio_by_hash(request, filename_hash):
     try:
         audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
         audio = get_audio_by_filename_hash(filename_hash)
-        record_audio_request_information(audio_request_id)
-        encrypted = EncryptionService().get_encrypted_file(audio.file.path)
+        encrypted = EncryptionService().get_encrypted_file(audio_request_id, audio.file.path)
         response = StreamingHttpResponse(streaming_content=read_in_chunks(raw_material=encrypted))
         # https://stackoverflow.com/questions/52137963/how-to-set-the-currenttime-in-html5-audio-object-when-audio-file-is-online
         # must NEVER forget that Google Chrome bugs out when headers aren't properly set

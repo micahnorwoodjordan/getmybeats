@@ -1,22 +1,58 @@
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.cache import cache
+from django.db import transaction
+
+from GetMyBeatsApp.models import Audio, AudioFetchRequest
+
+from GetMyBeatsApp.data_access.utilities import record_audio_request_information
+
+
+NONCE_LENGTH = 12
+PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
+CACHE_PREFIX = 'PLAYBACK_REQUEST_TICKET'
 
 
 class EncryptionService:
     def __init__(self):
-        self.key = settings.ENCRYPTION_KEY
+        pass
 
-    def encrypt_file(self, file_path):
+    def encrypt_file(self, file_path, key):
         with open(file_path, 'rb') as f:
             data = f.read()
 
-        aesgcm = AESGCM(self.key)  # key must be 16, 24, or 32 bytes (AES-128, AES-192, AES-256)
-        nonce = os.urandom(12)  # Generate a 12-byte nonce (IV)
+        aesgcm = AESGCM(key)
+        nonce = os.urandom(NONCE_LENGTH)
         encrypted = aesgcm.encrypt(nonce, data, None)
-        return nonce + encrypted  # Send nonce + encrypted file together
+        return nonce + encrypted
 
-    def get_encrypted_file(self, filepath):
-        # key = bytes.fromhex(self.key)
-        return self.encrypt_file(filepath)
+    def _get_encrypted_file(self, filepath, key):
+        return self.encrypt_file(filepath, key)
+
+    def cache_playback_request_ticket_with_ttl(self, audio_request_id, encryption_key, ttl=PLAYBACK_REQUEST_TICKET_TTL):
+        cache_key = CACHE_PREFIX + '-' + audio_request_id
+        cache.add(cache_key, encryption_key, timeout=ttl)
+
+    def get_encrypted_file(self, audio_request_id, filepath):
+        if not AudioFetchRequest.objects.filter(request_uuid=audio_request_id):
+            raise ObjectDoesNotExist('invalid audio request id')
+
+        cached_value = cache.get(f'{CACHE_PREFIX}-{audio_request_id}')
+        key = bytes([int(part) for part in cached_value.split('.')])
+        cache.delete(cached_value)
+        return self._get_encrypted_file(filepath, key)
+
+    def process_new_key(self, audio_request_id: str, encoded_key: dict):
+        try:
+            with transaction.atomic():
+                key = '.'.join([str(byte_value) for idx, byte_value in encoded_key.items()])
+                record_audio_request_information(audio_request_id)
+                self.cache_playback_request_ticket_with_ttl(audio_request_id, key)
+        except ValidationError as e:
+            print('error saving audio fetch request', e)
+            raise
+        except Exception as e:
+            print('an unknown error occurred', e)
+            raise
