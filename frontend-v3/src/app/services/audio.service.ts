@@ -1,168 +1,280 @@
-import { Injectable, signal, WritableSignal, effect } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { duration as momentDuration } from 'moment';
 import { HttpEventType } from '@angular/common/http';
 
 import { ApiService } from './api.service';
+import { ArtworkService } from './artwork.service';
+import { MediaContextElement } from '../interfaces/MediaContextElement';
+import { generateAudioRequestGUID } from '../utilities';
 import { CryptoService } from './crypto.service';
 
-import { MediaContextElement } from '../interfaces/MediaContextElement';
 
-import { generateAudioRequestGUID } from '../utilities';
+@Injectable({
+  providedIn: 'root'
+})
 
-
-@Injectable({ providedIn: 'root' })
 export class AudioService {
-    //----------------------------------------------------------------------------------------------------
-    constructor(private apiService: ApiService, private cryptoService: CryptoService) { }
-    private audioContext = new AudioContext();
-    private gainNode: GainNode | null = null;
-    private buffer: AudioBuffer | null = null;
-    private source: AudioBufferSourceNode | null = null;
-    private startTime = 0;   // when playback started
-    private pauseTime = 0;   // accumulated paused offset
-    private isPlaying = false;
-    private isLoading: boolean = false;
-    private title: string = 'loading title...';
-    private volume: number = 1;
-    private downloadProgress: number = 0;
-    public audioFetchCycle: WritableSignal<number> = signal(0);
-    public playbackComplete: WritableSignal<boolean> = signal(false);
-    //----------------------------------------------------------------------------------------------------
-    public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
-    public getTitle() { return this.title; }
-    public getVolume() { return this.volume; }
-    public getIsLoading() { return this.isLoading; }
-    public getDownloadProgress() { return this.downloadProgress; }
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly artworkService: ArtworkService,
+    private readonly cryptoService: CryptoService
+  ) {
+    this.ctx = new AudioContext();
+  }
+  // ----------------------------------------------------------------------------------------------------------------
+  private ctx: AudioContext
+  private audioTrack: HTMLAudioElement = new Audio();
+  private audioHasArtwork: boolean = false;
+  private artworkImageSrc: string = '';
+  private downloadProgress: number = 0;
+  public numberOfTracks: number = 0;
+  public musicLength: string = '0:00';
+  public duration: number = 1;
+  public currentTime: string = '0:00';
+  public sliderValue: number = 0;
+  public loading: boolean = false;
+  public hasPlaybackError: boolean = false;
+  public autoplayOnIndexChange: boolean = false;
+  // ----------------------------------------------------------------------------------------------------------------
+  // set by player component ------------
+  public selectedAudioIndex = 0;
+  public title: string = "null";
+  public shuffleEnabled: boolean = false;
+  public repeatEnabled: boolean = false;
+  public audioContext: MediaContextElement[] | undefined = [];  // placeholder for `context` attribute to avoid compilation errors during refactor
+  // ----------------------------------------------------------------------------------------------------------------
+  // getters
+  public getDownloadProgress() { return this.downloadProgress; }
+  public getAudioContext() { return this.audioContext; }
+  public getTitle() { return this.title; }
+  public getLoading() { return this.loading; }
+  public getHasPlaybackError() { return this.hasPlaybackError; }
+  public getCurrentTime() { return this.currentTime; }
+  public getDuration() { return this.duration; }
+  public getMusicLength() { return this.musicLength; }
+  public getSliderValue() { return this.sliderValue; }
+  public isAudioPaused() { return this.audioTrack.paused; }
+  public getSelectedAudioIndex() { return this.selectedAudioIndex; }
+  public getArtworkImageSrc() { return this.artworkImageSrc; }
+  public getAudioHasArtwork() { return this.audioHasArtwork; }
+  public getVolume() { return this.audioTrack.volume; }
+  // ----------------------------------------------------------------------------------------------------------------
+  // setters
+  private setDownloadProgress(newProgressInt: number) { this.downloadProgress = newProgressInt; }
+  private setAutoplayOnIndexChange(value: boolean) { this.autoplayOnIndexChange = value; }
+  private setAudioHasArtwork(newValue: boolean) { this.audioHasArtwork = newValue; }
+  private setArtworkImageSrc(newSrc: string) { this.artworkImageSrc = newSrc; }
+  private setLoading(value: boolean) { this.loading = value; }
+  private setHasPlaybackError(value: boolean) { this.hasPlaybackError = value; }
+  private setAudioSrc(src: string) { this.audioTrack.src = src; }
+  private setAudioContext(newAudioContext: MediaContextElement[]) { this.audioContext = newAudioContext; }
+  private setNumberOfTracks(newNumberOfTracks: number) { this.numberOfTracks = newNumberOfTracks; }
+  private setAudioTrackCurrentTime(newtime: number) { this.audioTrack.currentTime = newtime; }
+  public setShuffleEnabled(value: boolean) { this.shuffleEnabled = value; this.shuffleEnabled ? this.repeatEnabled = false : null; }
+  public setRepeatEnabled(value: boolean) { this.repeatEnabled = value; this.repeatEnabled ? this.shuffleEnabled = false : null; }
+  public setCurrentTime(value: number) { this.audioTrack.currentTime = value; }
+  public setSelectedAudioIndex(idx: number) { this.selectedAudioIndex = idx; }
+  public setAudioTitle(newTitle: string) { this.title = newTitle; }
+  public setVolume(newVolumeLevel: number) { this.audioTrack.volume = newVolumeLevel; }
+  // ----------------------------------------------------------------------------------------------------------------
+  public async initialize() { 
+    await this.onSelectedAudioIndexChange(this.selectedAudioIndex);
+    await this.loadAudioArtworkImage();
+  }
 
-    public getCurrentTime(): number {
-        if (!this.buffer) return 0;
-        return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
+  public async getContextSynchronously() { return await this.apiService.getMediaContextAsPromise(); }
+
+  private async loadAudioArtworkImage() {
+    console.log('loadAudioArtworkImage: begin');
+    if (this.audioContext) {
+      let artworkFilenameHash = this.audioContext[this.selectedAudioIndex].artwork_filename_hash;
+  
+      if (!artworkFilenameHash) {
+        this.setAudioHasArtwork(false);
+        console.log('loadAudioArtworkImage: no artwork hash');
+        return;
+      }
+
+      let imageSrc = await this.artworkService.getImageSrcURL(artworkFilenameHash);
+      if(imageSrc !== '') {
+        console.log('loadAudioArtworkImage: retrieved image source');
+        this.setAudioHasArtwork(true);
+        this.setArtworkImageSrc(imageSrc);
+      }
+    } else {
+      console.log('loadAudioArtworkImage: no context/audio index');
     }
-    //----------------------------------------------------------------------------------------------------
-    private setTitle(newValue: string) { this.title = newValue; }
-    private setDownloadProgress(newValue: number) { this.downloadProgress = newValue; }
-    private setIsLoading(newValue: boolean) { this.isLoading = newValue; }
-    private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
-    private setPlaybackComplete(newValue: boolean) { this.playbackComplete.set(newValue); }
-    public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
-        this.volume = value;
-        if (this.gainNode) {
-            this.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
+    console.log('loadAudioArtworkImage: end');
+  }
+
+  private updateAudioOndurationchange() {
+    // https://github.com/locknloll/angular-music-player/blob/main/src/app/app.component.ts#L123
+    // the below logic blocks are borrowed from the above github project
+    // these blocks are instrumental in getting the audio seeking logic to work correctly
+    this.audioTrack.ondurationchange = () => {
+      const totalSeconds = Math.floor(this.audioTrack.duration);
+      const duration = momentDuration(totalSeconds, 'seconds');
+      this.musicLength = duration.seconds() < 10 ?
+        `${Math.floor(duration.asMinutes())}:0${duration.seconds()}` :
+          `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+      this.duration = totalSeconds;
+    }
+  }
+// ----------------------------------------------------------------------------------------------------------------
+// dynamic methods
+  public updateAudioMetadataState() {
+    this.audioTrack.ontimeupdate = () => {
+      const duration = momentDuration(Math.floor(this.audioTrack.currentTime), 'seconds');
+      this.currentTime = duration.seconds() < 10 ? 
+      `${Math.floor(duration.asMinutes())}:0${duration.seconds()}`:
+        `${Math.floor(duration.asMinutes())}:${duration.seconds()}`;
+      this.sliderValue = this.audioTrack.currentTime;
+    }
+
+    this.audioTrack.onended = async () => { this.setLoading(true); await this.onNextWrapper(); }
+    this.audioTrack.onwaiting = () => { console.log('waiting'); this.setLoading(true); }
+    this.audioTrack.onseeking = () => { console.log('seeking'); this.setLoading(true); }
+    // my hypothesis is that setting `this.loading` to true here erroniously spawns the loading spinner
+    // when the browser is perfectly able to play the audio immediately
+    // this.audioTrack.onloadstart = () => { console.log('onloadstart'); this.setLoading(true); }
+    this.audioTrack.onloadeddata = () => { console.log('onloadeddata'); this.setLoading(false); }
+    this.audioTrack.onplay = () => { console.log('onplay'); this.setLoading(false); }
+    this.audioTrack.onseeked = () => { console.log('onseeked'); this.setLoading(false); }
+    this.audioTrack.onplaying = () => { console.log('ready to resume'); this.setLoading(false); }
+    this.audioTrack.onstalled = () => { console.log('onstalled'); this.setHasPlaybackError(true); }
+    this.audioTrack.onerror = () => { console.log('onerror'); this.setHasPlaybackError(true); }
+    this.audioTrack.oncanplaythrough = () => { console.log('oncanplaythrough'); this.setHasPlaybackError(false); this.setLoading(false); }
+  }
+  // ----------------------------------------------------------------------------------------------------------------
+  // public core utility methods
+  public pauseOnCycleThrough() { this.audioTrack.pause(); }
+  public playOnCycleThrough() { this.audioTrack.play(); }
+  public playAudioTrack() { this.audioTrack.play(); this.setAutoplayOnIndexChange(true); }
+  public pauseAudioTrack() { this.audioTrack.pause(); this.setAutoplayOnIndexChange(false); }
+  public async onIndexChangePublic(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
+
+  public async onNextWrapper() {  // wrap so that this can be called from player component without passing args
+    if (this.shuffleEnabled) {
+      await this.onSongChangeShuffle(this.selectedAudioIndex);
+    } else {
+      if (this.repeatEnabled) {
+        this.setAudioTrackCurrentTime(0);
+        if (this.autoplayOnIndexChange) {
+          this.playAudioTrack();
         }
+      } else {
+        let newIndex: number = this.getNextAudioIndex();
+        await this.onNext(newIndex);
+      }
     }
-    //----------------------------------------------------------------------------------------------------
-    public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<void> {
-        this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
-        this.setIsLoading(false);
-        this.setPlaybackComplete(true);
-    }
+  }
 
-    public async onNext(mediaContext: MediaContextElement[], audioIndex: number){
-        this.loadMediaContextElement(mediaContext, audioIndex);
-    }
+  public async onPreviousWrapper() {
+    let newIndex: number = this.repeatEnabled ? this.selectedAudioIndex : this.getPreviousAudioIndex();
+    await this.onPrevious(newIndex);
+  }
+  // ----------------------------------------------------------------------------------------------------------------
+  // private core utility methods
+  private async onNext(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
+  private async onPrevious(newIndex: number) { await this.onSelectedAudioIndexChange(newIndex); }
 
-    public async onPrevious(mediaContext: MediaContextElement[], audioIndex: number){
-        this.loadMediaContextElement(mediaContext, audioIndex);
-    }
+  private getNextAudioIndex() {
+    let newIndex = this.selectedAudioIndex;
+    this.selectedAudioIndex + 1 < this.numberOfTracks ? newIndex += 1 : newIndex = 0;
+    return newIndex;
+  }
 
-    public async loadMediaContextElement(mediaContext: MediaContextElement[], audioIndex: number) {
-        this.setPlaybackComplete(false);
-        let audioFilenameHash;
-        if (mediaContext.length > 0) {
-            let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
-            this.setIsLoading(true);
-            this.setDownloadProgress(0);
-            audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
-            this.setTitle(currentMediaContextElement.title);
-            this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
-                async event => {
-                    switch (event.type) {
-                        case HttpEventType.DownloadProgress:
-                            if (event.total !== undefined) {
-                                this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
-                                console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
-                            }
-                            break;
-                        case HttpEventType.Response:
-                            console.log(`getandloadaudiotrack: received server response ${event.status}`);
-                            if (event.status == 200) {
-                            if (event.body !== undefined && event.body !== null) {
-                                let encrypted = await event.body.arrayBuffer();
-                                let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
-                                197, 161, 34, 196, 208, 241, 221, 120,
-                                26, 52, 83, 178, 189, 208, 70, 253,
-                                80, 178, 134, 158, 29, 129, 199, 202,
-                                188, 187, 60, 249, 22, 254, 247, 149
-                                ]));
-                                this.stop();
-                                this.loadFromArrayBuffer(decrypted);
-                            }
-                            } else {
-                            console.log('getandloadaudiotrack: ERROR fetching audio');
-                            }
-                            break;
-                        default:
-                            console.log('getandloadaudiotrack: no response from server yet');
-                    }
-                },
-                error => {
-                    console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+  private getPreviousAudioIndex() {
+    let newIndex = this.selectedAudioIndex;
+    newIndex - 1 >= 0 ? newIndex -= 1 : newIndex = this.numberOfTracks - 1;
+    return newIndex;
+  }
+
+  private async playDecryptedAudio(audioBuffer: ArrayBuffer): Promise<void> {
+    this.ctx.decodeAudioData(audioBuffer, (decoded) => {
+      const source = this.ctx.createBufferSource();
+      source.buffer = decoded;
+      source.connect(this.ctx.destination);
+      source.start(0);
+    }, (err) => {
+      console.error('Audio decode failed:', err);
+    });
+  }
+
+  // private async playEncryptedAudioFile(audioUrl: string, keyBytes: Uint8Array): Promise<void> {
+  //   const encrypted = await this.fetchEncryptedAudio(audioUrl);
+  //   const decrypted = await decryptAudioData(encrypted, keyBytes);
+  //   await this.playDecryptedAudio(decrypted);
+  // }
+
+  private async onSelectedAudioIndexChange(newSelectedAudioIndex: number) {
+    let audioFilenameHash;
+    let audioContext = await this.getContextSynchronously();
+    if (audioContext) {
+      this.setAudioContext(audioContext);
+      this.setNumberOfTracks(audioContext.length);
+      this.setLoading(true);
+      this.setDownloadProgress(0);
+      audioFilenameHash = audioContext[newSelectedAudioIndex].audio_filename_hash;
+      this.setAudioTitle(audioContext[newSelectedAudioIndex].title);
+      this.setSelectedAudioIndex(newSelectedAudioIndex);
+
+      this.apiService.downloadAudioTrack(audioFilenameHash, generateAudioRequestGUID()).subscribe(
+        async event => {
+          switch (event.type) {
+            case HttpEventType.DownloadProgress:
+              if (event.total !== undefined) {
+                this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
+                console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+              }
+              break;
+            case HttpEventType.Response:
+              console.log(`getandloadaudiotrack: received server response ${event.status}`);
+              if (event.status == 200) {
+                if (event.body !== undefined && event.body !== null) {
+                  // let encrypted = new Uint8Array(await event.body.arrayBuffer());
+                  // let decrypted = await this.cryptoService.decryptAudioData(encrypted, new Uint8Array([
+                  //   201, 208, 229, 250, 49, 129, 92, 10,
+                  //   78, 103, 200, 70, 178, 73, 30, 111,
+                  //   251, 43, 26, 224, 250, 121, 88, 227,
+                  //   209, 170, 62, 61, 96, 17, 35, 153
+                  // ]));
+                  let audioSrc = URL.createObjectURL(event.body);
+                  this.setAudioSrc(audioSrc);
+                  this.setLoading(false);
+                  this.updateAudioOndurationchange();
+                  if (this.autoplayOnIndexChange) {
+                    this.playAudioTrack();
+                    // this.playDecryptedAudio(decrypted);
+                  }
                 }
-            );
+              } else {
+                console.log('getandloadaudiotrack: ERROR fetching audio');
+              }
+              break;
+            default:
+              console.log('getandloadaudiotrack: no response from server yet');
+          }
+        },
+        error => {
+          console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
         }
+      )
+      await this.loadAudioArtworkImage();
     }
-    //----------------------------------------------------------------------------------------------------
+  }
 
-    play() {
-        if (!this.buffer) return;
-        const offset = this.pauseTime;
+  private async onSongChangeShuffle(badIndex: number): Promise<number> {
+    let lowerBound: number = 0;
+    let upperBound: number = this.numberOfTracks;
+    let randomTrackIndex: number = Math.floor(Math.random() * (upperBound - lowerBound) + lowerBound);
 
-        this.source = this.audioContext.createBufferSource();
-        this.source.buffer = this.buffer;
-        this.gainNode = this.audioContext.createGain();
-        this.source.connect(this.gainNode);
-        this.gainNode.connect(this.audioContext.destination);
-        this.startTime = this.audioContext.currentTime - offset;
-        this.source.start(0, offset);
-        this.isPlaying = true;
-        this.source.onended = () => {
-            this.source = null;
-            this.pauseTime = 0;
-            this.setAudioFetchCycle(this.audioFetchCycle() + 1);
-        };
+    if (randomTrackIndex === badIndex && this.numberOfTracks > 1) {  // this extra condition is only relevant to development
+      console.log(`recursing: new index ${randomTrackIndex} === previous ${badIndex}`);
+      return await this.onSongChangeShuffle(badIndex);
     }
-
-    pause() {
-        if (!this.isPlaying || !this.source) return;
-
-        this.source.onended = null;
-        this.source.stop();
-        this.pauseTime = this.audioContext.currentTime - this.startTime;
-        this.isPlaying = false;
-        this.source = null;
-    }
-
-    stop() {
-        this.source?.disconnect();
-        this.source = null;
-        this.pauseTime = 0;
-    }
-
-    seek(seconds: number) {
-        if (!this.buffer) return;
-        if (seconds < 0) seconds = 0;
-        if (seconds > this.buffer.duration) seconds = this.buffer.duration;
-
-        this.pauseTime = Math.max(0, Math.min(seconds, this.buffer.duration));
-
-        if (this.isPlaying) {
-            if (this.source) {
-                this.source.onended = null; // prevent reset
-                this.source.stop();
-                this.source = null;
-            }
-            this.play(); // start from new offset
-        }
-    }
-    //----------------------------------------------------------------------------------------------------
+    await this.onSelectedAudioIndexChange(randomTrackIndex);
+    return -1
+  }
 }
+// ----------------------------------------------------------------------------------------------------------------

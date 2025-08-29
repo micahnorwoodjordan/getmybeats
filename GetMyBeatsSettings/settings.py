@@ -1,5 +1,4 @@
 import os
-import base64
 
 from pathlib import Path
 
@@ -14,7 +13,8 @@ DEBUG = False
 
 PROHIBITED_USER_AGENT_SUBSTRINGS = ['curl']
 
-ENCRYPTION_KEY = base64.b64decode(os.environ['ENCRYPTION_KEY'])
+# https://stackoverflow.com/questions/29573163/django-admin-login-suddenly-demanding-csrf-token
+# in general, future form POST's will probably need the CSRF cookie embedded into the Origin header
 
 
 # Application definition
