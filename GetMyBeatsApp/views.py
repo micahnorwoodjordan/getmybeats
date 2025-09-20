@@ -13,7 +13,9 @@ from django.conf import settings
 from GetMyBeatsApp.decorators.views.asset_security import validate_user_agent, validate_audio_request_id
 from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
-from GetMyBeatsApp.data_access.utilities import get_release_by_id, get_audio_context, get_audio_by_filename_hash
+from GetMyBeatsApp.data_access.utilities import (
+    get_release_by_id, get_audio_context, get_audio_by_filename_hash, get_audio_artwork_by_filename_hash
+)
 from GetMyBeatsApp.helpers.request_utilities import (
     GENERIC_200_MSG, GENERIC_400_MSG,
     GENERIC_404_MSG, GENERIC_422_MSG, GENERIC_500_MSG
