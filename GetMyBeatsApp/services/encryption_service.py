@@ -8,6 +8,11 @@ from django.db import transaction
 from GetMyBeatsApp.models import Audio, AudioFetchRequest
 
 from GetMyBeatsApp.data_access.utilities import record_audio_request_information
+from GetMyBeatsApp.services.log_service import LogService
+from GetMyBeatsApp.models import LogEntry
+
+
+MODULE = __name__
 
 
 NONCE_LENGTH = 12
@@ -50,9 +55,10 @@ class EncryptionService:
                 key = '.'.join([str(byte_value) for idx, byte_value in encoded_key.items()])
                 record_audio_request_information(audio_request_id)
                 self.cache_playback_request_ticket_with_ttl(audio_request_id, key)
+                LogService.log(LogEntry.LogLevel.INFO.value, 'successfully processed encryption key', MODULE)
         except ValidationError as e:
-            print('error saving audio fetch request', e)
+            LogService.log(LogEntry.LogLevel.WARNING.value, f'error saving audio fetch request: {e}', MODULE)
             raise
         except Exception as e:
-            print('an unknown error occurred', e)
+            LogService.log(LogEntry.LogLevel.WARNING.value, f'error saving audio fetch request: {e}', MODULE)
             raise
