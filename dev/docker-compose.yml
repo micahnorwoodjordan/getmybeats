@@ -16,22 +16,6 @@ services:
         test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
         timeout: 5s
         retries: 1
-  dbimport:
-    volumes:    
-      - ./db:/root/db
-    image: mysql:8
-    entrypoint: "sh /root/db/import_db.sh"
-    environment:
-      MYSQL_USER: "mysql"
-      MYSQL_DATABASE: "getmybeats_local_old"
-      MYSQL_PASSWORD: "Password1!"
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_ROOT_PASSWORD: "Password1!"
-      MYSQL_HOST: "db"
-    depends_on:
-      db:
-        # https://stackoverflow.com/questions/42567475/docker-compose-check-if-mysql-connection-is-ready
-        condition: service_healthy
   redis:
     command: redis-server
     image: redis
@@ -46,7 +30,6 @@ services:
           DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
           REDIS_SETTINGS: ${REDIS_SETTINGS}
           DATABASE_SETTINGS: ${DATABASE_SETTINGS}
-          DIGITALOCEAN_SETTINGS: ${DIGITALOCEAN_SETTINGS}
           AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
           AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
           S3_BUCKET_NAME: ${S3_BUCKET_NAME}
@@ -64,8 +47,6 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
-      dbimport:
         condition: service_started
   ui:
     build:
