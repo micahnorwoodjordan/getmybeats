@@ -1,5 +1,4 @@
 import os
-import logging
 import tempfile
 from enum import Enum
 
@@ -8,12 +7,31 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 
-from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_filename, lowercase_filename
 from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
 
 
-logger = logging.getLogger(__name__)
+# TODO: find a cheap logging mechanism that offers:
+#   - non-ephemeral log retention
+#   - free
+#   - no writing to local files
+
+class LogEntry(models.Model):
+    class LogLevel(Enum):
+        CRITICAL = 1
+        ERROR = 2
+        WARNING = 3
+        INFO = 4
+        DEBUG = 5
+
+    created_at = models.DateTimeField(auto_now=True)
+    level = models.IntegerField(blank=False, null=False, choices=[(val.value, val.name) for val in LogLevel])
+    message = models.CharField(max_length=1024, blank=False, null=False)
+    api_module = models.CharField(max_length=1024, blank=False, null=False)
+
+    class Meta:
+        managed = True
+        db_table = 'log_entry'
 
 
 class ProductionRelease(models.Model):
@@ -55,6 +73,9 @@ class AudioArtwork(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
+        from GetMyBeatsApp.services.s3_service import S3AudioService  # avoid circular import
+
+
         key_prefix = 'getmybeats/images'
         if self.pk:
             old_instance = AudioArtwork.objects.get(pk=self.pk)
@@ -115,6 +136,9 @@ class Audio(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
+        from GetMyBeatsApp.services.s3_service import S3AudioService  # avoid circular import
+
+
         key_prefix = 'getmybeats/audio'
         if self.pk:
             old_instance = Audio.objects.get(pk=self.pk)
