@@ -1,5 +1,4 @@
 import base64
-import logging
 
 from django.conf import settings
 from django.db import transaction, IntegrityError
@@ -12,8 +11,11 @@ from GetMyBeatsApp.models import (
     AudioFetchRequest, AudioArtwork
 )
 
+from GetMyBeatsApp.models import LogEntry
+from GetMyBeatsApp.services.log_service import LogService
 
-logger = logging.getLogger(__name__)
+
+MODULE = __name__
 
 
 NEW_AUDIO_UPLOAD_CACHE_KEY = f'NEW-UPLOAD-{now().strftime("%Y.%m.%d")}'
@@ -59,12 +61,10 @@ def record_request_information(request):
                     user_agent=user_agent,
                     body=str(body)
                 )
-        except IntegrityError as err:
-            extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-            logger.error('record request data FAILURE', extra=extra)
-        except Exception as err:
-            extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-            logger.error('record request data FAILURE', extra=extra)
+        except IntegrityError as e:
+            LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
+        except Exception as e:
+            LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
 
         # count" site visits; someone constantly refreshing the page doesnt count, for example
         cache.add(site_vist_request_cache_key, remote_ip_address)
@@ -76,7 +76,10 @@ def record_audio_request_information(request_id):
     try:
         AudioFetchRequest.objects.create(request_uuid=request_id)
     except ValidationError as e:
+        LogService.log(LogEntry.LogLevel.WARNING, str(e), MODULE)
         raise InvalidAudioFetchRequestException('not a valid request') from e
+    except Exception as e:
+        LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
 
 
 def get_release_by_id(release_id):
@@ -105,7 +108,7 @@ def get_audio_context():
     for idx, a in enumerate(list(
         Audio.objects.filter(filename_hash__isnull=False).select_related('artwork').order_by('-id')
     )):
-        context_array.append({
+        context_array.append({  # TODO: make this an interface / data model
             'audio_filename_hash': a.filename_hash,
             'artwork_filename_hash': a.artwork.filename_hash if a.artwork else None,
             'title': a.title,
