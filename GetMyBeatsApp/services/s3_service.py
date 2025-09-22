@@ -1,5 +1,4 @@
 import os
-import logging
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -10,11 +9,15 @@ from botocore.config import Config
 
 from django.conf import settings
 
+from GetMyBeatsApp.models import LogEntry
+from GetMyBeatsApp.services.log_service import LogService
+
+
+MODULE = __name__
+
 
 # TODO: optional arg to overwrite existing files
 
-
-logger = logging.getLogger(__name__)
 
 CONFIG = Config(
     retries={'max_attempts': 5},
@@ -57,8 +60,9 @@ class S3AudioService:
         try:
             with open(local_filepath, 'rb') as f:
                 self.client.upload_fileobj(f, Bucket=self.bucket_name, Key=key)
+                LogService.log(LogEntry.LogLevel.INFO, f'uploaded {key}', MODULE)
         except ClientError as e:
-            print(f"Failed to upload {local_filepath}: {e.response['Error']['Message']}")
+            LogService.log(LogEntry.LogLevel.ERROR, f'failed to upload {key}: {e.response["Error"]["Message"]}', MODULE)
 
     def download(self, key: str, local_filepath: str):
         try:
@@ -66,8 +70,10 @@ class S3AudioService:
             with open(local_filepath, 'wb') as f:
                 for chunk in response['Body'].iter_chunks(chunk_size=DEFAULT_CHUNK_SIZE_BYTES):
                     f.write(chunk)
+            LogService.log(LogEntry.LogLevel.INFO, f'downloaded {key}', MODULE)
+
         except ClientError as e:
-            print(f"Failed to download {key} from {self.bucket_name}: {e.response['Error']['Message']}")
+            LogService.log(LogEntry.LogLevel.ERROR, f'failed to download {key} from {self.bucket_name}: {e.response["Error"]["Message"]}', MODULE)
 
     def sync(self, prefix: str, local_dir: str):
         """sync the contents of a remote spaces object storage bucket to local filesystem"""
@@ -100,7 +106,7 @@ class S3AudioService:
             s3 = S3AudioService()
             s3.sync('getmybeats/audio', settings.MEDIA_ROOT)
             s3.sync('getmybeats/images', settings.MEDIA_ROOT)
-            print('get_assets_for_site_index SUCCESS')
+            LogService.log(LogEntry.LogLevel.INFO, 'get_assets_for_site_index SUCCESS', MODULE)
         except Exception as e:
-            print(f'get_assets_for_site_index ERROR: {e}')
+            LogService.log(LogEntry.LogLevel.ERROR, f'get_assets_for_site_index ERROR: {e}', MODULE)
             raise
