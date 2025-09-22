@@ -1,5 +1,4 @@
 import os
-import logging
 import tempfile
 from enum import Enum
 
@@ -13,7 +12,27 @@ from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_filename, lowercas
 from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
 
 
-logger = logging.getLogger(__name__)
+# TODO: find a cheap logging mechanism that offers:
+#   - non-ephemeral log retention
+#   - free
+#   - no writing to local files
+
+class LogEntry(models.Model):
+    class LogLevel(Enum):
+        CRITICAL = 1
+        ERROR = 2
+        WARNING = 3
+        INFO = 4
+        DEBUG = 5
+
+    created_at = models.DateTimeField(auto_now=True)
+    level = models.IntegerField(blank=False, null=False, choices=[(val.value, val.name) for val in LogLevel])
+    message = models.CharField(max_length=1024, blank=False, null=False)
+    api_module = models.CharField(max_length=1024, blank=False, null=False)
+
+    class Meta:
+        managed = True
+        db_table = 'log_entry'
 
 
 class ProductionRelease(models.Model):
