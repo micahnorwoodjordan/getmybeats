@@ -55,12 +55,7 @@ services:
 
     ports:
       - 80:80
-    command: /bin/bash -c "
-      ./manage.py migrate GetMyBeatsApp &&
-      ./manage.py collectstatic --no-input &&
-      ./manage.py download_missing_audio &&
-      echo 'starting gunicorn' &&
-      gunicorn -c dev/gunicorn/config.py GetMyBeatsSettings.wsgi"
+    command: sh dev/scripts/start.sh
     volumes:
       - ../:/srv/api
     env_file:
