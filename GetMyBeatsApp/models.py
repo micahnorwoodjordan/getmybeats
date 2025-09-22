@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 
-from GetMyBeatsApp.services.s3_service import S3AudioService
 from GetMyBeatsApp.helpers.db_utilities import get_new_hashed_filename, lowercase_filename
 from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSCORE
 
@@ -74,6 +73,9 @@ class AudioArtwork(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
+        from GetMyBeatsApp.services.s3_service import S3AudioService  # avoid circular import
+
+
         key_prefix = 'getmybeats/images'
         if self.pk:
             old_instance = AudioArtwork.objects.get(pk=self.pk)
@@ -134,6 +136,9 @@ class Audio(models.Model):
         this extra logic puts a band aid on this unwanted side effect
         and also identifies whether a file upload contains an entirely different file based on the raw file data
         """
+        from GetMyBeatsApp.services.s3_service import S3AudioService  # avoid circular import
+
+
         key_prefix = 'getmybeats/audio'
         if self.pk:
             old_instance = Audio.objects.get(pk=self.pk)
