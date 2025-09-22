@@ -57,8 +57,8 @@ class EncryptionService:
                 self.cache_playback_request_ticket_with_ttl(audio_request_id, key)
                 LogService.log(LogEntry.LogLevel.INFO, 'successfully processed encryption key', MODULE)
         except ValidationError as e:
-            LogService.log(LogEntry.LogLevel.WARNING, f'error processing encryption key: {e}', MODULE)
+            LogService.log(LogEntry.LogLevel.WARNING, f'error processing encryption key for audio request ID {audio_request_id}: {e}', MODULE)
             raise
         except Exception as e:
-            LogService.log(LogEntry.LogLevel.WARNING, f'error processing encryption key: {e}', MODULE)
+            LogService.log(LogEntry.LogLevel.WARNING, f'error processing encryption key for audio request ID {audio_request_id}: {e}', MODULE)
             raise
