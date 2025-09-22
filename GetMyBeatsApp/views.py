@@ -1,5 +1,4 @@
 import json
-import logging
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
@@ -14,7 +13,8 @@ from GetMyBeatsApp.decorators.views.asset_security import validate_user_agent, v
 from GetMyBeatsApp.helpers.file_io_utilities import read_in_chunks
 from GetMyBeatsApp.serializers import ProductionReleaseSerializer
 from GetMyBeatsApp.data_access.utilities import (
-    get_release_by_id, get_audio_context, get_audio_by_filename_hash, get_audio_artwork_by_filename_hash
+    get_release_by_id, get_audio_context, get_audio_by_filename_hash, get_audio_artwork_by_filename_hash,
+    get_current_user_experience_report
 )
 from GetMyBeatsApp.helpers.request_utilities import (
     GENERIC_200_MSG, GENERIC_400_MSG,
@@ -22,9 +22,11 @@ from GetMyBeatsApp.helpers.request_utilities import (
 )
 
 from GetMyBeatsApp.services.encryption_service import EncryptionService
+from GetMyBeatsApp.models import LogEntry
+from GetMyBeatsApp.services.log_service import LogService
 
 
-logger = logging.getLogger(__name__)
+MODULE = __name__
 
 
 def handler404(request, exception, template_name="404.html"):
@@ -56,10 +58,10 @@ def post_playback_request(request):
         audio_request_id = request.META['HTTP_AUDIO_REQUEST_ID']
         EncryptionService().process_new_key(audio_request_id, encoded_key)
     except ValidationError as e:
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.WARNING, f'invalid playback request: {e}', MODULE)
         return HttpResponse(status=422, reason=GENERIC_422_MSG)
     except Exception as e:
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
     return HttpResponse()
 
@@ -83,13 +85,13 @@ def get_encrypted_audio_by_hash(request, filename_hash):
         response['Cache-Control'] = 'no-store'
         return response
     except KeyError as e:  # missing Audio-Request-Id header
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.WARNING, str(e), MODULE)
         return HttpResponse(status=400, reason=GENERIC_400_MSG)
     except ObjectDoesNotExist as e:
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.WARNING, str(e), MODULE)
         return HttpResponse(status=404, reason=GENERIC_404_MSG)
     except Exception as e:
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
@@ -101,28 +103,26 @@ def get_release(request, release_id):
         release = get_release_by_id(release_id)
         serializer = ProductionReleaseSerializer(release)
         return JsonResponse(serializer.data)
-
     except ValueError as err:
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-        logger.exception('get_release', extra=extra)
+        LogService.log(LogEntry.LogLevel.WARNING, str(err), MODULE)
         return HttpResponse(status=400, reason=GENERIC_400_MSG)
-
     except ObjectDoesNotExist as err:
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-        logger.exception('get_release', extra=extra)
+        LogService.log(LogEntry.LogLevel.WARNING, str(err), MODULE)
         return HttpResponse(status=404, reason=GENERIC_404_MSG)
-
     except Exception as err:
-        extra = {settings.LOGGER_EXTRA_DATA_KEY: str(err)}
-        logger.exception('get_release', extra=extra)
+        LogService.log(LogEntry.LogLevel.ERROR, str(err), MODULE)
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
 @validate_user_agent
 @api_view(['GET'])
 def get_site_audio_context(request):
-    context_array = get_audio_context()
-    return HttpResponse(content=json.dumps(context_array), reason=GENERIC_200_MSG)
+    try:
+        context_array = get_audio_context()
+        return HttpResponse(content=json.dumps(context_array), reason=GENERIC_200_MSG)
+    except Exception as e:
+        LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
 @validate_user_agent
@@ -134,14 +134,18 @@ def get_audio_artwork_by_hash(request, filename_hash):
         response = StreamingHttpResponse(streaming_content=read_in_chunks(infile=content_file))
         return response
     except ObjectDoesNotExist as e:
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.WARNING, str(e), MODULE)
         return HttpResponse(status=404, reason=GENERIC_404_MSG)
     except Exception as e:
-        logger.info('error', extra={settings.LOGGER_EXTRA_DATA_KEY: str(e)})
+        LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
         return HttpResponse(status=500, reason=GENERIC_500_MSG)
 
 
 @api_view(['GET'])
 def get_user_experience_report(request):
-    report = get_current_user_experience_report()
-    return render(request, 'user_experience_report.html', context=report)
+    try:
+        report = get_current_user_experience_report()
+        return render(request, 'user_experience_report.html', context=report)
+    except Exception as e:
+        LogService.log(LogEntry.LogLevel.ERROR, str(e), MODULE)
+        return HttpResponse(status=500, reason=GENERIC_500_MSG)
