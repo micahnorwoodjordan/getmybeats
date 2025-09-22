@@ -10,7 +10,6 @@
 #   `audio`
 #   `audio_fetch_request`
 
-echo "starting database schema migration"
-mysql -u root -p$MYSQL_ROOT_PASSWORD -h $MYSQL_HOST < /root/db/db.sql getmybeats_local_old
-echo "database schema migration success"
-tail -f /dev/null
+echo "starting database seeding"
+mysql -u root -p$MYSQL_ROOT_PASSWORD -h $MYSQL_HOST < dev/db/db.sql getmybeats_local_old
+echo "database schema seeding success"
