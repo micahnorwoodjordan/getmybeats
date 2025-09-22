@@ -11,4 +11,4 @@ python manage.py download_missing_audio &&
 python manage.py rotate_audio_filename_hashes &&
 python manage.py record_production_release &&
 echo "deployment bootstrapping complete. health checks should begin shortly..." &&
-gunicorn --worker-tmp-dir /dev/shm -c GetMyBeatsApp/digitalocean/gunicorn/gunicorn_config.py GetMyBeatsSettings.wsgi &&
+gunicorn --worker-tmp-dir /dev/shm -c GetMyBeatsApp/digitalocean/gunicorn/gunicorn_config.py GetMyBeatsSettings.wsgi
