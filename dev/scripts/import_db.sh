@@ -10,6 +10,8 @@
 #   `audio`
 #   `audio_fetch_request`
 
+set -e
+
 echo "starting database seeding"
 mysql -u root -p$MYSQL_ROOT_PASSWORD -h $MYSQL_HOST < dev/db/db.sql getmybeats_local_old
 echo "database schema seeding success"
