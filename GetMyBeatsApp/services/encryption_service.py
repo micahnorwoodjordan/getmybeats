@@ -55,10 +55,10 @@ class EncryptionService:
                 key = '.'.join([str(byte_value) for idx, byte_value in encoded_key.items()])
                 record_audio_request_information(audio_request_id)
                 self.cache_playback_request_ticket_with_ttl(audio_request_id, key)
-                LogService.log(LogEntry.LogLevel.INFO.value, 'successfully processed encryption key', MODULE)
+                LogService.log(LogEntry.LogLevel.INFO, 'successfully processed encryption key', MODULE)
         except ValidationError as e:
-            LogService.log(LogEntry.LogLevel.WARNING.value, f'error saving audio fetch request: {e}', MODULE)
+            LogService.log(LogEntry.LogLevel.WARNING, f'error processing encryption key: {e}', MODULE)
             raise
         except Exception as e:
-            LogService.log(LogEntry.LogLevel.WARNING.value, f'error saving audio fetch request: {e}', MODULE)
+            LogService.log(LogEntry.LogLevel.WARNING, f'error processing encryption key: {e}', MODULE)
             raise
