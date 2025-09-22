@@ -18,5 +18,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             ProductionRelease.objects.create(environment={k: v for k, v in os.environ.items()})
+            LogService.log(LogEntry.LogLevel.INFO, 'recorded production release', MODULE)
         except Exception as e:
             LogService.log(LogEntry.LogLevel.ERROR, f'error recording production release: {e}', MODULE)

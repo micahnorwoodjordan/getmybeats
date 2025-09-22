@@ -12,9 +12,12 @@ from GetMyBeatsApp.templatetags.string_formatters import space_to_charx, UNDERSC
 
 
 # TODO: find a cheap logging mechanism that offers:
-#   - non-ephemeral log retention
+#   - non-ephemeral (persistent) log retention
 #   - free
 #   - no writing to local files
+
+# the idea behind delegating logging to this model is to, on this 1st iteration, simply log that an event happened
+# on later iterations or upgrades, more granular data capturing can be added, i.e. who, when, where, why, and how vs. just the `what`
 
 class LogEntry(models.Model):
     class LogLevel(Enum):
