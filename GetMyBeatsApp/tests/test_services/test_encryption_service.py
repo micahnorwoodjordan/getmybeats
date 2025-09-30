@@ -1,12 +1,13 @@
 import uuid
+import time
 import random
 import pytest
 
-from django.conf import settings
-
 from GetMyBeatsApp.models import LogEntry, AudioFetchRequest, Audio
 
-from GetMyBeatsApp.services.encryption_service import EncryptionService
+from GetMyBeatsApp.services.encryption_service import (
+    EncryptionService, PlaybackRequestExpiredException, PLAYBACK_REQUEST_TICKET_TTL
+)
 
 
 def generate_encryption_key_payload() -> dict:
@@ -28,10 +29,20 @@ def test_process_new_key():
     assert AudioFetchRequest.objects.filter().count() == initial_audio_fetch_request_count + 1
 
 
-def test_get_encrypted_file_flow():
+def test_get_encrypted_file_flow_ok():
     audio_request_id = str(uuid.uuid4())
     audio = Audio.objects.last()
     auth_bytes_total = 28  # encrypted file total length = ciphertext + 28 bytes dedicated to auth
     process_new_key_helper(audio_request_id)
     encrypted = EncryptionService().get_encrypted_file(audio_request_id, audio.file.path)
     assert len(encrypted) - auth_bytes_total == audio.file.size
+
+
+def test_get_encrypted_file_flow_bad():
+    audio_request_id = str(uuid.uuid4())
+    audio = Audio.objects.last()
+    process_new_key_helper(audio_request_id)
+    time.sleep(PLAYBACK_REQUEST_TICKET_TTL + 1)  # wait an extra second to be safe
+    with pytest.raises(PlaybackRequestExpiredException) as excinfo:
+        EncryptionService().get_encrypted_file(audio_request_id, audio.file.path)
+        assert 'the playback request has expired. please try to fetch song again' in excinfo

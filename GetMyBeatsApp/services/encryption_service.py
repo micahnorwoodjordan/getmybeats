@@ -20,6 +20,10 @@ PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
 CACHE_PREFIX = 'PLAYBACK_REQUEST_TICKET'
 
 
+class PlaybackRequestExpiredException(Exception):
+    pass
+
+
 class EncryptionService:
     def __init__(self):
         pass
@@ -48,6 +52,10 @@ class EncryptionService:
             raise ObjectDoesNotExist('invalid audio request id')
 
         cached_value = cache.get(f'{CACHE_PREFIX}-{audio_request_id}')
+
+        if cached_value is None:
+            raise PlaybackRequestExpiredException('the playback request has expired. please try to fetch song again')
+
         key = bytes([int(part) for part in cached_value.split('.')])
         cache.delete(cached_value)
         return self._get_encrypted_file(filepath, key)
