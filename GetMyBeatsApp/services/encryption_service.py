@@ -30,6 +30,9 @@ class EncryptionService:
 
         aesgcm = AESGCM(key)
         nonce = os.urandom(NONCE_LENGTH)
+        # NOTE: the material returned from this method call is ciphertext + 16-byte auth tag
+        # so the structure of the encrypted material is 12-byte nonce + ciphertext + 16-byte auth tag
+        # total length = ciphertext + 28 bytes dedicated to auth
         encrypted = aesgcm.encrypt(nonce, data, None)
         return nonce + encrypted
 
