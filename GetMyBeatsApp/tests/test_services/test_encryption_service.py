@@ -19,8 +19,6 @@ def generate_encryption_key_payload() -> dict:
 def test_process_new_key():
     initial_log_entry_count = LogEntry.objects.filter().count()
     initial_audio_fetch_request_count = AudioFetchRequest.objects.filter().count()
-    encoded_key = generate_encryption_key_payload()
-    service = EncryptionService()
-    service.process_new_key(str(uuid.uuid4()), encoded_key)
+    EncryptionService().process_new_key(str(uuid.uuid4()), generate_encryption_key_payload())
     assert LogEntry.objects.filter().count() == initial_log_entry_count + 1
     assert AudioFetchRequest.objects.filter().count() == initial_audio_fetch_request_count + 1
