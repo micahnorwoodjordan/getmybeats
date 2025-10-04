@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.cache import cache
 from django.db import transaction
+from django.conf import settings
 
 from GetMyBeatsApp.models import Audio, AudioFetchRequest
 
@@ -16,7 +17,6 @@ MODULE = __name__
 
 
 NONCE_LENGTH = 12
-PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
 CACHE_PREFIX = 'PLAYBACK_REQUEST_TICKET'
 
 
@@ -43,7 +43,12 @@ class EncryptionService:
     def _get_encrypted_file(self, filepath, key):
         return self.encrypt_file(filepath, key)
 
-    def cache_playback_request_ticket_with_ttl(self, audio_request_id, encryption_key, ttl=PLAYBACK_REQUEST_TICKET_TTL):
+    def cache_playback_request_ticket_with_ttl(
+        self,
+        audio_request_id,
+        encryption_key,
+        ttl=settings.PLAYBACK_REQUEST_TICKET_TTL
+    ):
         cache_key = CACHE_PREFIX + '-' + audio_request_id
         cache.add(cache_key, encryption_key, timeout=ttl)
 
