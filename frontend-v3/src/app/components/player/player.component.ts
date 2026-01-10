@@ -183,6 +183,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   public async onNext(indexOverride: number | null = null) {
     this.setUserHasInteractedWithUI(true);
+    console.log(this.userHasInteractedWithUI);
     let mediaContext = await this.getMediaContextAsPromise();
     let key = await this.getEncryptionKey();
     let requestGUID = generateAudioRequestGUID();
