@@ -40,7 +40,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
         if (currentAudioFetchCycle > lastAudioFetchCycle) {
           console.log(`PlayerComponent picked up audioFetchCycle signal update: ${lastAudioFetchCycle} -> ${currentAudioFetchCycle}`);
-          await this.onNext(this.userHasInteractedWithUI ? true : false);
+          await this.onNext();
           lastAudioFetchCycle = currentAudioFetchCycle;
         }
       });
@@ -178,9 +178,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
     const val = +(e.target as HTMLInputElement).value;
     this.audioService.seek(val);
     this.currentTime = val;
+    this.setUserHasInteractedWithUI(true);
   }
 
-  public async onNext(autoplay: boolean = false, indexOverride: number | null = null) {
+  public async onNext(indexOverride: number | null = null) {
+    this.setUserHasInteractedWithUI(true);
     let mediaContext = await this.getMediaContextAsPromise();
     let key = await this.getEncryptionKey();
     let requestGUID = generateAudioRequestGUID();
@@ -199,15 +201,17 @@ export class PlayerComponent implements OnInit, OnDestroy {
           } else {
               this.setNextAudioIndex();
             }
-      await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex, autoplay, key, requestGUID);
+      await this.audioService.onNext(this.mediaContext, this.selectedAudioIndex, this.userHasInteractedWithUI, key, requestGUID);
       await this.artworkService.loadAudioArtworkImage(this.mediaContext, this.selectedAudioIndex);
       this.setAudioArtworkImageSrc(this.artworkService.getArtworkImageSrc());
+      this.setIsPlaying(true);
     } else {
       console.log('PlayerComponent.onNext: could not get media context');
     }
   }
 
   public async onPrevious() {
+    this.setUserHasInteractedWithUI(true);
     let mediaContext = await this.getMediaContextAsPromise();
     let key = await this.getEncryptionKey();
     let requestGUID = generateAudioRequestGUID();
@@ -290,7 +294,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
               index = mediaContextElement.id;
             }
           });
-          await this.onNext(this.userHasInteractedWithUI ? true : false, index);
+          await this.onNext(index);
         }
       });
     }

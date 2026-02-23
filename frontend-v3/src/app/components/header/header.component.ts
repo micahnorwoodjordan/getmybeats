@@ -19,6 +19,8 @@ export class HeaderComponent implements OnInit {
 
   constructor(private apiService: ApiService) {}
 
+  private setLastReleaseString(newString: string){ this.lastReleaseString = newString; }
+
   ngOnInit() { this.setLastReleaseDate(); }
 
   setLastReleaseDate() {
@@ -31,7 +33,9 @@ export class HeaderComponent implements OnInit {
               if (event.body !== undefined && event.body !== null) {
                 let lastRelease = event.body;
                 let unsanitizedString = lastRelease.release_date;
-                this.lastReleaseString = unsanitizedString.split('T')[0];
+                let options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                let humanReadableString: string = new Date(unsanitizedString.split('T')[0] + 'T00:00:00').toLocaleDateString(undefined, options);
+                this.setLastReleaseString(humanReadableString);
               }
             } else {
               console.log('setLastReleaseDate: ERROR fetching release date');
