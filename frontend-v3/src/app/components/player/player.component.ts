@@ -127,6 +127,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.setCurrentTime(0);
     if (!this.audioService.getIsPlaying()) {
       this.audioService.play();
+      this.setIsPlaying(true);
     }
   }
 
