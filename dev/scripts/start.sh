@@ -4,7 +4,7 @@ export MYSQL_ROOT_PASSWORD="Password1!"
 export MYSQL_HOST="db"
 
 sh dev/scripts/import_db.sh
-python manage.py test &&
+python manage.py test --settings=GetMyBeatsSettings.settings_test &&
 python manage.py migrate GetMyBeatsApp &&
 python manage.py download_missing_audio &&
 python manage.py rotate_audio_filename_hashes &&
