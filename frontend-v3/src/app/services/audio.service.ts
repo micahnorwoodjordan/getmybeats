@@ -125,6 +125,8 @@ export class AudioService {
     play() {
         if (!this.buffer) return;
 
+        console.log('AudioContext state:', this.audioContext.state);
+
         this.cleanUpSource();  // revent playback stream overlap
 
         const offset = this.pauseTime;
