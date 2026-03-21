@@ -1,6 +1,6 @@
 export const environment = {
     production: false,
-    apiHost: "http://localhost",
+    apiHost: "/api",
     apiMediaPath: "/media/",
     localMediaPath: "/assets/"
 }

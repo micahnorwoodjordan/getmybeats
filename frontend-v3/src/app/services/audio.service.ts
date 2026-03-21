@@ -51,7 +51,7 @@ export class AudioService {
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         this.setIsLoading(false);
         if (autoplay) {
-            this.play();
+            await this.play();
         }
     }
 
@@ -122,10 +122,16 @@ export class AudioService {
     }
     //----------------------------------------------------------------------------------------------------
 
-    play() {
+    async play() {
         if (!this.buffer) return;
 
-        console.log('AudioContext state:', this.audioContext.state);
+        let initialAudioContextState = this.audioContext.state;
+
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+        }
+
+        console.log('AudioContext state:', initialAudioContextState, '->', this.audioContext.state);
 
         this.cleanUpSource();  // revent playback stream overlap
 
@@ -169,7 +175,7 @@ export class AudioService {
         this.isPlaying = false;
     }
 
-    seek(seconds: number) {
+    async seek(seconds: number) {
         if (!this.buffer) return;
 
         // Clamp to valid range
@@ -178,7 +184,7 @@ export class AudioService {
 
         if (this.isPlaying) {
             this.cleanUpSource();
-            this.play(); // restart from new offset
+            await this.play(); // restart from new offset
         }
     }
     //----------------------------------------------------------------------------------------------------
