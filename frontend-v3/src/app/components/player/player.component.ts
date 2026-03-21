@@ -122,11 +122,12 @@ export class PlayerComponent implements OnInit, OnDestroy {
     return -1;
   }
 
-  private restart() {
-    this.audioService.seek(0);
+  private async restart() {
+    await this.audioService.seek(0);
     this.setCurrentTime(0);
     if (!this.audioService.getIsPlaying()) {
-      this.audioService.play();
+      await this.audioService.play();
+      this.setIsPlaying(true);
     }
   }
 
@@ -161,7 +162,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
 //----------------------------------------------------------------------------------------------------
   public async getEncryptionKey() { return await this.cryptoService.getNewEncryptionKey(); }
 
-  public togglePlay() {
+  public async togglePlay() {
     if (!this.userHasInteractedWithUI) {
       this.setUserHasInteractedWithUI(true);
     }
@@ -169,14 +170,14 @@ export class PlayerComponent implements OnInit, OnDestroy {
     if (this.isPlaying) {
       this.audioService.pause();
     } else {
-      this.audioService.play();
+      await this.audioService.play();
     }
     this.setIsPlaying(!this.isPlaying);
   }
 
-  public onSeek(e: Event) {
+  public async onSeek(e: Event) {
     const val = +(e.target as HTMLInputElement).value;
-    this.audioService.seek(val);
+    await this.audioService.seek(val);
     this.currentTime = val;
     this.setUserHasInteractedWithUI(true);
   }
@@ -194,7 +195,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
       if (indexOverride !== null) {
         this.setSelectedAudioIndex(indexOverride);
       } else if (this.repeatEnabled) {
-          this.restart();
+          await this.restart();
           return;
         } else if (this.shuffleEnabled) {
             this.shuffle(this.mediaContext, this.selectedAudioIndex);
