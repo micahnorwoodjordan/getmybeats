@@ -133,16 +133,22 @@ export class AudioService {
 
         if (this.audioContext) {
             try {
-                await this.audioContext.close();
+                this.audioContext.close();
             } catch { }
         }
 
         this.audioContext = new AudioContext();
-        await this.audioContext.resume();
+        this.audioContext.resume();
+
+        console.log(this.audioContext.state);
 
         this.cleanUpSource();  // revent playback stream overlap
 
-        const offset = Math.min(this.pauseTime, this.buffer.duration - 0.01);
+        if (this.pauseTime >= this.buffer.duration) {
+            this.pauseTime = 0;
+        }
+
+        const offset = this.pauseTime;
 
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
