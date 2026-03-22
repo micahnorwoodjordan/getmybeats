@@ -11,7 +11,7 @@ import { MediaContextElement } from '../interfaces/MediaContextElement';
 export class AudioService {
     //----------------------------------------------------------------------------------------------------
     constructor(private apiService: ApiService, private cryptoService: CryptoService) { }
-    private audioContext = new AudioContext();
+    private audioContext: AudioContext | null = null;
     private gainNode: GainNode | null = null;
     private buffer: AudioBuffer | null = null;
     private source: AudioBufferSourceNode | null = null;
@@ -33,6 +33,9 @@ export class AudioService {
 
     public getCurrentTime(): number {
         if (!this.buffer) return 0;
+
+        if (this.audioContext === null) return 0;
+
         return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
     }
     //----------------------------------------------------------------------------------------------------
@@ -42,12 +45,15 @@ export class AudioService {
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
     public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
         this.volume = value;
-        if (this.gainNode) {
+        if (this.gainNode && this.audioContext) {
             this.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
         }
     }
     //----------------------------------------------------------------------------------------------------
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, autoplay: boolean = false): Promise<void> {
+
+        if (this.audioContext === null) return;
+
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         this.setIsLoading(false);
         if (autoplay) {
@@ -125,17 +131,18 @@ export class AudioService {
     async play() {
         if (!this.buffer) return;
 
-        let initialAudioContextState = this.audioContext.state;
-
-        if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
+        if (this.audioContext) {
+            try {
+                await this.audioContext.close();
+            } catch { }
         }
 
-        console.log('AudioContext state:', initialAudioContextState, '->', this.audioContext.state);
+        this.audioContext = new AudioContext();
+        await this.audioContext.resume();
 
         this.cleanUpSource();  // revent playback stream overlap
 
-        const offset = this.pauseTime;
+        const offset = Math.min(this.pauseTime, this.buffer.duration - 0.01);
 
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
@@ -163,6 +170,8 @@ export class AudioService {
 
     pause() {
         if (!this.isPlaying || !this.source) return;
+
+        if (this.audioContext === null) return;
 
         this.cleanUpSource();
         this.pauseTime = this.audioContext.currentTime - this.startTime;
