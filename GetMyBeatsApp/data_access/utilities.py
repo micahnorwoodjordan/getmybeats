@@ -112,7 +112,8 @@ def get_audio_context():
             'audio_filename_hash': a.filename_hash,
             'artwork_filename_hash': a.artwork.filename_hash if a.artwork else None,
             'title': a.title,
-            'id': idx
+            'id': idx,
+            'author': a.author
         })
     return context_array
 

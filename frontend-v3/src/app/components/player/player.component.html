@@ -10,7 +10,7 @@
             <h1 class="songTitle"> {{ getTitle() }}</h1>
         </div>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
-            <h3 class="songArtist"> micah </h3>
+            <h3 class="songArtist">{{ getAuthor() }} </h3>
         </div>
         <mat-spinner *ngIf="getIsLoading()" class="progress-spinner"></mat-spinner>
         <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
