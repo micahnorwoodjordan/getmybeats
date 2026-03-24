@@ -4,5 +4,6 @@ export interface MediaContextElement {
     artwork_width: string,
     artwork_height: string,
     title: string,
-    id: number
+    id: number,
+    author: string
 }
