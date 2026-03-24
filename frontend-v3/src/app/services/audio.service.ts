@@ -20,12 +20,14 @@ export class AudioService {
     private isPlaying = false;
     private isLoading: boolean = false;
     private title: string = 'loading title...';
+    private author: string = 'loading author...';
     private volume: number = 1;
     private downloadProgress: number = 0;
     public audioFetchCycle: WritableSignal<number> = signal(0);
     //----------------------------------------------------------------------------------------------------
     public getDuration(): number { return this.buffer ? this.buffer.duration : 0; }
     public getTitle() { return this.title; }
+    public getAuthor() { return this.author; }
     public getVolume() { return this.volume; }
     public getIsLoading() { return this.isLoading; }
     public getIsPlaying() { return this.isPlaying; }
@@ -37,6 +39,7 @@ export class AudioService {
     }
     //----------------------------------------------------------------------------------------------------
     private setTitle(newValue: string) { this.title = newValue; }
+    private setAuthor(newValue: string) { this.author = newValue; }
     private setDownloadProgress(newValue: number) { this.downloadProgress = newValue; }
     private setIsLoading(newValue: boolean) { this.isLoading = newValue; }
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
@@ -88,6 +91,7 @@ export class AudioService {
             this.setDownloadProgress(0);
             audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
             this.setTitle(currentMediaContextElement.title);
+            this.setAuthor(currentMediaContextElement.author);
             this.apiService.downloadAudioTrack(audioFilenameHash, requestGUID).subscribe(
                 async event => {
                     switch (event.type) {

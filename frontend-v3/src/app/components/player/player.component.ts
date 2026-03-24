@@ -46,7 +46,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
       });
   }
   //----------------------------------------------------------------------------------------------------
-  public title: string = 'null';
   public shuffleEnabled: boolean = false;
   public repeatEnabled: boolean = false;
   public hasPlaybackError: boolean = false;  // TODO
@@ -81,6 +80,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   private setDurationHumanReadable(newValue: string) { this.durationHumanReadable = newValue; }
 
   public getTitle() { return this.audioService.getTitle(); }
+  public getAuthor() { return this.audioService.getAuthor(); }
   public getIsLoading() { return this.audioService.getIsLoading(); }
   public getDownloadProgress() { return this,this.audioService.getDownloadProgress(); }
   public getArtworkIsValid() { return this.artworkService.getArtworkIsValid(); }
@@ -331,7 +331,8 @@ export class TrackSelectorBottomSheet {
     artwork_width: '',
     artwork_height: '',
     title: '',
-    id: 0
+    id: 0,
+    author: ''
   };
 
   constructor(
