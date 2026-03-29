@@ -2,7 +2,39 @@
 
 - this online music player is a web application built to share my music with audiophiles, while showcasing my overall technical know-how to other curious techies.
 
-## UPDATE MARCH 27, 2025
+## UPDATE: MARCH 28, 2026 ⏰
+
+- NOTE: i've made drastic infrastructural and architectural changes to this app, and have addressed all of the previous shortcomings
+
+### Deployments
+
+- the [previous strategy](#deployments-) has been updated. deployments are now triggered by pushes to the App Platform App App's target Github branch. App Platforms manages container orchestration, compiling the app, load balancing, and SSL certificates.
+
+### Infrastructure
+
+- the [previous infrastructure](#infrastructure-) has been completely replaced -- this app is no longer a monolith. DigitalOcean's App Platform now individually containerizes the UI and API tiers. here is an updated overview: ![alt text](image.current.png)
+
+### Tech Stack
+
+- the [tech stack](#tech-stack-) looks slightly different. here is a list of items no longer relevant:
+  - nginx
+  - cron tasks
+  - frontend app bundling
+  - manual SSL certificate management
+  - manual configuration file management
+  - S3
+
+### Challenges
+
+- all previous [challenges](#challenges-) have been handled and their solutions implemented
+
+### Wonky Design Decisions
+
+- all previous [wonky design decisions](#wonky-design-decisions-) have been addressed
+
+---
+
+## UPDATE: MARCH 27, 2025
 
 - NOTE: I started this project a few years ago but have now retroactively come back to write up this Readme
 
@@ -11,7 +43,7 @@
 - My goal was to pick Javascript back up and learn a framework to learn how to build a reactive, modern web app client.
 - I used to strictly classify myself as a Backend Software engineer. In my folly, I thought that the frontend was going to be "too easy", so there was no point in learning about building client applications. But in order to build a platform to share my music on, I needed to finally venture into the frontend. I was humbled very quickly by even the simplest frontend development task, like centering a div 🫨
 
-## deployment ☁️
+## deployments 🚀
 
 - as a note here, deployment strategies were never in my bucket of concerns when building getmybeats.com, which is another way of me saying that my deployment strategy is still not that great 😓
 
@@ -30,7 +62,7 @@
 ## infrastructure 🏢
 
 - for simplicity, here's a nifty infrastructural overlook of `getmybeats.com`. It's not too complex of a system: as you can see, I've load balanced and firewalled it; from there, the Ubuntu Droplet makes outbound AWS, database, and DigitalOcean API calls
-- ![alt text](image.png)
+- ![alt text](image.old.png)
 
 ## tech stack 🥞
 
@@ -84,7 +116,7 @@ During this time, I struggled a lot with understanding Javascript's capabilities
 
 - One of the primary reasons I pivoted away from AWS is because I kept consistently finding documentation to be lacking and outdated (I once stumbled upon a writeup dated 2015). AWS services are so fine-grained, which should be wonderful, but I found myself lost for hours in StackOverflow, with many people asking the exact questions as I, getting no answer. Once I migrated my architecture to DigitalOcean, it was a breath of fresh air.
 
-## wonky design decisions
+## wonky design decisions 🤡
 
 - Deployment sequence: Once the Django application is live, it makes an API call to place itself behind the site firewall and in the site load balancer node pool, dropping the previous instance from the load balancer. I don't think it gets more non-standard than this, but this was before I particularly cared about anything CI/CD.
 - Deploying the API and client applications on the same instance -- while not uncommon nor particularly aggregious, I would prefer that the overall health of the website not be so tightly coupled, wholly dependent on a single instance.
