@@ -53,6 +53,13 @@ export class AudioService {
         }
     }
     //----------------------------------------------------------------------------------------------------
+
+    public initAudioContext(): void {
+        if (!this.audioContext) {
+            this.audioContext = new AudioContext();
+        }
+    }
+
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, autoplay: boolean = false): Promise<void> {
 
         if (this.audioContext === null) return;
@@ -91,6 +98,8 @@ export class AudioService {
         requestGUID: string
     ) {
         let audioFilenameHash;
+        this.initAudioContext();
+
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
             this.setIsLoading(true);
@@ -135,18 +144,15 @@ export class AudioService {
     async play() {
         if (!this.buffer) return;
 
-        if (this.audioContext) {
-            try {
-                this.audioContext.close();
-            } catch { }
+        if (!this.audioContext) {
+            this.audioContext = new AudioContext();
         }
 
-        this.audioContext = new AudioContext();
-        this.audioContext.resume();
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+        }
 
-        console.log(this.audioContext.state);
-
-        this.cleanUpSource();  // revent playback stream overlap
+        this.cleanUpSource();  // prevent playback stream overlap
 
         if (this.pauseTime >= this.buffer.duration) {
             this.pauseTime = 0;
