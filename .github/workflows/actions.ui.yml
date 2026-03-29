@@ -3,7 +3,7 @@ name: Getmybeats CICD
 on:
   push:
     branches:
-      - 'ui/**'
+      - '**'
 
 jobs:
   test-ui:
