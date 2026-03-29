@@ -97,7 +97,10 @@ export class AudioService {
         key: Uint8Array,
         requestGUID: string
     ) {
-        if (this.isLoading) return;  // prevent user from accidentally doubling up loads (causing multiple simultaneous playbacks)
+        if (this.isLoading) {
+            console.warn("AudioService.loadMediaContextElement returning early because this call was made in the middle of another load call (previous call has not finished)");
+            return;  // prevent user from accidentally doubling up loads (causing multiple simultaneous playbacks)
+        }
 
         let audioFilenameHash;
         this.initAudioContext();
