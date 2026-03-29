@@ -11,7 +11,7 @@ import { MediaContextElement } from '../interfaces/MediaContextElement';
 export class AudioService {
     //----------------------------------------------------------------------------------------------------
     constructor(private apiService: ApiService, private cryptoService: CryptoService) { }
-    private audioContext = new AudioContext();
+    private audioContext: AudioContext | null = null;
     private gainNode: GainNode | null = null;
     private buffer: AudioBuffer | null = null;
     private source: AudioBufferSourceNode | null = null;
@@ -35,6 +35,9 @@ export class AudioService {
 
     public getCurrentTime(): number {
         if (!this.buffer) return 0;
+
+        if (this.audioContext === null) return 0;
+
         return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
     }
     //----------------------------------------------------------------------------------------------------
@@ -45,12 +48,22 @@ export class AudioService {
     private setAudioFetchCycle(newValue: number) { this.audioFetchCycle.set(newValue); }
     public setVolume(value: number) { // not a normal setter; for slider to dynamically adjsut volume
         this.volume = value;
-        if (this.gainNode) {
+        if (this.gainNode && this.audioContext) {
             this.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
         }
     }
     //----------------------------------------------------------------------------------------------------
+
+    public initAudioContext(): void {
+        if (!this.audioContext) {
+            this.audioContext = new AudioContext();
+        }
+    }
+
     public async loadFromArrayBuffer(arrayBuffer: ArrayBuffer, autoplay: boolean = false): Promise<void> {
+
+        if (this.audioContext === null) return;
+
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
         this.setIsLoading(false);
         if (autoplay) {
@@ -84,7 +97,14 @@ export class AudioService {
         key: Uint8Array,
         requestGUID: string
     ) {
+        if (this.isLoading) {
+            console.warn("AudioService.loadMediaContextElement returning early because this call was made in the middle of another load call (previous call has not finished)");
+            return;  // prevent user from accidentally doubling up loads (causing multiple simultaneous playbacks)
+        }
+
         let audioFilenameHash;
+        this.initAudioContext();
+
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
             this.setIsLoading(true);
@@ -109,6 +129,7 @@ export class AudioService {
                                 let decrypted = await this.cryptoService.decryptAudioData(encrypted, key);
                                 this.stop();
                                 this.loadFromArrayBuffer(decrypted, autoplay);
+                                this.setIsLoading(false);
                             }
                             } else {
                             console.log('getandloadaudiotrack: ERROR fetching audio');
@@ -129,15 +150,19 @@ export class AudioService {
     async play() {
         if (!this.buffer) return;
 
-        let initialAudioContextState = this.audioContext.state;
+        if (!this.audioContext) {
+            this.audioContext = new AudioContext();
+        }
 
         if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
         }
 
-        console.log('AudioContext state:', initialAudioContextState, '->', this.audioContext.state);
+        this.cleanUpSource();  // prevent playback stream overlap
 
-        this.cleanUpSource();  // revent playback stream overlap
+        if (this.pauseTime >= this.buffer.duration) {
+            this.pauseTime = 0;
+        }
 
         const offset = this.pauseTime;
 
@@ -167,6 +192,8 @@ export class AudioService {
 
     pause() {
         if (!this.isPlaying || !this.source) return;
+
+        if (this.audioContext === null) return;
 
         this.cleanUpSource();
         this.pauseTime = this.audioContext.currentTime - this.startTime;
