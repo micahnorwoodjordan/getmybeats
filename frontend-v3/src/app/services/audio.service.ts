@@ -97,6 +97,8 @@ export class AudioService {
         key: Uint8Array,
         requestGUID: string
     ) {
+        if (this.isLoading) return;  // prevent user from accidentally doubling up loads (causing multiple simultaneous playbacks)
+
         let audioFilenameHash;
         this.initAudioContext();
 
@@ -124,6 +126,7 @@ export class AudioService {
                                 let decrypted = await this.cryptoService.decryptAudioData(encrypted, key);
                                 this.stop();
                                 this.loadFromArrayBuffer(decrypted, autoplay);
+                                this.setIsLoading(false);
                             }
                             } else {
                             console.log('getandloadaudiotrack: ERROR fetching audio');
