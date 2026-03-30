@@ -24,12 +24,13 @@ export class HeaderComponent implements OnInit {
   ngOnInit() { this.setLastReleaseDate(); }
 
   setLastReleaseDate() {
+    console.log('BEGIN setLastReleaseDate');
     this.apiService.getLastRelease().subscribe(
       event => {
         switch (event.type) {
           case HttpEventType.Response:
-            console.log(`setLastReleaseDate: received server response ${event.status}`);
             if (event.status == 200) {
+              console.log('END setLastReleaseDate');
               if (event.body !== undefined && event.body !== null) {
                 let lastRelease = event.body;
                 let unsanitizedString = lastRelease.release_date;
@@ -38,16 +39,17 @@ export class HeaderComponent implements OnInit {
                 this.setLastReleaseString(humanReadableString);
               }
             } else {
-              console.log('setLastReleaseDate: ERROR fetching release date');
+              console.error('ERROR setLastReleaseDate');
             }
             
             break;
+
           default:
-            console.log('setLastReleaseDate: no response from server yet');
+            break;
         }
       },
       error => {
-        console.log(`setLastReleaseDate ERROR: ${error.toString()}`);
+        console.error(`ERROR setLastReleaseDate: ${error.toString()}`);
       }
     );
   }

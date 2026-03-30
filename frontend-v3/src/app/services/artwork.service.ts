@@ -28,24 +28,23 @@ export class ArtworkService {
   }
 //----------------------------------------------------------------------------------------------------
   public async loadAudioArtworkImage(mediaContext: MediaContextElement[], audioIndex: number) {
-      console.log('loadAudioArtworkImage: begin');
+      console.log('BEGIN loadAudioArtworkImage');
       let artworkFilenameHash = mediaContext[audioIndex].artwork_filename_hash;
     
       if (!artworkFilenameHash) {
         this.setArtworkIsValid(false);
-        console.log('loadAudioArtworkImage: no artwork hash');
+        console.log('REPORT loadAudioArtworkImage: no associated artwork');
         return;
       }
   
       let imageSrc = await this.getImageSrcURL(artworkFilenameHash);
       if(imageSrc !== '') {
-        console.log('loadAudioArtworkImage: retrieved image source');
         this.setArtworkIsValid(true);
         this.setArtworkImageSrc(imageSrc);
+        console.log('END loadAudioArtworkImage');
       } else {
-        console.log('loadAudioArtworkImage: no context/audio index');
+        console.error('ERROR loadAudioArtworkImage: associated artwork exists but could not be found');
       }
-      console.log('loadAudioArtworkImage: end');
     }
 //----------------------------------------------------------------------------------------------------
 }
