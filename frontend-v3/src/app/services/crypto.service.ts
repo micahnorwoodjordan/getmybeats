@@ -8,7 +8,7 @@ export class CryptoService {
   constructor() { }
 
   async decryptAudioData(encryptedData: ArrayBuffer, keyBytes: Uint8Array): Promise<ArrayBuffer> {
-    const iv = encryptedData.slice(0, 12); // First 12 bytes = nonce
+    const iv = encryptedData.slice(0, 12); // nonce comprised of the first 12 bytes
     const ciphertext = encryptedData.slice(12);
     const cryptoKey = await window.crypto.subtle.importKey(
         'raw',

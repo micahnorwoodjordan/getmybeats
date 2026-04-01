@@ -1,5 +1,4 @@
 import { Injectable, signal, WritableSignal, effect } from '@angular/core';
-import { duration as momentDuration } from 'moment';
 import { HttpEventType } from '@angular/common/http';
 
 import { ApiService } from './api.service';
@@ -97,6 +96,8 @@ export class AudioService {
         key: Uint8Array,
         requestGUID: string
     ) {
+        console.log('BEGIN getandloadaudiotrack');
+
         if (this.isLoading) {
             console.warn("AudioService.loadMediaContextElement returning early because this call was made in the middle of another load call (previous call has not finished)");
             return;  // prevent user from accidentally doubling up loads (causing multiple simultaneous playbacks)
@@ -112,35 +113,42 @@ export class AudioService {
             audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
             this.setTitle(currentMediaContextElement.title);
             this.setAuthor(currentMediaContextElement.author);
+
             this.apiService.downloadAudioTrack(audioFilenameHash, requestGUID).subscribe(
                 async event => {
                     switch (event.type) {
                         case HttpEventType.DownloadProgress:
                             if (event.total !== undefined) {
                                 this.setDownloadProgress(Math.round((event.loaded / event.total) * 100));
-                                console.log(`getandloadaudiotrack: ${this.downloadProgress}% of data fetched`);
+
+                                if (this.downloadProgress % 20 == 0) {  // arbitrarily only report in increments of 20
+                                    console.log(`REPORT getandloadaudiotrack: ${this.downloadProgress}% complete`);
+                                }
+                                
                             }
                             break;
                         case HttpEventType.Response:
-                            console.log(`getandloadaudiotrack: received server response ${event.status}`);
                             if (event.status == 200) {
-                            if (event.body !== undefined && event.body !== null) {
-                                let encrypted = await event.body.arrayBuffer();
-                                let decrypted = await this.cryptoService.decryptAudioData(encrypted, key);
-                                this.stop();
-                                this.loadFromArrayBuffer(decrypted, autoplay);
-                                this.setIsLoading(false);
-                            }
+                                if (event.body !== undefined && event.body !== null) {
+                                    let encrypted = await event.body.arrayBuffer();
+                                    let decrypted = await this.cryptoService.decryptAudioData(encrypted, key);
+                                    this.stop();
+                                    this.loadFromArrayBuffer(decrypted, autoplay);
+                                    this.setIsLoading(false);
+                                    console.log('END getandloadaudiotrack');
+                                }
                             } else {
-                            console.log('getandloadaudiotrack: ERROR fetching audio');
+                                console.error('ERROR getandloadaudiotrack');
                             }
                             break;
+
                         default:
-                            console.log('getandloadaudiotrack: no response from server yet');
+                            break;
                     }
                 },
                 error => {
-                    console.log(`getAndLoadAudioTrack ERROR: ${error.toString()}`);
+                    console.error(`ERROR getandloadaudiotrack: ${error.toString()}`);
+
                 }
             );
         }
