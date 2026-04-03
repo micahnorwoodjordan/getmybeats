@@ -4,7 +4,19 @@
         <div id="backdrop" *ngIf="!getArtworkIsValid()" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
             <mat-icon class="headset-backdrop-icon">headset</mat-icon>
         </div>
-        <div id="backdrop" *ngIf="getArtworkIsValid()" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="space-evenly center" [style.--backdrop-image-url]="'url(' + getArtworkImageSrc() + ')'"></div>
+        <div
+            id="backdrop"
+            *ngIf="getArtworkIsValid()"
+            class="backdrop-with-image"
+            fxLayout="row"
+            fxLayoutAlign="space-evenly center"
+            [style.background-image]="'url(' + getArtworkImageSrc() + ')'"
+            style="
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-position: center;
+            "
+        ></div>
         <mat-progress-bar class="progress-bar" *ngIf="getIsLoading()"  mode="determinate" [value]="getDownloadProgress()"></mat-progress-bar>
         <div fxLayout="row" fxLayoutAlign="space-evenly center">
             <h1 class="songTitle"> {{ getTitle() }}</h1>
