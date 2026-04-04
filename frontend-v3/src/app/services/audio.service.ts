@@ -186,7 +186,7 @@ export class AudioService {
             // alone does not trigger this switch — only an HTMLAudioElement does on iOS.
             const htmlAudio = document.createElement('audio');
             htmlAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-            htmlAudio.volume = 0;
+            htmlAudio.volume = 1; // must not be 0 — iOS may skip the session promotion if the element appears muted
             htmlAudio.play().catch(() => {});
             console.log('AudioService.play: HTMLAudioElement.play() called to switch iOS audio session to playback mode');
 
