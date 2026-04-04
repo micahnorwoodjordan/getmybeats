@@ -179,17 +179,26 @@ export class AudioService {
 
         if (this.audioContext.state === 'suspended' || (this.audioContext.state as string) === 'interrupted') {
             console.log(`AudioService.play: context is ${this.audioContext.state}, calling resume()`);
+
+            // Playing an <audio> element within a user gesture switches the iOS audio session
+            // category from "ambient" (muted by the silent switch, wrong routing) to "playback"
+            // (bypasses silent switch, correct media routing). The Web Audio API silent buffer
+            // alone does not trigger this switch — only an HTMLAudioElement does on iOS.
+            const htmlAudio = document.createElement('audio');
+            htmlAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+            htmlAudio.volume = 0;
+            htmlAudio.play().catch(() => {});
+            console.log('AudioService.play: HTMLAudioElement.play() called to switch iOS audio session to playback mode');
+
             await this.audioContext.resume();
             console.log(`AudioService.play: resume() settled, state is now "${this.audioContext.state}"`);
-            // Older iOS versions require actual audio output within the gesture that called
-            // resume() — resume() alone is not enough. A silent 1-sample buffer satisfies
-            // this and must run here, sequentially before source.start(), in the same call.
+
             const silentBuffer = this.audioContext.createBuffer(1, 1, this.audioContext.sampleRate);
             const silentSource = this.audioContext.createBufferSource();
             silentSource.buffer = silentBuffer;
             silentSource.connect(this.audioContext.destination);
             silentSource.start();
-            console.log('AudioService.play: silent buffer started');
+            console.log('AudioService.play: Web Audio silent buffer started');
             startDelay = 0.1;
         }
 
