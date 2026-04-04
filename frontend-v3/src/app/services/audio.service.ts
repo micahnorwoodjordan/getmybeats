@@ -56,6 +56,11 @@ export class AudioService {
     public initAudioContext(): void {
         if (!this.audioContext) {
             this.audioContext = new AudioContext();
+            // iOS Safari requires AudioContext.resume() to be called synchronously within a user gesture
+            // registers a one-time unlock listener so the context is running before play() is ever invoked
+            const unlock = () => this.audioContext?.resume();
+            document.addEventListener('touchstart', unlock, { once: true });
+            document.addEventListener('click', unlock, { once: true });
         }
     }
 
@@ -165,7 +170,7 @@ export class AudioService {
         }
 
         if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
+            this.audioContext.resume();
         }
 
         this.cleanUpSource();  // prevent playback stream overlap
