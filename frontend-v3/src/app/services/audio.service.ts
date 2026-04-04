@@ -18,6 +18,7 @@ export class AudioService {
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
     private isLoading: boolean = false;
+    private audioSessionPromoted: boolean = false;
     private title: string = 'loading title...';
     private author: string = 'loading author...';
     private volume: number = 1;
@@ -184,11 +185,23 @@ export class AudioService {
             // category from "ambient" (muted by the silent switch, wrong routing) to "playback"
             // (bypasses silent switch, correct media routing). The Web Audio API silent buffer
             // alone does not trigger this switch — only an HTMLAudioElement does on iOS.
-            const htmlAudio = document.createElement('audio');
-            htmlAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-            htmlAudio.volume = 1; // must not be 0 — iOS may skip the session promotion if the element appears muted
-            htmlAudio.play().catch(() => {});
-            console.log('AudioService.play: HTMLAudioElement.play() called to switch iOS audio session to playback mode');
+            // Only promote once per page load; subsequent play() calls skip this block.
+            if (!this.audioSessionPromoted) {
+                // 1-sample silent WAV (must have actual sample data — 0-byte data chunk is ignored by iOS)
+                const htmlAudio = document.createElement('audio');
+                htmlAudio.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAQAIlYAAESsAAACABAAZGF0YQIAAAAAAA==';
+                htmlAudio.volume = 1; // must not be 0 — iOS may skip the session promotion if the element appears muted
+                document.body.appendChild(htmlAudio); // some iOS versions require element to be in DOM
+                try {
+                    await htmlAudio.play();
+                    console.log('AudioService.play: HTMLAudioElement.play() succeeded — iOS audio session promoted to playback');
+                } catch (e) {
+                    console.warn('AudioService.play: HTMLAudioElement.play() failed:', e);
+                } finally {
+                    document.body.removeChild(htmlAudio);
+                }
+                this.audioSessionPromoted = true;
+            }
 
             await this.audioContext.resume();
             console.log(`AudioService.play: resume() settled, state is now "${this.audioContext.state}"`);
