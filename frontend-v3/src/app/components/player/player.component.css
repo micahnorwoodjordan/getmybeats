@@ -24,16 +24,16 @@
 
 .backdrop-with-image {
     margin-top: 10vh;
-    width: 40vw;
-    height: 35vh;
+    width: 80%;
+    height: 50vh;
     background-size: contain;
     background-image: var(--backdrop-image-url);
 }
 
 .backdrop-without-image {
     margin-top: 10vh;
-    width: 40vw;
-    height: 35vh;
+    width: 80%;
+    height: 50vh;
     background: linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
 }
 
@@ -107,8 +107,8 @@
     .shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
     .shuffle-icon-disabled { color: white; transform: scale(1.0); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
 
-    .backdrop-with-image { margin-top: 10vh; width: 85vw; height: 30vh; }
-    .backdrop-without-image { margin-top: 10vh; width: 85vw; height: 30vh; }
+    .backdrop-with-image { margin-top: 5vh; width: 95vw; height: 50vh; }
+    .backdrop-without-image { margin-top: 5vh; width: 95vw; height: 50vh; }
 
     .progress-bar { width: 85vw; }
     .bottom-div { padding-top: 0vh; width: 100vw; }
