@@ -11,13 +11,24 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
   let originalAudioContext: any;
 
   beforeEach(() => {
+    const mockSilentSource = {
+      buffer: null,
+      onended: null,
+      connect: jasmine.createSpy('connect'),
+      start: jasmine.createSpy('start'),
+      stop: jasmine.createSpy('stop'),
+      disconnect: jasmine.createSpy('disconnect'),
+    };
+
     mockAudioContext = {
       state: 'suspended',
       currentTime: 0,
       destination: {},
+      sampleRate: 44100,
       resume: jasmine.createSpy('resume').and.returnValue(Promise.resolve()),
       decodeAudioData: jasmine.createSpy('decodeAudioData'),
-      createBufferSource: jasmine.createSpy('createBufferSource'),
+      createBuffer: jasmine.createSpy('createBuffer').and.returnValue({}),
+      createBufferSource: jasmine.createSpy('createBufferSource').and.returnValue(mockSilentSource),
       createGain: jasmine.createSpy('createGain'),
     };
 
@@ -67,29 +78,43 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
   // -----------------------------------------------------------------------
 
   describe('unlock listener', () => {
-    it('calls resume() when touchstart fires', () => {
+    it('calls resume() when touchstart fires', async () => {
       service.initAudioContext();
       document.dispatchEvent(new Event('touchstart'));
+      await Promise.resolve(); // flush async unlock handler
       expect(mockAudioContext.resume).toHaveBeenCalledTimes(1);
     });
 
-    it('calls resume() when click fires', () => {
+    it('calls resume() when click fires', async () => {
       service.initAudioContext();
       document.dispatchEvent(new Event('click'));
+      await Promise.resolve();
       expect(mockAudioContext.resume).toHaveBeenCalledTimes(1);
     });
 
-    it('fires only once for repeated touchstart events (once:true)', () => {
+    it('plays a silent buffer after resume() to unlock older iOS versions', async () => {
+      service.initAudioContext();
+      document.dispatchEvent(new Event('touchstart'));
+      await Promise.resolve(); // let resume() resolve
+      await Promise.resolve(); // let silent buffer setup run
+      expect(mockAudioContext.createBuffer).toHaveBeenCalled();
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalled();
+      expect(mockAudioContext.createBufferSource().start).toHaveBeenCalled();
+    });
+
+    it('fires only once for repeated touchstart events (once:true)', async () => {
       service.initAudioContext();
       document.dispatchEvent(new Event('touchstart'));
       document.dispatchEvent(new Event('touchstart'));
+      await Promise.resolve();
       expect(mockAudioContext.resume).toHaveBeenCalledTimes(1);
     });
 
-    it('fires only once for repeated click events (once:true)', () => {
+    it('fires only once for repeated click events (once:true)', async () => {
       service.initAudioContext();
       document.dispatchEvent(new Event('click'));
       document.dispatchEvent(new Event('click'));
+      await Promise.resolve();
       expect(mockAudioContext.resume).toHaveBeenCalledTimes(1);
     });
   });

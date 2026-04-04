@@ -58,8 +58,18 @@ export class AudioService {
             this.audioContext = new AudioContext();
 
             // iOS Safari requires AudioContext.resume() to be called within a user gesture.
-            // one-time listeners unlock the context on first interaction.
-            const unlock = () => this.audioContext?.resume();
+            // Older iOS versions also require actual audio to have been played within the
+            // gesture — resume() alone is not sufficient. Playing a silent 1-sample buffer
+            // satisfies this requirement and fully unlocks the context on all iOS versions.
+            const unlock = async () => {
+                if (!this.audioContext) return;
+                await this.audioContext.resume();
+                const silentBuffer = this.audioContext.createBuffer(1, 1, this.audioContext.sampleRate);
+                const silentSource = this.audioContext.createBufferSource();
+                silentSource.buffer = silentBuffer;
+                silentSource.connect(this.audioContext.destination);
+                silentSource.start();
+            };
             document.addEventListener('touchstart', unlock, { once: true });
             document.addEventListener('click', unlock, { once: true });
 
@@ -172,11 +182,7 @@ export class AudioService {
     //----------------------------------------------------------------------------------------------------
 
     async play() {
-        if (!this.buffer) return;
-
-        if (!this.audioContext) {
-            this.audioContext = new AudioContext();
-        }
+        if (!this.buffer || !this.audioContext) return;
 
         if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
