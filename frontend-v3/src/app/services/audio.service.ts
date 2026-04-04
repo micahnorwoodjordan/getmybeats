@@ -57,24 +57,9 @@ export class AudioService {
         if (!this.audioContext) {
             this.audioContext = new AudioContext();
 
-            // iOS Safari requires AudioContext.resume() to be called within a user gesture.
-            // Older iOS versions also require actual audio to have been played within the
-            // gesture — resume() alone is not sufficient. Playing a silent 1-sample buffer
-            // satisfies this requirement and fully unlocks the context on all iOS versions.
-            const unlock = async () => {
-                if (!this.audioContext) return;
-                await this.audioContext.resume();
-                const silentBuffer = this.audioContext.createBuffer(1, 1, this.audioContext.sampleRate);
-                const silentSource = this.audioContext.createBufferSource();
-                silentSource.buffer = silentBuffer;
-                silentSource.connect(this.audioContext.destination);
-                silentSource.start();
-            };
-            document.addEventListener('touchstart', unlock, { once: true });
-            document.addEventListener('click', unlock, { once: true });
-
-            // iOS suspends the AudioContext whenever the page is backgrounded (lock screen, app switcher, incoming call, notification, etc)
-            // this logic resumes it each time the page becomes visible again so the context is already running before the user next taps play
+            // iOS suspends the AudioContext whenever the page is backgrounded (lock screen,
+            // app switcher, incoming call). Resume it each time the page becomes visible again
+            // so the context is already running before the user next taps play.
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible' && this.audioContext?.state === 'suspended') {
                     this.audioContext.resume();
@@ -186,6 +171,14 @@ export class AudioService {
 
         if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
+            // Older iOS versions require actual audio output within the gesture that called
+            // resume() — resume() alone is not enough. A silent 1-sample buffer satisfies
+            // this and must run here, sequentially before source.start(), in the same call.
+            const silentBuffer = this.audioContext.createBuffer(1, 1, this.audioContext.sampleRate);
+            const silentSource = this.audioContext.createBufferSource();
+            silentSource.buffer = silentBuffer;
+            silentSource.connect(this.audioContext.destination);
+            silentSource.start();
         }
 
         this.cleanUpSource();  // prevent playback stream overlap
