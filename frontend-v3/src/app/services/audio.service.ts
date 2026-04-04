@@ -55,7 +55,9 @@ export class AudioService {
 
     public initAudioContext(): void {
         if (!this.audioContext) {
-            this.audioContext = new AudioContext();
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            this.audioContext = new AudioContextClass();
+            console.log(`AudioService.initAudioContext: created AudioContext, initial state="${this.audioContext.state}"`);
 
             // iOS suspends the AudioContext whenever the page is backgrounded (lock screen,
             // app switcher, incoming call). Resume it each time the page becomes visible again
@@ -167,10 +169,13 @@ export class AudioService {
     //----------------------------------------------------------------------------------------------------
 
     async play() {
+        console.log(`AudioService.play: called. buffer=${!!this.buffer} context=${!!this.audioContext} state="${this.audioContext?.state}"`);
         if (!this.buffer || !this.audioContext) return;
 
-        if (this.audioContext.state === 'suspended') {
+        if (this.audioContext.state === 'suspended' || (this.audioContext.state as string) === 'interrupted') {
+            console.log(`AudioService.play: context is ${this.audioContext.state}, calling resume()`);
             await this.audioContext.resume();
+            console.log(`AudioService.play: resume() settled, state is now "${this.audioContext.state}"`);
             // Older iOS versions require actual audio output within the gesture that called
             // resume() — resume() alone is not enough. A silent 1-sample buffer satisfies
             // this and must run here, sequentially before source.start(), in the same call.
@@ -179,6 +184,7 @@ export class AudioService {
             silentSource.buffer = silentBuffer;
             silentSource.connect(this.audioContext.destination);
             silentSource.start();
+            console.log('AudioService.play: silent buffer started');
         }
 
         this.cleanUpSource();  // prevent playback stream overlap
@@ -197,7 +203,9 @@ export class AudioService {
         this.gainNode.connect(this.audioContext.destination);
 
         this.startTime = this.audioContext.currentTime - offset;
+        console.log(`AudioService.play: calling source.start(). context state="${this.audioContext.state}" offset=${offset}`);
         this.source.start(0, offset);
+        console.log('AudioService.play: source.start() returned');
 
         this.isPlaying = true;
 
