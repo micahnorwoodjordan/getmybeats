@@ -97,11 +97,9 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
   // -----------------------------------------------------------------------
   // play() with suspended context
   //
-  // iOS is silent when resume() is not called before source.start().
-  // These tests confirm that play() calls resume() synchronously when the
-  // context is suspended, and that source.start() is still reached in the
-  // same call — meaning audio is not silently blocked by an unresolved
-  // Promise.
+  // iOS is silent when source.start() fires before resume() has resolved.
+  // play() must await resume() so the context is running before scheduling
+  // audio output.
   // -----------------------------------------------------------------------
 
   describe('play() with a suspended AudioContext', () => {
@@ -135,17 +133,80 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
       expect(mockAudioContext.resume).toHaveBeenCalled();
     });
 
-    it('still reaches source.start() even though resume() is not awaited', async () => {
-      // If resume() were awaited and iOS blocked the Promise from resolving,
-      // source.start() would never be called. This test asserts it is called
-      // regardless of whether the resume Promise has settled.
-      await service.play();
+    it('calls source.start() only after resume() has resolved', async () => {
+      // Simulate a slow resume() to confirm start() waits for it.
+      let resumeResolve!: () => void;
+      const resumePromise = new Promise<void>(resolve => { resumeResolve = resolve; });
+      mockAudioContext.resume.and.returnValue(resumePromise);
+
+      const playPromise = service.play();
+      // resume() is pending — start() must not have been called yet
+      expect(mockSource.start).not.toHaveBeenCalled();
+
+      resumeResolve();
+      await playPromise;
+      // resume() has resolved — start() should now have been called
       expect(mockSource.start).toHaveBeenCalled();
     });
 
     it('does not call resume() when AudioContext is already running', async () => {
       mockAudioContext.state = 'running';
       await service.play();
+      expect(mockAudioContext.resume).not.toHaveBeenCalled();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // visibilitychange — re-resume after backgrounding
+  //
+  // iOS suspends the AudioContext when the page is backgrounded. The
+  // { once: true } unlock listeners are already consumed by then, so a
+  // persistent visibilitychange listener is needed to resume on return.
+  // -----------------------------------------------------------------------
+
+  describe('visibilitychange listener', () => {
+    it('registers a visibilitychange listener (without once:true) on initAudioContext()', () => {
+      const spy = spyOn(document, 'addEventListener').and.callThrough();
+
+      service.initAudioContext();
+
+      const calls = spy.calls.all();
+      const visCall = calls.find(c => c.args[0] === 'visibilitychange');
+      expect(visCall).withContext('visibilitychange listener should be registered').toBeTruthy();
+      // must NOT be once:true — it needs to fire every time the app is foregrounded
+      expect(visCall?.args[2]).not.toEqual(jasmine.objectContaining({ once: true }));
+    });
+
+    it('calls resume() when page becomes visible and context is suspended', () => {
+      service.initAudioContext();
+
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      mockAudioContext.state = 'suspended';
+
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      expect(mockAudioContext.resume).toHaveBeenCalled();
+    });
+
+    it('does not call resume() when page becomes visible but context is already running', () => {
+      service.initAudioContext();
+
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      mockAudioContext.state = 'running';
+
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      expect(mockAudioContext.resume).not.toHaveBeenCalled();
+    });
+
+    it('does not call resume() when visibilityState is hidden', () => {
+      service.initAudioContext();
+
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+      mockAudioContext.state = 'suspended';
+
+      document.dispatchEvent(new Event('visibilitychange'));
+
       expect(mockAudioContext.resume).not.toHaveBeenCalled();
     });
   });

@@ -56,11 +56,20 @@ export class AudioService {
     public initAudioContext(): void {
         if (!this.audioContext) {
             this.audioContext = new AudioContext();
-            // iOS Safari requires AudioContext.resume() to be called synchronously within a user gesture
-            // registers a one-time unlock listener so the context is running before play() is ever invoked
+
+            // iOS Safari requires AudioContext.resume() to be called within a user gesture.
+            // one-time listeners unlock the context on first interaction.
             const unlock = () => this.audioContext?.resume();
             document.addEventListener('touchstart', unlock, { once: true });
             document.addEventListener('click', unlock, { once: true });
+
+            // iOS suspends the AudioContext whenever the page is backgrounded (lock screen, app switcher, incoming call, notification, etc)
+            // this logic resumes it each time the page becomes visible again so the context is already running before the user next taps play
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && this.audioContext?.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            });
         }
     }
 
@@ -170,7 +179,7 @@ export class AudioService {
         }
 
         if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
+            await this.audioContext.resume();
         }
 
         this.cleanUpSource();  // prevent playback stream overlap
