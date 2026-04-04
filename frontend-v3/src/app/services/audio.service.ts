@@ -75,6 +75,7 @@ export class AudioService {
         if (this.audioContext === null) return;
 
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        console.log(`AudioService.loadFromArrayBuffer: decoded buffer duration=${this.buffer?.duration}s channels=${this.buffer?.numberOfChannels} sampleRate=${this.buffer?.sampleRate}`);
         this.setDownloadProgress(0);
         this.setIsLoading(false);
         if (autoplay) {
@@ -169,8 +170,12 @@ export class AudioService {
     //----------------------------------------------------------------------------------------------------
 
     async play() {
-        console.log(`AudioService.play: called. buffer=${!!this.buffer} context=${!!this.audioContext} state="${this.audioContext?.state}"`);
+        console.log(`AudioService.play: called. buffer=${!!this.buffer} bufferDuration=${this.buffer?.duration} context=${!!this.audioContext} state="${this.audioContext?.state}"`);
         if (!this.buffer || !this.audioContext) return;
+
+        // startDelay gives the iOS audio session time to fully activate after resume().
+        // Without it, source.start() can fire during the session transition and produce silence.
+        let startDelay = 0;
 
         if (this.audioContext.state === 'suspended' || (this.audioContext.state as string) === 'interrupted') {
             console.log(`AudioService.play: context is ${this.audioContext.state}, calling resume()`);
@@ -185,6 +190,7 @@ export class AudioService {
             silentSource.connect(this.audioContext.destination);
             silentSource.start();
             console.log('AudioService.play: silent buffer started');
+            startDelay = 0.1;
         }
 
         this.cleanUpSource();  // prevent playback stream overlap
@@ -194,6 +200,7 @@ export class AudioService {
         }
 
         const offset = this.pauseTime;
+        const when = this.audioContext.currentTime + startDelay;
 
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
@@ -202,9 +209,9 @@ export class AudioService {
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.audioContext.destination);
 
-        this.startTime = this.audioContext.currentTime - offset;
-        console.log(`AudioService.play: calling source.start(). context state="${this.audioContext.state}" offset=${offset}`);
-        this.source.start(0, offset);
+        this.startTime = when - offset;
+        console.log(`AudioService.play: calling source.start(). context state="${this.audioContext.state}" offset=${offset} startDelay=${startDelay}`);
+        this.source.start(when, offset);
         console.log('AudioService.play: source.start() returned');
 
         this.isPlaying = true;
