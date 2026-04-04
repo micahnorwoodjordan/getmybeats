@@ -16,7 +16,7 @@
 .left-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .right-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
-.progress-bar { z-index: 1; width: 40vw; }
+.progress-bar { z-index: 1; width: 64vw; }
 .volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
 .bottom-div { padding-top: 3vh; text-align: center; width: 80vw; }
 .disabled-icon { opacity: 0.5;  pointer-events: none; }
