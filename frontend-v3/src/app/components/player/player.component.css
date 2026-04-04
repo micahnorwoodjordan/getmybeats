@@ -16,7 +16,7 @@
 .left-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .right-control-arrow { cursor: pointer; transform: scale(2); transition: 0.5s; color: white; }
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
-.progress-bar { z-index: 1; width: 40vw; }
+.progress-bar { z-index: 1; width: 64vw; }
 .volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
 .bottom-div { padding-top: 3vh; text-align: center; width: 80vw; }
 .disabled-icon { opacity: 0.5;  pointer-events: none; }
@@ -24,16 +24,31 @@
 
 .backdrop-with-image {
     margin-top: 10vh;
-    width: 40vw;
-    height: 35vh;
+    width: 80%;
+    height: 50vh;
     background-size: contain;
     background-image: var(--backdrop-image-url);
 }
 
+.backdrop-with-image img {
+  position: relative;
+  z-index: 1;
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: 10px;
+  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+  mask-image: radial-gradient(circle, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
 .backdrop-without-image {
     margin-top: 10vh;
-    width: 40vw;
-    height: 35vh;
+    width: 80%;
+    height: 50vh;
     background: linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
 }
 
@@ -107,8 +122,8 @@
     .shuffle-icon-enabled { color: rgb(158, 94, 242); transform: scale(1.5); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
     .shuffle-icon-disabled { color: white; transform: scale(1.0); transition: 1s; cursor: pointer; left: 7vw; position: absolute; }
 
-    .backdrop-with-image { margin-top: 10vh; width: 85vw; height: 30vh; }
-    .backdrop-without-image { margin-top: 10vh; width: 85vw; height: 30vh; }
+    .backdrop-with-image { margin-top: 5vh; width: 95vw; height: 50vh; }
+    .backdrop-without-image { margin-top: 5vh; width: 95vw; height: 50vh; }
 
     .progress-bar { width: 85vw; }
     .bottom-div { padding-top: 0vh; width: 100vw; }

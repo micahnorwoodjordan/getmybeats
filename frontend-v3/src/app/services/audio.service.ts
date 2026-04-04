@@ -64,6 +64,7 @@ export class AudioService {
         if (this.audioContext === null) return;
 
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        this.setDownloadProgress(0);
         this.setIsLoading(false);
         if (autoplay) {
             await this.play();
@@ -108,8 +109,8 @@ export class AudioService {
 
         if (mediaContext.length > 0) {
             let currentMediaContextElement: MediaContextElement = mediaContext[audioIndex];
-            this.setIsLoading(true);
             this.setDownloadProgress(0);
+            this.setIsLoading(true);
             audioFilenameHash = mediaContext[audioIndex].audio_filename_hash;
             this.setTitle(currentMediaContextElement.title);
             this.setAuthor(currentMediaContextElement.author);
@@ -134,6 +135,7 @@ export class AudioService {
                                     let decrypted = await this.cryptoService.decryptAudioData(encrypted, key);
                                     this.stop();
                                     this.loadFromArrayBuffer(decrypted, autoplay);
+                                    this.setDownloadProgress(0);
                                     this.setIsLoading(false);
                                     console.log('END getandloadaudiotrack');
                                 }
