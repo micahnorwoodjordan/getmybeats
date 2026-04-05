@@ -100,6 +100,8 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
 
     it('promotes the iOS audio session via HTMLAudioElement on first play()', async () => {
       await service.play();
+      // Flush the microtask queue so the fire-and-forget .finally() has a chance to run
+      await Promise.resolve();
       expect(document.createElement).toHaveBeenCalledWith('audio');
       expect(document.body.appendChild).toHaveBeenCalledWith(mockHtmlAudio);
       expect(mockHtmlAudio.play).toHaveBeenCalled();
@@ -135,7 +137,8 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
       expect(mockSource.start).toHaveBeenCalled();
     });
 
-    it('still sets audioSessionPromoted and continues if HTMLAudioElement.play() rejects', async () => {
+    it('still sets audioSessionPromoted and starts audio even if HTMLAudioElement.play() rejects', async () => {
+      // .play() is fire-and-forget — rejection must not block source.start()
       mockHtmlAudio.play.and.returnValue(Promise.reject(new Error('NotAllowedError')));
       await expectAsync(service.play()).toBeResolved();
       expect((service as any).audioSessionPromoted).toBeTrue();

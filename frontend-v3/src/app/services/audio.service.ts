@@ -192,14 +192,13 @@ export class AudioService {
                 htmlAudio.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAQAIlYAAESsAAACABAAZGF0YQIAAAAAAA==';
                 htmlAudio.volume = 1; // must not be 0 — iOS may skip the session promotion if the element appears muted
                 document.body.appendChild(htmlAudio); // some iOS versions require element to be in DOM
-                try {
-                    await htmlAudio.play();
-                    console.log('AudioService.play: HTMLAudioElement.play() succeeded — iOS audio session promoted to playback');
-                } catch (e) {
-                    console.warn('AudioService.play: HTMLAudioElement.play() failed:', e);
-                } finally {
-                    document.body.removeChild(htmlAudio);
-                }
+                // Fire-and-forget: calling .play() within a user gesture triggers the iOS audio session
+                // category switch from "ambient" to "playback". We do not await — iOS can stall the
+                // promise if it can't determine playability, which would block source.start() entirely.
+                htmlAudio.play()
+                    .then(() => console.log('AudioService.play: HTMLAudioElement.play() succeeded — iOS audio session promoted to playback'))
+                    .catch((e: any) => console.warn('AudioService.play: HTMLAudioElement.play() failed:', e))
+                    .finally(() => document.body.removeChild(htmlAudio));
                 this.audioSessionPromoted = true;
             }
 
