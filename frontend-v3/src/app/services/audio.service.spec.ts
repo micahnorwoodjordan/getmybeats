@@ -82,15 +82,17 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
     beforeEach(() => {
       (service as any).buffer = { duration: 180 };
       (service as any).audioContext = mockAudioContext;
-      (service as any).audioSessionPromoted = false;
+      (service as any).sessionAudio = null;
 
-      mockHtmlAudio = { src: '', volume: 1, play: jasmine.createSpy('play').and.returnValue(Promise.resolve()) };
+      mockHtmlAudio = {
+        src: '', volume: 0.001, loop: false,
+        play: jasmine.createSpy('play').and.returnValue(Promise.resolve())
+      };
       spyOn(document, 'createElement').and.callFake((tag: string) => {
         if (tag === 'audio') return mockHtmlAudio as any;
         return document.createElement(tag);
       });
       spyOn(document.body, 'appendChild').and.stub();
-      spyOn(document.body, 'removeChild').and.stub();
     });
 
     it('calls resume() when AudioContext state is suspended', async () => {
@@ -98,20 +100,19 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
       expect(mockAudioContext.resume).toHaveBeenCalled();
     });
 
-    it('promotes the iOS audio session via HTMLAudioElement on first play()', async () => {
+    it('creates a looping session audio element on first play() and keeps it alive', async () => {
       await service.play();
-      // Flush the microtask queue so the fire-and-forget .finally() has a chance to run
-      await Promise.resolve();
       expect(document.createElement).toHaveBeenCalledWith('audio');
+      expect(mockHtmlAudio.loop).toBeTrue();
       expect(document.body.appendChild).toHaveBeenCalledWith(mockHtmlAudio);
       expect(mockHtmlAudio.play).toHaveBeenCalled();
-      expect(document.body.removeChild).toHaveBeenCalledWith(mockHtmlAudio);
-      expect((service as any).audioSessionPromoted).toBeTrue();
+      expect((service as any).sessionAudio).toBe(mockHtmlAudio);
     });
 
-    it('skips HTMLAudioElement promotion on subsequent play() calls', async () => {
-      (service as any).audioSessionPromoted = true;
+    it('reuses the existing session audio element on subsequent play() calls', async () => {
+      (service as any).sessionAudio = mockHtmlAudio;  // already created
       await service.play();
+      expect(document.createElement).not.toHaveBeenCalledWith('audio');
       expect(mockHtmlAudio.play).not.toHaveBeenCalled();
     });
 
@@ -137,11 +138,10 @@ describe('AudioService - iOS Safari AudioContext unlock', () => {
       expect(mockSource.start).toHaveBeenCalled();
     });
 
-    it('still sets audioSessionPromoted and starts audio even if HTMLAudioElement.play() rejects', async () => {
+    it('still starts audio even if session audio play() rejects', async () => {
       // .play() is fire-and-forget — rejection must not block source.start()
       mockHtmlAudio.play.and.returnValue(Promise.reject(new Error('NotAllowedError')));
       await expectAsync(service.play()).toBeResolved();
-      expect((service as any).audioSessionPromoted).toBeTrue();
       expect(mockSource.start).toHaveBeenCalled();
     });
 

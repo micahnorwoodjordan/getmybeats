@@ -18,7 +18,7 @@ export class AudioService {
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
     private isLoading: boolean = false;
-    private audioSessionPromoted: boolean = false;
+    private sessionAudio: HTMLAudioElement | null = null;  // keeps iOS audio session in "playback" category
     private title: string = 'loading title...';
     private author: string = 'loading author...';
     private volume: number = 1;
@@ -181,25 +181,21 @@ export class AudioService {
         if (this.audioContext.state === 'suspended' || (this.audioContext.state as string) === 'interrupted') {
             console.log(`AudioService.play: context is ${this.audioContext.state}, calling resume()`);
 
-            // Playing an <audio> element within a user gesture switches the iOS audio session
-            // category from "ambient" (muted by the silent switch, wrong routing) to "playback"
-            // (bypasses silent switch, correct media routing). The Web Audio API silent buffer
-            // alone does not trigger this switch — only an HTMLAudioElement does on iOS.
-            // Only promote once per page load; subsequent play() calls skip this block.
-            if (!this.audioSessionPromoted) {
-                // 1-sample silent WAV (must have actual sample data — 0-byte data chunk is ignored by iOS)
-                const htmlAudio = document.createElement('audio');
-                htmlAudio.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAQAIlYAAESsAAACABAAZGF0YQIAAAAAAA==';
-                htmlAudio.volume = 1; // must not be 0 — iOS may skip the session promotion if the element appears muted
-                document.body.appendChild(htmlAudio); // some iOS versions require element to be in DOM
-                // Fire-and-forget: calling .play() within a user gesture triggers the iOS audio session
-                // category switch from "ambient" to "playback". We do not await — iOS can stall the
-                // promise if it can't determine playability, which would block source.start() entirely.
-                htmlAudio.play()
-                    .then(() => console.log('AudioService.play: HTMLAudioElement.play() succeeded — iOS audio session promoted to playback'))
-                    .catch((e: any) => console.warn('AudioService.play: HTMLAudioElement.play() failed:', e))
-                    .finally(() => document.body.removeChild(htmlAudio));
-                this.audioSessionPromoted = true;
+            // An HTMLAudioElement looping silently keeps the iOS audio session in the
+            // "playback" category (bypasses the silent switch). Web Audio API alone cannot
+            // hold this category — the moment the HTMLAudioElement stops or is removed,
+            // iOS may revert the session to "ambient" and the silent switch takes effect.
+            // We create it once and leave it looping for the lifetime of the page.
+            if (!this.sessionAudio) {
+                this.sessionAudio = document.createElement('audio');
+                // 1-sample silent WAV — must have actual sample data so iOS treats it as real audio
+                this.sessionAudio.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAQAIlYAAESsAAACABAAZGF0YQIAAAAAAA==';
+                this.sessionAudio.loop = true;
+                this.sessionAudio.volume = 0.001;  // inaudible but not zero — iOS may ignore muted elements
+                document.body.appendChild(this.sessionAudio);
+                this.sessionAudio.play()
+                    .then(() => console.log('AudioService.play: session audio playing — iOS audio session held in playback category'))
+                    .catch((e: any) => console.warn('AudioService.play: session audio play() failed:', e));
             }
 
             await this.audioContext.resume();
