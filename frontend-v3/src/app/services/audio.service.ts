@@ -18,6 +18,7 @@ export class AudioService {
     private pauseTime = 0;   // accumulated paused offset
     private isPlaying = false;
     private isLoading: boolean = false;
+    private sessionAudio: HTMLAudioElement | null = null;  // keeps iOS audio session in "playback" category
     private title: string = 'loading title...';
     private author: string = 'loading author...';
     private volume: number = 1;
@@ -55,7 +56,18 @@ export class AudioService {
 
     public initAudioContext(): void {
         if (!this.audioContext) {
-            this.audioContext = new AudioContext();
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            this.audioContext = new AudioContextClass();
+            console.log(`AudioService.initAudioContext: created AudioContext, initial state="${this.audioContext.state}"`);
+
+            // iOS suspends the AudioContext whenever the page is backgrounded (lock screen,
+            // app switcher, incoming call). Resume it each time the page becomes visible again
+            // so the context is already running before the user next taps play.
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && this.audioContext?.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            });
         }
     }
 
@@ -64,6 +76,7 @@ export class AudioService {
         if (this.audioContext === null) return;
 
         this.buffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        console.log(`AudioService.loadFromArrayBuffer: decoded buffer duration=${this.buffer?.duration}s channels=${this.buffer?.numberOfChannels} sampleRate=${this.buffer?.sampleRate}`);
         this.setDownloadProgress(0);
         this.setIsLoading(false);
         if (autoplay) {
@@ -158,14 +171,43 @@ export class AudioService {
     //----------------------------------------------------------------------------------------------------
 
     async play() {
-        if (!this.buffer) return;
+        console.log(`AudioService.play: called. buffer=${!!this.buffer} bufferDuration=${this.buffer?.duration} context=${!!this.audioContext} state="${this.audioContext?.state}"`);
+        if (!this.buffer || !this.audioContext) return;
 
-        if (!this.audioContext) {
-            this.audioContext = new AudioContext();
-        }
+        // startDelay gives the iOS audio session time to fully activate after resume().
+        // Without it, source.start() can fire during the session transition and produce silence.
+        let startDelay = 0;
 
-        if (this.audioContext.state === 'suspended') {
+        if (this.audioContext.state === 'suspended' || (this.audioContext.state as string) === 'interrupted') {
+            console.log(`AudioService.play: context is ${this.audioContext.state}, calling resume()`);
+
+            // An HTMLAudioElement looping silently keeps the iOS audio session in the
+            // "playback" category (bypasses the silent switch). Web Audio API alone cannot
+            // hold this category — the moment the HTMLAudioElement stops or is removed,
+            // iOS may revert the session to "ambient" and the silent switch takes effect.
+            // We create it once and leave it looping for the lifetime of the page.
+            if (!this.sessionAudio) {
+                this.sessionAudio = document.createElement('audio');
+                // 1-sample silent WAV — must have actual sample data so iOS treats it as real audio
+                this.sessionAudio.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAQAIlYAAESsAAACABAAZGF0YQIAAAAAAA==';
+                this.sessionAudio.loop = true;
+                this.sessionAudio.volume = 0.001;  // inaudible but not zero — iOS may ignore muted elements
+                document.body.appendChild(this.sessionAudio);
+                this.sessionAudio.play()
+                    .then(() => console.log('AudioService.play: session audio playing — iOS audio session held in playback category'))
+                    .catch((e: any) => console.warn('AudioService.play: session audio play() failed:', e));
+            }
+
             await this.audioContext.resume();
+            console.log(`AudioService.play: resume() settled, state is now "${this.audioContext.state}"`);
+
+            const silentBuffer = this.audioContext.createBuffer(1, 1, this.audioContext.sampleRate);
+            const silentSource = this.audioContext.createBufferSource();
+            silentSource.buffer = silentBuffer;
+            silentSource.connect(this.audioContext.destination);
+            silentSource.start();
+            console.log('AudioService.play: Web Audio silent buffer started');
+            startDelay = 0.1;
         }
 
         this.cleanUpSource();  // prevent playback stream overlap
@@ -175,6 +217,7 @@ export class AudioService {
         }
 
         const offset = this.pauseTime;
+        const when = this.audioContext.currentTime + startDelay;
 
         this.source = this.audioContext.createBufferSource();
         this.source.buffer = this.buffer;
@@ -183,8 +226,10 @@ export class AudioService {
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.audioContext.destination);
 
-        this.startTime = this.audioContext.currentTime - offset;
-        this.source.start(0, offset);
+        this.startTime = when - offset;
+        console.log(`AudioService.play: calling source.start(). context state="${this.audioContext.state}" offset=${offset} startDelay=${startDelay}`);
+        this.source.start(when, offset);
+        console.log('AudioService.play: source.start() returned');
 
         this.isPlaying = true;
 
