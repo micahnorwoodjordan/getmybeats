@@ -1,33 +1,16 @@
 <div class="player">
-  <div fxLayout="column" fxLayoutAlign="center center">
-
-    <!-- this header is only pertinent for me honestly (to remind myself when the last time a deployment occurred) -->
-    <!-- <app-header [hasPlaybackError]="hasPlaybackError"></app-header> -->
+  <div fxLayout="column" fxLayoutAlign="start center">
 
     <!-- no artwork present -->
-    <div id="backdrop" *ngIf="!getArtworkIsValid()" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
+    <div *ngIf="!getArtworkIsValid()" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
       <mat-icon class="headset-backdrop-icon">headset</mat-icon>
     </div>
 
     <!-- artwork present -->
-    <div id="backdrop" *ngIf="getArtworkIsValid()" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="center center" style="position: relative; overflow: hidden;">
+    <div *ngIf="getArtworkIsValid()" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="center center" style="position: relative; overflow: hidden;">
 
-      <!-- blurred background layer -->
-      <div
-        style="
-          position: absolute;
-          inset: 0;
-          background-repeat: no-repeat;
-          background-size: cover;
-          background-position: center;
-          filter: blur(30px);
-          transform: scale(1.2);
-          z-index: 0;
-        "
-        [style.background-image]="'url(' + getArtworkImageSrc() + ')'"
-      ></div>
+      <div class="backdrop-blur-layer" [style.background-image]="'url(' + getArtworkImageSrc() + ')'"></div>
 
-      <!-- foreground image -->
       <img [src]="getArtworkImageSrc()" style="position: relative; z-index: 1; max-width: 90%; max-height: 90%; object-fit: contain;"/>
     </div>
 
@@ -43,15 +26,13 @@
 
     <mat-spinner [style.visibility]="getIsLoading() ? 'visible' : 'hidden'" class="progress-spinner"></mat-spinner>
 
-    <div class="control-buttons" fxLayout="row" fxLayoutAlign="space-evenly center">
-      <mat-icon *ngIf="shuffleEnabled" class="shuffle-icon-enabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
-      <mat-icon *ngIf="!shuffleEnabled" class="shuffle-icon-disabled" (click)="onClickShuffle()" fxFlex="10">shuffle</mat-icon>
-      <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="left-control-arrow" (click)="onPrevious()" fxFlex="15">skip_previous</mat-icon>
-      <mat-icon *ngIf="!isPlaying" class="play-pause-control" (click)="togglePlay()" fxFlex="40">play_arrow</mat-icon>
-      <mat-icon *ngIf="isPlaying" class="play-pause-control" (click)="togglePlay()" fxFlex="40">pause</mat-icon>
-      <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="right-control-arrow" (click)="onNext()" fxFlex="10">skip_next</mat-icon>
-      <mat-icon *ngIf="repeatEnabled" class="repeat-icon-enabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
-      <mat-icon *ngIf="!repeatEnabled" class="repeat-icon-disabled" (click)="onClickRepeat()" fxFlex="10">autorenew</mat-icon>
+    <div class="control-buttons">
+      <mat-icon [ngClass]="shuffleEnabled ? 'shuffle-icon-enabled' : 'shuffle-icon-disabled'"(click)="onClickShuffle()">shuffle</mat-icon>
+      <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
+      <mat-icon *ngIf="!isPlaying" class="play-pause-control" (click)="togglePlay()">play_arrow</mat-icon>
+      <mat-icon *ngIf="isPlaying" class="play-pause-control" (click)="togglePlay()">pause</mat-icon>
+      <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
+      <mat-icon [ngClass]="repeatEnabled ? 'repeat-icon-enabled' : 'repeat-icon-disabled'"(click)="onClickRepeat()">autorenew</mat-icon>
     </div>
 
     <div fxLayout="row" fxLayoutAlign="space-evenly center">
