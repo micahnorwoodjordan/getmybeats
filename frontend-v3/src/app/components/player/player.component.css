@@ -1,5 +1,3 @@
-:host { --backdrop-image-url: url('http://127.0.0.1'); }  /* placeholder location to avoid compilation errors */
-
 .songTitle { color: white; }
 .songArtist { color: white; }
 .slider { width: 40vw; margin-top: 3vh; margin-bottom: 1vh; }
