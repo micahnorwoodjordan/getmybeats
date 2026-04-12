@@ -29,8 +29,7 @@
     <div class="control-buttons">
       <mat-icon [ngClass]="shuffleEnabled ? 'shuffle-icon-enabled' : 'shuffle-icon-disabled'"(click)="onClickShuffle()">shuffle</mat-icon>
       <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
-      <mat-icon *ngIf="!isPlaying" class="play-pause-control" (click)="togglePlay()">play_arrow</mat-icon>
-      <mat-icon *ngIf="isPlaying" class="play-pause-control" (click)="togglePlay()">pause</mat-icon>
+      <mat-icon class="play-pause-control" (click)="togglePlay()">{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
       <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
       <mat-icon [ngClass]="repeatEnabled ? 'repeat-icon-enabled' : 'repeat-icon-disabled'"(click)="onClickRepeat()">autorenew</mat-icon>
     </div>
@@ -49,19 +48,18 @@
       </div>
     </div>
 
-    <div fxLayout="row" fxLayoutAlign="space-evenly center" class="bottom-div">
-
-      <div fxLayout="column">
+    <div class="bottom-div">
+      <div>
         <a href="{{userExperienceReportUrl}}" target="_blank">
           <mat-icon class="ux-writeup-navigation-icon" matTooltip="view user experience report">description</mat-icon>
         </a>
       </div>
 
-      <div fxLayout="column">
+      <div>
         <mat-icon [ngClass]="{'disabled-ui-element': getIsLoading()}" class="bottom-sheet-expand-icon" (click)="openBottomSheet()" matTooltip="select a song">menu</mat-icon>
       </div>
 
-      <div fxLayout="column">
+      <div>
         <mat-icon class="volume-up-icon" (click)="openCustomSnackBar()" matTooltip="adjust audio volume" [ngClass]="{'disabled-icon': !browserSupportsAudioVolumeManipulation}">volume_up</mat-icon>
       </div>
     </div>

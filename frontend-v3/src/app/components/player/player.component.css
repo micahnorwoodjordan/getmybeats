@@ -1,6 +1,6 @@
 .songTitle { color: white; }
 .songArtist { color: white; }
-.slider { width: 40vw; margin-top: 3vh; margin-bottom: 1vh; }
+.slider { width: 50vw; margin-top: 3vh; margin-bottom: 1vh; }
 .control-buttons {
     display: grid;
     align-items: center;
@@ -24,9 +24,17 @@
 .progress-spinner { z-index: 1; position: absolute; top: 50vh; transform: scale(1.5); opacity: 0.3; }
 .progress-bar { z-index: 1; width: 64vw; }
 .volume-up-icon { color: white; transform: scale(1); cursor: pointer; }
-.bottom-div { padding-top: 3vh; text-align: center; width: 80vw; }
 .disabled-icon { opacity: 0.5;  pointer-events: none; }
 .ux-writeup-navigation-icon { color: white; cursor: pointer; }
+.bottom-div {
+  display: grid;
+  grid-auto-flow: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(24px, 15vw, 200px);
+  padding-top: 3vh;
+  width: 80vw;
+}
 
 .backdrop-with-image {
     margin-top: 10vh;
@@ -82,19 +90,18 @@
 .disabled-ui-element { opacity: 0.5; cursor: default; pointer-events: none; }
 
 @media (max-width: 768px) {
-    .slider { width: 70vw; }
     .progress-bar { width: 70vw; }
     .play-pause-control { transform: scale(2.7); margin-left: 4vw; margin-right: 4vw; }
     .backdrop-with-image { width: 70vw; }
-    .backdrop-without-image { width: 70vw; }    
+    .backdrop-without-image { width: 70vw; }
+    .slider { width: 60vw; }
 }
 
 @media (max-width: 414px) {
-    .play-pause-control { transform: scale(2.5); }
     .backdrop-with-image { width: 95vw; }
     .backdrop-without-image { width: 95vw; }
     .progress-bar { width: 85vw; }
-    .bottom-div { padding-top: 0vh; width: 100vw; }
     .volume-up-icon { padding-left: 15vw; }
     .ux-writeup-navigation-icon { padding-right: 15vw; }
+    .slider { width: 70vw; }
 }
