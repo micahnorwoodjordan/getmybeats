@@ -65,7 +65,7 @@
 .backdrop-without-image {
     margin-top: 10vh;
     width: 80%;
-    height: 50vh;
+    height: clamp(250px, 50vh, 500px);
     background: linear-gradient(rgb(54, 53, 53), rgb(193, 203, 200));
 }
 
@@ -86,13 +86,13 @@
     .progress-bar { width: 70vw; }
     .play-pause-control { transform: scale(2.7); margin-left: 4vw; margin-right: 4vw; }
     .backdrop-with-image { width: 70vw; }
-    .backdrop-without-image { margin-top: 5vh; width: 70vw; height: 40vh; }    
+    .backdrop-without-image { width: 70vw; }    
 }
 
 @media (max-width: 414px) {
     .play-pause-control { transform: scale(2.5); }
     .backdrop-with-image { width: 95vw; }
-    .backdrop-without-image { margin-top: 5vh; width: 95vw; height: 50vh; }
+    .backdrop-without-image { width: 95vw; }
     .progress-bar { width: 85vw; }
     .bottom-div { padding-top: 0vh; width: 100vw; }
     .volume-up-icon { padding-left: 15vw; }
