@@ -1,16 +1,15 @@
+<div class="global-backdrop">
+  <div class="backdrop-blur-layer" [style.background-image]="'url(' + getArtworkImageSrc() + ')'"></div>
+</div>
+
 <div class="player">
   <div fxLayout="column" fxLayoutAlign="start center">
 
-    <!-- no artwork present -->
     <div *ngIf="!getArtworkIsValid()" class="backdrop-without-image" fxLayout="row" fxLayoutAlign="space-evenly center">
       <mat-icon class="headset-backdrop-icon">headset</mat-icon>
     </div>
 
-    <!-- artwork present -->
     <div *ngIf="getArtworkIsValid()" class="backdrop-with-image" fxLayout="row" fxLayoutAlign="center center" style="position: relative; overflow: hidden;">
-
-      <div class="backdrop-blur-layer" [style.background-image]="'url(' + getArtworkImageSrc() + ')'"></div>
-
       <img [src]="getArtworkImageSrc()" style="position: relative; z-index: 1; max-width: 90%; max-height: 90%; object-fit: contain;"/>
     </div>
 
@@ -27,11 +26,11 @@
     <mat-spinner [style.visibility]="getIsLoading() ? 'visible' : 'hidden'" class="progress-spinner"></mat-spinner>
 
     <div class="control-buttons">
-      <mat-icon [ngClass]="shuffleEnabled ? 'shuffle-icon-enabled' : 'shuffle-icon-disabled'"(click)="onClickShuffle()">shuffle</mat-icon>
+      <mat-icon [ngClass]="shuffleEnabled ? 'shuffle-icon-enabled' : 'shuffle-icon-disabled'" (click)="onClickShuffle()">shuffle</mat-icon>
       <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="left-control-arrow" (click)="onPrevious()">skip_previous</mat-icon>
       <mat-icon class="play-pause-control" (click)="togglePlay()">{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
       <mat-icon [attr.aria-disabled]="getIsLoading()" [ngClass]="{'disabled-ui-element': getIsLoading()}" class="right-control-arrow" (click)="onNext()">skip_next</mat-icon>
-      <mat-icon [ngClass]="repeatEnabled ? 'repeat-icon-enabled' : 'repeat-icon-disabled'"(click)="onClickRepeat()">autorenew</mat-icon>
+      <mat-icon [ngClass]="repeatEnabled ? 'repeat-icon-enabled' : 'repeat-icon-disabled'" (click)="onClickRepeat()">autorenew</mat-icon>
     </div>
 
     <div fxLayout="row" fxLayoutAlign="space-evenly center">
