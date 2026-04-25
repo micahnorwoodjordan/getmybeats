@@ -1,15 +1,14 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { PrimaryComponent } from './components/controls/primary/primary.component';
-import { SecondaryComponent } from './components/controls/secondary/secondary.component';
+import { PlayerComponent } from './components/player/player.component';
+
 
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterOutlet,
-    PrimaryComponent,
-    SecondaryComponent
+    PlayerComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
