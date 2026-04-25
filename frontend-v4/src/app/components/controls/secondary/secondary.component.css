@@ -1,0 +1,13 @@
+.secondary-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.icon { cursor: pointer; }
+
+.icon.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
