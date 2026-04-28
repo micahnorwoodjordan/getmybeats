@@ -1,5 +1,11 @@
 <app-trackmedia [artworkURL]="artworkURL" />
 <app-details />
-<app-primary />
+<app-primary
+    (next)="onNext()"
+    (back)="onBack()"
+    (playPause)="onPlayPause()"
+    (repeat)="onRepeat()"
+    (shuffle)="onShuffle()"
+></app-primary>
 <app-progress />
 <app-secondary />

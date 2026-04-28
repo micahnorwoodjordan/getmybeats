@@ -1,7 +1,7 @@
 <div class="control-buttons">
-    <mat-icon (click)="onClickShuffle()" [class.enabled]="shuffleEnabled" [class.disabled]="!shuffleEnabled">shuffle</mat-icon>
-    <mat-icon (click)="onPrevious()" [class.disabled]="isLoading">skip_previous</mat-icon>
-    <mat-icon (click)="togglePlay()" class="play-pause">{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
-    <mat-icon (click)="onNext()" [class.disabled]="isLoading">skip_next</mat-icon>
-    <mat-icon (click)="onClickRepeat()" [class.enabled]="repeatEnabled" [class.disabled]="!repeatEnabled">autorenew</mat-icon>
+    <mat-icon (click)="shuffle.emit()" [class.enabled]="shuffleEnabled" [class.disabled]="!shuffleEnabled">shuffle</mat-icon>
+    <mat-icon (click)="back.emit()" [class.disabled]="isLoading">skip_previous</mat-icon>
+    <mat-icon (click)="playPause.emit()" class="play-pause">{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+    <mat-icon (click)="next.emit()" [class.disabled]="isLoading">skip_next</mat-icon>
+    <mat-icon (click)="repeat.emit()" [class.enabled]="repeatEnabled" [class.disabled]="!repeatEnabled">autorenew</mat-icon>
 </div>
