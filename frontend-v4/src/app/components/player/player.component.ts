@@ -19,5 +19,5 @@ import { TrackMediaComponent } from '../trackmedia/trackmedia.component';
   styleUrl: './player.component.css',
 })
 export class PlayerComponent {
-  public albumArtUrl: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
+  public artworkURL: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
 }

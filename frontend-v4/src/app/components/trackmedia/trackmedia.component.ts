@@ -9,5 +9,5 @@ import { Component, Input } from '@angular/core';
   styleUrl: './trackmedia.component.css',
 })
 export class TrackMediaComponent {
-  @Input() public albumArtUrl!: string;
+  @Input() public artworkURL!: string;
 }
