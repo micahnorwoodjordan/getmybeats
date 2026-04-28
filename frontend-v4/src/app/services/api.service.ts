@@ -22,17 +22,10 @@ export class ApiService {
     return firstValueFrom(this.httpClient.post(url, payload,{ responseType: 'json', headers: requestHeaders }));
   }
 
-  getMediaContext(): Observable<HttpEvent<Array<MediaContextElement>>> {
+  getMediaContext(): Promise<MediaContextElement[]> {
     let location = '/media/context/';
     let url = environment.apiHost + location;
-    return this.httpClient.get<Array<MediaContextElement>>(
-      url,
-      {
-        observe: 'events',
-        reportProgress: true,
-        responseType: 'json'
-      }
-    );
+    return firstValueFrom(this.httpClient.get<MediaContextElement[]>(url));
   }
 
   downloadAudioTrack(filenameHash: string, requestGUID: string): Observable<HttpEvent<Blob>> {
@@ -50,7 +43,7 @@ export class ApiService {
     );
   }
 
-  downloadArtworkImage(filenameHash: string) {
+  downloadArtworkImage(filenameHash: string): Promise<Blob> {
     let location = '/media/image/hash/' + filenameHash;
     let url = environment.apiHost + location;
     return firstValueFrom(this.httpClient.get(url, { responseType: 'blob' }));
