@@ -10,9 +10,10 @@ export class CryptographyService {
   async decryptAudioData(encryptedData: ArrayBuffer, keyBytes: Uint8Array): Promise<ArrayBuffer> {
     const iv = encryptedData.slice(0, 12); // nonce comprised of the first 12 bytes
     const ciphertext = encryptedData.slice(12);
+    const keyBuffer = new Uint8Array(keyBytes).buffer;
     const cryptoKey = await window.crypto.subtle.importKey(
         'raw',
-        keyBytes,
+        keyBuffer,
         'AES-GCM',
         false,
         ['decrypt']
