@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, Input, EventEmitter } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
 
@@ -11,10 +11,10 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './primary.component.css'
 })
 export class PrimaryComponent {
-  public shuffleEnabled: boolean = false;
-  public repeatEnabled: boolean = false;
-  public isLoading: boolean = false;
-  public isPlaying: boolean = false;
+  @Input() isPlaying: boolean = false;
+  @Input() shuffleEnabled: boolean = false;
+  @Input() repeatEnabled: boolean = false;
+  @Input() isLoading: boolean = true;
 
   @Output() next = new EventEmitter<void>();
   @Output() back = new EventEmitter<void>();

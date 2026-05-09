@@ -1,6 +1,5 @@
 import { v7 } from 'uuid';
-
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
@@ -23,74 +22,55 @@ export class MediaContextService {
     private cryptographyService: CryptographyService
   ) { }
 
-  public mediaContext: MediaContextElement[] = [];
-  private currentIndex: number = 0;
-  private repeatEnabled: boolean = false;
-  private shuffleEnabled: boolean = false;
-  private isPlaying: boolean = false;
-  private iSLoading: boolean = true;
+  currentIndex = signal(0);
+  repeatEnabled = signal(false);
+  shuffleEnabled = signal(false);
+  isLoading = signal(true);
+  mediaContext = signal<MediaContextElement[]>([]);
+
   public audioTrack: ArrayBuffer | null = null;
-
   private setAudioTrack(newAudioTrack: ArrayBuffer) { this.audioTrack = newAudioTrack; }
-
-  private getIsLoading(): boolean { return this.iSLoading; }
-  private setLoading(newValue: boolean) { this.iSLoading = newValue; }
-  
-  private setIsPlaying(newValue: boolean) { this.isPlaying = newValue; }
-  private getIsPlaying(): boolean { return this.isPlaying; }
-
-  private setRepeatEnabled(newValue: boolean) { this.repeatEnabled = newValue; }
-  private getRepeatEnabled(): boolean { return this.repeatEnabled; }
-
-  private setShuffleEnabled(newValue: boolean) { this.shuffleEnabled = newValue; }
-  private getShuffleEnabled(): boolean { return this.shuffleEnabled; }
-
-  private setCurrentIndex(newIndex: number) { this.currentIndex = newIndex; }
-  public getCurrentIndex(): number { return this.currentIndex; }
-
-  public setMediaContext(newContext: MediaContextElement[]) { this.mediaContext = newContext; }
-  public getMediaContext(): MediaContextElement[] { return this.mediaContext; }
-
-  public async refreshMediaContext() { this.setMediaContext(await this.apiService.getMediaContext()); }
-
+  public async refreshMediaContext() { this.mediaContext.set(await this.apiService.getMediaContext()); }
   async next() {
     await this.refreshMediaContext();
 
-    if (this.currentIndex < this.mediaContext.length - 1) {
-      this.setCurrentIndex(this.currentIndex + 1);
+    if (this.currentIndex() < this.mediaContext().length - 1) {
+      this.currentIndex.update((value) => value + 1);
     } else {
-      this.setCurrentIndex(0);
+      this.currentIndex.set(0);
     }
 
-    this.downloadAudioTrack(this.currentIndex);
+    this.downloadAudioTrack(this.currentIndex());
+
+    console.log(this.currentIndex());
   }
 
   async back() {
     await this.refreshMediaContext();
 
-    if (this.currentIndex > 0) {
-      this.setCurrentIndex(this.currentIndex - 1);
+    if (this.currentIndex() > 0) {
+      this.currentIndex.update((value) => value - 1);
     } else {
-      this.setCurrentIndex(this.mediaContext.length - 1);
+      this.currentIndex.set(this.mediaContext().length - 1);
     }
 
-    this.downloadAudioTrack(this.currentIndex);
+    this.downloadAudioTrack(this.currentIndex());
   }
 
-  shuffle() { this.setShuffleEnabled(!this.shuffleEnabled); }
-  repeat() { this.setRepeatEnabled(!this.repeatEnabled); }
+  shuffle() { this.shuffleEnabled.set(!this.shuffleEnabled()); }
+  repeat() { this.repeatEnabled.set(!this.repeatEnabled()); }
 
   async playOrPause() {
-    if (this.isPlaying) {
+    if (this.playbackService.isPlaying()) {
       this.playbackService.pause();
     } else {
       await this.playbackService.play();
     }
-    this.setIsPlaying(!this.isPlaying);
+    this.playbackService.isPlaying.set(!this.playbackService.isPlaying());
   }
 
   public async downloadAudioTrack(index: number, autoplay: boolean = true) {
-    let element: MediaContextElement = this.mediaContext[index];
+    let element: MediaContextElement = this.mediaContext()[index];
     let requestGUID = v7();
     let encyrptionKey = await this.cryptographyService.getNewEncryptionKey();
     let response = await this.apiService.postNewEncryptionKey(encyrptionKey, requestGUID);
@@ -100,7 +80,7 @@ export class MediaContextService {
 
           switch (event.type) {
             case 'loading':
-              this.setLoading(true);
+              this.isLoading.set(true);
               break;
 
             case 'progress':
@@ -116,7 +96,7 @@ export class MediaContextService {
               break;
 
             case 'done':
-              this.setLoading(false);
+              this.isLoading.set(false);
             //   this.downloadProgress = 0;
               break;
 

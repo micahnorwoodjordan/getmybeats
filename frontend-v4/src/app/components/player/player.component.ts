@@ -27,7 +27,7 @@ export class PlayerComponent implements OnInit {
   public artworkURL: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
   private selectedAudioIndex = 0;
 
-  constructor(private mediaContextService: MediaContextService) { }
+  constructor(public mediaContextService: MediaContextService, public playbackService: PlaybackService) { }
 
   async ngOnInit() {
     await this.mediaContextService.refreshMediaContext();

@@ -4,8 +4,9 @@
     (next)="onNext()"
     (back)="onBack()"
     (playPause)="onPlayPause()"
-    (repeat)="onRepeat()"
-    (shuffle)="onShuffle()"
+    [isPlaying]="playbackService.isPlaying()"
+    [shuffleEnabled]="mediaContextService.shuffleEnabled()"
+    [repeatEnabled]="mediaContextService.repeatEnabled()"
 ></app-primary>
 <app-progress />
 <app-secondary />

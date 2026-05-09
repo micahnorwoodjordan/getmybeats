@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class PlaybackService {
@@ -11,7 +11,8 @@ export class PlaybackService {
   private source: AudioBufferSourceNode | null = null;
   private startTime = 0; // when playback started
   private pauseTime = 0; // accumulated paused offset
-  private isPlaying = false;
+
+  isPlaying = signal(false);
 
   private initializeAudioContext(): void {
     if (!this.audioContext) {
@@ -78,14 +79,14 @@ export class PlaybackService {
     this.gainNode.connect(this.audioContext.destination);
     this.startTime = this.audioContext.currentTime - offset;
     this.source.start(0, offset);
-    this.isPlaying = true;
+    this.isPlaying.set(true);
 
     this.source.onended = () => {
       if (!this.isPlaying) return; // avoid race with pause/stop
 
       this.cleanUpSource();
       this.pauseTime = 0;
-      this.isPlaying = false;
+      this.isPlaying.set(false);
     };
   }
 
@@ -95,13 +96,13 @@ export class PlaybackService {
 
     this.cleanUpSource();
     this.pauseTime = this.audioContext.currentTime - this.startTime;
-    this.isPlaying = false;
+    this.isPlaying.set(false);
   }
 
   stop() {
     this.cleanUpSource();
     this.pauseTime = 0;
-    this.isPlaying = false;
+    this.isPlaying.set(false);
   }
 
   public async next(buffer: ArrayBuffer, autoplay: boolean = true) {
