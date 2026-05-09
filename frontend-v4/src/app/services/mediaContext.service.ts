@@ -53,8 +53,8 @@ export class MediaContextService {
 
   public async refreshMediaContext() { this.setMediaContext(await this.apiService.getMediaContext()); }
 
-  next() {
-    this.refreshMediaContext();
+  async next() {
+    await this.refreshMediaContext();
 
     if (this.currentIndex < this.mediaContext.length - 1) {
       this.setCurrentIndex(this.currentIndex + 1);
@@ -65,8 +65,8 @@ export class MediaContextService {
     this.downloadAudioTrack(this.currentIndex);
   }
 
-  back() {
-    this.refreshMediaContext();
+  async back() {
+    await this.refreshMediaContext();
 
     if (this.currentIndex > 0) {
       this.setCurrentIndex(this.currentIndex - 1);
@@ -97,10 +97,10 @@ export class MediaContextService {
 
     this.retrievalService.retrieveAudioFromServer$(element, requestGUID, encyrptionKey).subscribe({
         next: async (event: AudioDownloadEvent) => {
-          this.setLoading(true);
 
           switch (event.type) {
             case 'loading':
+              this.setLoading(true);
               break;
 
             case 'progress':
