@@ -1,72 +1,116 @@
-import { v7 } from 'uuid';
 import { Injectable } from '@angular/core';
-import { ApiService } from './api.service';
-
-import { AudioRetrievalInstruction } from '../enums/AudioRetrievalInstruction';
-
-import { AudioDownloadEvent } from '../types/AudioDownloadEvent';
-import { MediaContextElement } from '../interfaces/MediaContextElement';
-import { CryptographyService } from './cryptography.service';
-import { RetrievalService } from './retrieval.service';
-import { MediaContextService } from './mediaContext.service';
 
 @Injectable({ providedIn: 'root' })
 export class PlaybackService {
-  constructor(
-    private mediaContextService: MediaContextService,
-    private retrievalService: RetrievalService,
-    private cryptographyService: CryptographyService,
-    private apiService: ApiService
-) {}
+  constructor() { }
 
-  public audioTrack: ArrayBuffer | null = null;
+  private audioContext: AudioContext | null = null;
+  private gainNode: GainNode | null = null;
+  private buffer: AudioBuffer | null = null;
+  private encodedBuffer: ArrayBuffer | null = null;
+  private source: AudioBufferSourceNode | null = null;
+  private startTime = 0; // when playback started
+  private pauseTime = 0; // accumulated paused offset
+  private isPlaying = false;
 
-  private setAudioTrack(newAudioTrack: ArrayBuffer) { this.audioTrack = newAudioTrack; }
-//   public getAudioTrack(): ArrayBuffer | null { return this.audioTrack; }  // TODO: also symbol clash
-
-  // TODO: also needs to initiate playback
-  public async getAudioTrack(instruction: AudioRetrievalInstruction) {
-    await this.mediaContextService.refreshMediaContext();
-
-    if (instruction === AudioRetrievalInstruction.GET_NEXT) {
-        this.mediaContextService.next();
-    } else if (instruction === AudioRetrievalInstruction.GET_PREVIOUS) {
-        this.mediaContextService.back();
+  private initializeAudioContext(): void {
+    if (!this.audioContext) {
+        this.audioContext = new AudioContext();
     }
+  }
 
-    let mediaContext: MediaContextElement[] = this.mediaContextService.getMediaContext();
-    let currentIndex = this.mediaContextService.getCurrentIndex();
-    let element: MediaContextElement = mediaContext[currentIndex];
-    let requestGUID = v7();
-    let encyrptionKey = await this.cryptographyService.getNewEncryptionKey();
-    let response = await this.apiService.postNewEncryptionKey(encyrptionKey, requestGUID);
+  private async decodeBuffer(newBuffer: ArrayBuffer) {
+    this.encodedBuffer = newBuffer;
 
-    this.retrievalService.retrieveAudioFromServer$(element, requestGUID, encyrptionKey).subscribe({
-        next: (event: AudioDownloadEvent) => {
-            switch (event.type) {
-            case 'loading':
-                // this.isLoading = true;
-                break;
+    if (this.audioContext instanceof AudioContext) {
+        this.setDecodedBuffer(await this.audioContext.decodeAudioData(this.encodedBuffer));
+    }
+  }
 
-            case 'progress':
-                // this.downloadProgress = event.percent;
-                break;
+  private setDecodedBuffer(newDecodedBuffer: AudioBuffer) { this.buffer = newDecodedBuffer; }
+  
+  public getCurrentTime(): number {
+    if (!this.buffer) return 0;
+    if (this.audioContext === null) return 0;
 
-            case 'complete':
-                this.setAudioTrack(event.data);
-                // this.loadFromArrayBuffer(event.data, autoplay);
-                break;
+    return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
+  }
 
-            case 'done':
-                // this.isLoading = false;
-                // this.downloadProgress = 0;
-                break;
+  private cleanUpSource() {
+    if (this.source) {
+      this.source.onended = null;
+      try {
+        this.source.stop();
+      } catch (_) {
+        // ignore if already stopped
+      }
+      this.source.disconnect();
+      this.source = null;
+    }
+  }
 
-            case 'error':
-                console.error(event.error);
-                break;
-            }
-        }
-    });
+//   async seek(seconds: number) {
+//     if (!this.buffer) return;
+
+//     seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
+//     this.pauseTime = seconds;
+
+//     if (this.isPlaying) {
+//       this.cleanUpSource();
+//       await this.play(); // restart from new offset
+//     }
+//   }
+
+  async play() {
+    if (!this.buffer) return;
+    if (!this.audioContext) this.audioContext = new AudioContext();
+    if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+
+    this.cleanUpSource(); // prevent playback stream overlap
+
+    if (this.pauseTime >= this.buffer.duration) this.pauseTime = 0;
+
+    const offset = this.pauseTime;
+    this.source = this.audioContext.createBufferSource();
+    this.source.buffer = this.buffer;
+    this.gainNode = this.audioContext.createGain();
+    this.source.connect(this.gainNode);
+    this.gainNode.connect(this.audioContext.destination);
+    this.startTime = this.audioContext.currentTime - offset;
+    this.source.start(0, offset);
+    this.isPlaying = true;
+
+    this.source.onended = () => {
+      if (!this.isPlaying) return; // avoid race with pause/stop
+
+      this.cleanUpSource();
+      this.pauseTime = 0;
+      this.isPlaying = false;
+    };
+  }
+
+  pause() {
+    if (!this.isPlaying || !this.source) return;
+    if (this.audioContext === null) return;
+
+    this.cleanUpSource();
+    this.pauseTime = this.audioContext.currentTime - this.startTime;
+    this.isPlaying = false;
+  }
+
+  stop() {
+    this.cleanUpSource();
+    this.pauseTime = 0;
+    this.isPlaying = false;
+  }
+
+  public async next(buffer: ArrayBuffer, autoplay: boolean = true) {
+    this.initializeAudioContext();
+    await this.decodeBuffer(buffer);
+
+    if (autoplay) {
+        this.stop();
+        await this.play();
+    }
   }
 }

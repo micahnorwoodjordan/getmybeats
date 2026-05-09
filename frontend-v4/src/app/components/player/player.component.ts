@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PrimaryComponent } from '../controls/primary/primary.component';
 import { SecondaryComponent } from '../controls/secondary/secondary.component';
 import { ProgressComponent } from '../controls/progress/progress.component';
@@ -23,16 +23,21 @@ import { PlaybackService } from '../../services/playback.service';
   templateUrl: './player.component.html',
   styleUrl: './player.component.css',
 })
-export class PlayerComponent {
+export class PlayerComponent implements OnInit {
   public artworkURL: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
   private selectedAudioIndex = 0;
 
-  constructor(private mediaContextService: MediaContextService, private playbackService: PlaybackService) { }
+  constructor(private mediaContextService: MediaContextService) { }
 
-  public onNext() { this.playbackService.getAudioTrack(AudioRetrievalInstruction.GET_NEXT); }
-  public onBack() { this.playbackService.getAudioTrack(AudioRetrievalInstruction.GET_PREVIOUS); }
+  async ngOnInit() {
+    await this.mediaContextService.refreshMediaContext();
+    this.mediaContextService.downloadAudioTrack(this.selectedAudioIndex, false);
+  }
+
+  public onNext() { this.mediaContextService.next() }
+  public onBack() { this.mediaContextService.back() }
   public onShuffle() { this.mediaContextService.shuffle(); }
   public onRepeat() { this.mediaContextService.repeat(); }
-  public onPlayPause() { this.mediaContextService.playOrPause(); }
+  public async onPlayPause() { await this.mediaContextService.playOrPause(); }
   public onSeek() {  }// TODO
 }
