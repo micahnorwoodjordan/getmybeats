@@ -62,7 +62,7 @@ export class PlaybackService {
 //     }
 //   }
 
-  async play() {
+  private async play() {
     if (!this.buffer) return;
     if (!this.audioContext) this.audioContext = new AudioContext();
     if (this.audioContext.state === 'suspended') await this.audioContext.resume();
@@ -90,7 +90,7 @@ export class PlaybackService {
     };
   }
 
-  pause() {
+  private pause() {
     if (!this.isPlaying() || !this.source) return;
     if (this.audioContext === null) return;
 
@@ -99,13 +99,21 @@ export class PlaybackService {
     this.isPlaying.set(false);
   }
 
-  stop() {
+  private stop() {
     this.cleanUpSource();
     this.pauseTime = 0;
     this.isPlaying.set(false);
   }
 
-  public async next(buffer: ArrayBuffer, autoplay: boolean = true) {
+  public async togglePlayback() {
+    if (this.isPlaying()) {
+      this.pause();
+    } else {
+      await this.play();
+    }
+  }
+
+  public async loadTrack(buffer: ArrayBuffer, autoplay: boolean = true) {
     this.initializeAudioContext();
     await this.decodeBuffer(buffer);
 

@@ -28,8 +28,6 @@ export class MediaContextService {
   isLoading = signal(true);
   mediaContext = signal<MediaContextElement[]>([]);
 
-  public audioTrack: ArrayBuffer | null = null;
-  private setAudioTrack(newAudioTrack: ArrayBuffer) { this.audioTrack = newAudioTrack; }
   public async refreshMediaContext() { this.mediaContext.set(await this.apiService.getMediaContext()); }
   async next() {
     await this.refreshMediaContext();
@@ -58,14 +56,6 @@ export class MediaContextService {
   shuffle() { this.shuffleEnabled.set(!this.shuffleEnabled()); }
   repeat() { this.repeatEnabled.set(!this.repeatEnabled()); }
 
-  async playOrPause() {
-    if (this.playbackService.isPlaying()) {
-      this.playbackService.pause();
-    } else {
-      await this.playbackService.play();
-    }
-  }
-
   public async downloadAudioTrack(index: number, autoplay: boolean = true) {
     let element: MediaContextElement = this.mediaContext()[index];
     let requestGUID = v7();
@@ -85,11 +75,7 @@ export class MediaContextService {
               break;
 
             case 'complete':
-              this.setAudioTrack(event.data);
-
-              if (this.audioTrack instanceof ArrayBuffer) {
-                await this.playbackService.next(this.audioTrack, autoplay);
-              }
+              await this.playbackService.loadTrack(event.data, autoplay);
               break;
 
             case 'done':

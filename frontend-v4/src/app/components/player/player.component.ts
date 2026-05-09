@@ -38,6 +38,6 @@ export class PlayerComponent implements OnInit {
   public onBack() { this.mediaContextService.back() }
   public onShuffle() { this.mediaContextService.shuffle(); }
   public onRepeat() { this.mediaContextService.repeat(); }
-  public async onPlayPause() { await this.mediaContextService.playOrPause(); }
+  public async onPlayPause() { await this.playbackService.togglePlayback(); }
   public onSeek() {  }// TODO
 }
