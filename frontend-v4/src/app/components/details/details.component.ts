@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 
@@ -11,8 +11,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './details.component.css',
 })
 export class DetailsComponent {
-  public getIsLoading(): boolean { return true; }
-  public getDownloadProgress(): number { return 56; }
-  public getTitle(): string { return "noodles"; }
-  public getAuthor(): string { return "micah"; }
+  @Input() isLoading: boolean = false;
+  @Input() downloadProgress: number = 0;
+  @Input() title: string = "loading...";
+  @Input() author: string = "loading...";
 }

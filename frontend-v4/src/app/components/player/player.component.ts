@@ -9,6 +9,7 @@ import { AudioRetrievalInstruction } from '../../enums/AudioRetrievalInstruction
 
 import { MediaContextService } from '../../services/mediaContext.service';
 import { PlaybackService } from '../../services/playback.service';
+import { RetrievalService } from '../../services/retrieval.service';
 
 
 @Component({
@@ -25,13 +26,12 @@ import { PlaybackService } from '../../services/playback.service';
 })
 export class PlayerComponent implements OnInit {
   public artworkURL: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
-  private selectedAudioIndex = 0;
 
-  constructor(public mediaContextService: MediaContextService, public playbackService: PlaybackService) { }
+  constructor(public mediaContextService: MediaContextService, public playbackService: PlaybackService, public retrievalService: RetrievalService) { }
 
   async ngOnInit() {
     await this.mediaContextService.refreshMediaContext();
-    this.mediaContextService.downloadAudioTrack(this.selectedAudioIndex, false);
+    await this.retrievalService.downloadServerMedia(this.mediaContextService.mediaContext()[0], false);
   }
 
   public onNext() { this.mediaContextService.next() }

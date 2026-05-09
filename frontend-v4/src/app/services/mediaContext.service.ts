@@ -1,4 +1,3 @@
-import { v7 } from 'uuid';
 import { Injectable, signal } from '@angular/core';
 
 import { ApiService } from './api.service';
@@ -38,7 +37,7 @@ export class MediaContextService {
       this.currentIndex.set(0);
     }
 
-    this.downloadAudioTrack(this.currentIndex());
+    this.retrievalService.downloadServerMedia(this.mediaContext()[this.currentIndex()], true);
   }
 
   async back() {
@@ -50,44 +49,9 @@ export class MediaContextService {
       this.currentIndex.set(this.mediaContext().length - 1);
     }
 
-    this.downloadAudioTrack(this.currentIndex());
+    this.retrievalService.downloadServerMedia(this.mediaContext()[this.currentIndex()], true);
   }
 
   shuffle() { this.shuffleEnabled.set(!this.shuffleEnabled()); }
   repeat() { this.repeatEnabled.set(!this.repeatEnabled()); }
-
-  public async downloadAudioTrack(index: number, autoplay: boolean = true) {
-    let element: MediaContextElement = this.mediaContext()[index];
-    let requestGUID = v7();
-    let encyrptionKey = await this.cryptographyService.getNewEncryptionKey();
-    let response = await this.apiService.postNewEncryptionKey(encyrptionKey, requestGUID);
-
-    this.retrievalService.retrieveAudioFromServer$(element, requestGUID, encyrptionKey).subscribe({
-        next: async (event: AudioDownloadEvent) => {
-
-          switch (event.type) {
-            case 'loading':
-              this.isLoading.set(true);
-              break;
-
-            case 'progress':
-              // this.downloadProgress = event.percent;
-              break;
-
-            case 'complete':
-              await this.playbackService.loadTrack(event.data, autoplay);
-              break;
-
-            case 'done':
-              this.isLoading.set(false);
-            //   this.downloadProgress = 0;
-              break;
-
-            case 'error':
-              console.error(event.error);
-              break;
-          }
-        }
-    });
-  }
 }

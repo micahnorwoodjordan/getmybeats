@@ -1,5 +1,5 @@
 <div class="track-details">
-    <div class="loading" *ngIf="getIsLoading()">{{ getDownloadProgress() }}%</div>
-    <h1 class="title">{{ getTitle() }}</h1>
-    <h3 class="artist">{{ getAuthor() }}</h3>
+    <div class="loading" *ngIf="isLoading">{{ downloadProgress }}%</div>
+    <h1 class="title">{{ title }}</h1>
+    <h3 class="artist">{{ author }}</h3>
 </div>
