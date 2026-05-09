@@ -16,55 +16,38 @@ export class RetrievalService {
     return this.apiService.downloadAudioTrack(mediaContextElement.audio_filename_hash, requestGUID).pipe(
         mergeMap(async (event) => {
             switch (event.type) {
-            case HttpEventType.DownloadProgress:
-                if (event.total !== undefined) {
-                const percent = Math.round(
-                    (event.loaded / event.total) * 100,
-                );
+                case HttpEventType.DownloadProgress:
+                    if (event.total !== undefined) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
 
-                if (percent % 20 === 0) {
-                    console.log(`REPORT getandloadaudiotrack: ${percent}% complete`);
-                }
+                        if (percent % 20 === 0) {
+                            console.log(`REPORT getandloadaudiotrack: ${percent}% complete`);
+                        }
 
-                return { type: 'progress', percent } as AudioDownloadEvent;
-                }
-                return null;
+                        return { type: 'progress', percent } as AudioDownloadEvent;
+                    }
 
-            case HttpEventType.Response:
-                if (event.status === 200 && event.body) {
-                const encrypted = await event.body.arrayBuffer();
-                const decrypted = await this.cryptographyService.decryptAudioData(encrypted, encyrptionKey);
-                console.log(decrypted);
+                    return null;
 
-                // equivalent of:
-                // this.setAudioTrack(decrypted);
+                case HttpEventType.Response:
+                    if (event.status === 200 && event.body) {
+                        const encrypted = await event.body.arrayBuffer();
+                        const decrypted = await this.cryptographyService.decryptAudioData(encrypted, encyrptionKey);
+                        return { type: 'complete', data: decrypted } as AudioDownloadEvent;
+                    } else {
+                        throw new Error('ERROR getandloadaudiotrack');
+                    }
 
-                return {
-                    type: 'complete',
-                    data: decrypted,
-                } as AudioDownloadEvent;
-                } else {
-                throw new Error('ERROR getandloadaudiotrack');
-                }
-
-            default:
-                return null;
+                default:
+                    return null;
             }
         }),
         filter((e): e is AudioDownloadEvent => e !== null),
-
-        // finalize replaces your cleanup logic
-        finalize(() => {
-            // equivalent of:
-            // this.setDownloadProgress(0);
-            // this.setIsLoading(false);
-            console.log('END getandloadaudiotrack');
-        }),
-
+        finalize(() => { console.log('END getandloadaudiotrack'); }),
         catchError((error) => {
             console.error(`ERROR getandloadaudiotrack: ${error.toString()}`);
             return of({ type: 'error', error } as AudioDownloadEvent);
-        }),
+        })
     );
   }
 }
