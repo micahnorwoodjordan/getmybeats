@@ -1,0 +1,21 @@
+<app-trackmedia [artworkURL]="artworkURL" />
+
+<app-details
+    [isLoading]="retrievalService.isLoading()"
+    [downloadProgress]="retrievalService.downloadProgress()"
+    [title]="retrievalService.title()"
+    [author]="retrievalService.author()"
+
+></app-details>
+
+<app-primary
+    (next)="onNext()"
+    (back)="onBack()"
+    (playPause)="onPlayPause()"
+    [isPlaying]="playbackService.isPlaying()"
+    [shuffleEnabled]="mediaContextService.shuffleEnabled()"
+    [repeatEnabled]="mediaContextService.repeatEnabled()"
+></app-primary>
+
+<app-progress />
+<app-secondary />

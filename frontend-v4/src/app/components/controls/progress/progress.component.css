@@ -1,0 +1,10 @@
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.time { font-size: 12px; white-space: nowrap; }
+.slider { flex: 1; }

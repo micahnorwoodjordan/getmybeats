@@ -1,0 +1,12 @@
+.media {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.artwork {
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+}

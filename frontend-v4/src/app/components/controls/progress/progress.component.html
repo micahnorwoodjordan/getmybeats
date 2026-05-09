@@ -1,0 +1,9 @@
+<div class="progress">
+    <div class="time current">{{ currentTimeHumanReadable }}</div>
+
+    <mat-slider class="slider" (input)="onSeek($event)" [max]="duration" step="0.005">
+        <input matSliderThumb [value]="currentTime" />
+    </mat-slider>
+
+    <div class="time duration">{{ durationHumanReadable }}</div>
+</div>
