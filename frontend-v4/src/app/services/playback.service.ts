@@ -56,7 +56,7 @@ export class PlaybackService {
 //     seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
 //     this.pauseTime = seconds;
 
-//     if (this.isPlaying) {
+//     if (this.isPlaying()) {
 //       this.cleanUpSource();
 //       await this.play(); // restart from new offset
 //     }
@@ -82,7 +82,7 @@ export class PlaybackService {
     this.isPlaying.set(true);
 
     this.source.onended = () => {
-      if (!this.isPlaying) return; // avoid race with pause/stop
+      if (!this.isPlaying()) return; // avoid race with pause/stop
 
       this.cleanUpSource();
       this.pauseTime = 0;
@@ -91,7 +91,7 @@ export class PlaybackService {
   }
 
   pause() {
-    if (!this.isPlaying || !this.source) return;
+    if (!this.isPlaying() || !this.source) return;
     if (this.audioContext === null) return;
 
     this.cleanUpSource();

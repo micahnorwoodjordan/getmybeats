@@ -41,8 +41,6 @@ export class MediaContextService {
     }
 
     this.downloadAudioTrack(this.currentIndex());
-
-    console.log(this.currentIndex());
   }
 
   async back() {
@@ -66,7 +64,6 @@ export class MediaContextService {
     } else {
       await this.playbackService.play();
     }
-    this.playbackService.isPlaying.set(!this.playbackService.isPlaying());
   }
 
   public async downloadAudioTrack(index: number, autoplay: boolean = true) {
