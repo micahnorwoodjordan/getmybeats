@@ -8,12 +8,19 @@ import { MediaContextElement } from '../interfaces/MediaContextElement';
 export class ArtworkService {
   constructor(private apiService: ApiService) { }
 
-  artworkURL = signal("http://localhost/placeholder.png");
+  private defaultArtworkURL: string = "https://static.micahnorwoodjordan.com/placeholder.png";
+  artworkURL = signal(this.defaultArtworkURL);
 
   public async loadArtwork(element: MediaContextElement) {
-    let blob = await this.apiService.downloadArtworkImage(element.artwork_filename_hash);
-    let imageURL: string = URL.createObjectURL(blob);
+    let imageURL: string;
+
+    if (element.artwork_filename_hash !== null) {
+      let blob = await this.apiService.downloadArtworkImage(element.artwork_filename_hash);
+      imageURL = URL.createObjectURL(blob);
+    } else {
+      imageURL = this.defaultArtworkURL;
+    }
+
     this.artworkURL.set(imageURL);
-    console.log(this.artworkURL);
   }
 }

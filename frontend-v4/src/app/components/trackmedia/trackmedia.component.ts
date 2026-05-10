@@ -8,5 +8,5 @@ import { Component, Input } from '@angular/core';
   styleUrl: './trackmedia.component.css',
 })
 export class TrackMediaComponent {
-  @Input() artworkURL: string = "http://localhost/placeholder.png";
+  @Input() artworkURL: string = "https://static.micahnorwoodjordan.com/placeholder.png";
 }
