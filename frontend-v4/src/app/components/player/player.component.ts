@@ -32,7 +32,8 @@ export class PlayerComponent implements OnInit {
 
   async ngOnInit() {
     await this.mediaContextService.refreshMediaContext();
-    await this.retrievalService.downloadServerMedia(this.mediaContextService.mediaContext()[0], false);
+    let index = this.mediaContextService.currentIndex();
+    await this.retrievalService.downloadServerMedia(this.mediaContextService.mediaContext()[index], false);
   }
 
   public onNext() { this.mediaContextService.next() }
