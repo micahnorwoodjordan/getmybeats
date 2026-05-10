@@ -1,9 +1,9 @@
 <div class="progress">
-    <div class="time current">{{ currentTimeHumanReadable }}</div>
+    <div class="time current">{{ currentTimeHumanReadable() }}</div>
 
-    <mat-slider class="slider" [max]="duration" step="0.05">
-        <input matSliderThumb [value]="currentTime" (valueChange)="onSeek($event)"/>
+    <mat-slider class="slider" [max]="duration()" step="0.05">
+        <input matSliderThumb [value]="currentTime()" (valueChange)="onSeek($event)"/>
     </mat-slider>
 
-    <div class="time duration">{{ durationHumanReadable }}</div>
+    <div class="time duration">{{ durationHumanReadable() }}</div>
 </div>
