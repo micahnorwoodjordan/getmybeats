@@ -13,6 +13,7 @@ export class PlaybackService {
   private pauseTime = 0; // accumulated paused offset
 
   isPlaying = signal(false);
+  seconds = signal(0);
 
   private initializeAudioContext(): void {
     if (!this.audioContext) {
@@ -50,17 +51,18 @@ export class PlaybackService {
     }
   }
 
-//   async seek(seconds: number) {
-//     if (!this.buffer) return;
+  async seek(seconds: number) {
+    if (!this.buffer) return;
 
-//     seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
-//     this.pauseTime = seconds;
+    seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
+    this.seconds.set(seconds);
+    this.pauseTime = this.seconds();
 
-//     if (this.isPlaying()) {
-//       this.cleanUpSource();
-//       await this.play(); // restart from new offset
-//     }
-//   }
+    if (this.isPlaying()) {
+      this.cleanUpSource();
+      await this.play(); // restart from new offset
+    }
+  }
 
   private async play() {
     if (!this.buffer) return;

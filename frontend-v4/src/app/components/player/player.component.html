@@ -17,5 +17,7 @@
     [repeatEnabled]="mediaContextService.repeatEnabled()"
 ></app-primary>
 
-<app-progress />
+
+<app-progress (seek)="onSeek($event)"></app-progress>
+
 <app-secondary />

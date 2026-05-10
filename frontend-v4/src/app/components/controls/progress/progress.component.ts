@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 
@@ -12,11 +13,13 @@ import { MatSliderModule } from '@angular/material/slider';
   templateUrl: './progress.component.html',
   styleUrl: './progress.component.css'
 })
-export class ProgressComponent {  // TODO
+export class ProgressComponent {
   public durationHumanReadable: string = "3:23";
   public currentTimeHumanReadable: string = "1:23";
   public currentTime: string = "1:56";
   public duration: number = 50;
 
-  public onSeek(event: Event) {  }
+  @Output() seek = new EventEmitter<number>();
+
+  public onSeek(value: number) { this.seek.emit(value); }
 }
