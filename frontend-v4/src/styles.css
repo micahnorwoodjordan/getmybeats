@@ -14,3 +14,7 @@ mat-icon.disabled {
     pointer-events: none;
     cursor: default;
 }
+
+.interaction-button {  transition: 500ms; }
+
+.interaction-button:hover { transform: scale(1.5); transition: 500ms; }
