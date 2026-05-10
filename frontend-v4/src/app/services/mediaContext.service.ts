@@ -5,8 +5,6 @@ import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { PlaybackService } from './playback.service';
 import { RetrievalService } from './retrieval.service';
 import { CryptographyService } from './cryptography.service';
-import { AudioDownloadEvent } from '../types/AudioDownloadEvent';
-
 
 
 @Injectable({
