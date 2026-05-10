@@ -8,10 +8,16 @@ import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { CryptographyService } from './cryptography.service';
 import { PlaybackService } from './playback.service';
+import { ArtworkService } from './artwork.service';
 
 @Injectable({ providedIn: 'root' })
 export class RetrievalService {
-  constructor(private apiService: ApiService, private cryptographyService: CryptographyService, private playbackService: PlaybackService) { }
+  constructor(
+    private apiService: ApiService,
+    private cryptographyService: CryptographyService,
+    private playbackService: PlaybackService,
+    private artworkService: ArtworkService
+  ) { }
 
   isLoading = signal(false);
   downloadProgress = signal(0);
@@ -59,6 +65,6 @@ export class RetrievalService {
       },
     });
 
-    // TODO: download image artwork
+    this.artworkService.loadArtwork(element);
   }
 }

@@ -3,11 +3,10 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-trackmedia',
-  imports: [
-  ],
+  imports: [],
   templateUrl: './trackmedia.component.html',
   styleUrl: './trackmedia.component.css',
 })
 export class TrackMediaComponent {
-  @Input() public artworkURL!: string;
+  @Input() artworkURL: string = "http://localhost/placeholder.png";
 }

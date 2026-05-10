@@ -5,12 +5,10 @@ import { ProgressComponent } from '../controls/progress/progress.component';
 import { DetailsComponent } from '../details/details.component';
 import { TrackMediaComponent } from '../trackmedia/trackmedia.component';
 
-import { AudioRetrievalInstruction } from '../../enums/AudioRetrievalInstruction';
-
 import { MediaContextService } from '../../services/mediaContext.service';
 import { PlaybackService } from '../../services/playback.service';
 import { RetrievalService } from '../../services/retrieval.service';
-
+import { ArtworkService } from '../../services/artwork.service';
 
 @Component({
   selector: 'app-player',
@@ -25,9 +23,12 @@ import { RetrievalService } from '../../services/retrieval.service';
   styleUrl: './player.component.css',
 })
 export class PlayerComponent implements OnInit {
-  public artworkURL: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
-
-  constructor(public mediaContextService: MediaContextService, public playbackService: PlaybackService, public retrievalService: RetrievalService) { }
+  constructor(
+    public mediaContextService: MediaContextService,
+    public playbackService: PlaybackService,
+    public retrievalService: RetrievalService,
+    public artworkService: ArtworkService
+  ) { }
 
   async ngOnInit() {
     await this.mediaContextService.refreshMediaContext();

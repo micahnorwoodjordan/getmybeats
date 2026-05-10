@@ -3,7 +3,6 @@ import { Injectable, signal } from '@angular/core';
 import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { PlaybackService } from './playback.service';
-import { AudioRetrievalInstruction } from '../enums/AudioRetrievalInstruction';
 import { RetrievalService } from './retrieval.service';
 import { CryptographyService } from './cryptography.service';
 import { AudioDownloadEvent } from '../types/AudioDownloadEvent';
