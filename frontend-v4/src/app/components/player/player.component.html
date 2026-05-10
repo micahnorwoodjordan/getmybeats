@@ -13,6 +13,7 @@
     (back)="onBack()"
     (playPause)="onPlayPause()"
     [isPlaying]="playbackService.isPlaying()"
+    [isLoading]="retrievalService.isLoading()"
     (shuffle)="mediaContextService.shuffle()"
     (repeat)="mediaContextService.repeat()"
 ></app-primary>

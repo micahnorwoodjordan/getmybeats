@@ -50,6 +50,7 @@ export class RetrievalService {
               let encrypted = await event.body.arrayBuffer();
               let decrypted = await this.cryptographyService.decryptAudioData(encrypted, encyrptionKey);
               await this.playbackService.loadTrack(decrypted, autoplay);
+              this.isLoading.set(false);
             }
             break;
         }

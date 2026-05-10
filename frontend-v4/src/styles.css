@@ -4,3 +4,13 @@ html, body {
     background-color: rgb(20, 19, 19);
     color: white;
 }
+
+mat-icon {
+    cursor: pointer;
+}
+
+mat-icon.disabled {
+    opacity: 0.2;
+    pointer-events: none;
+    cursor: default;
+}
