@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
 
+import { environment } from '../../../environments/environment.dev';
+
 
 @Component({
   selector: 'app-trackmedia',
@@ -8,5 +10,5 @@ import { Component, Input } from '@angular/core';
   styleUrl: './trackmedia.component.css',
 })
 export class TrackMediaComponent {
-  @Input() artworkURL: string = "https://static.micahnorwoodjordan.com/placeholder.png";
+  @Input() artworkURL: string = environment.defaultArtworkImageURL;
 }

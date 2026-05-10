@@ -1,5 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
+import { environment } from '../../environments/environment.dev';
+
 import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 
@@ -8,7 +10,7 @@ import { MediaContextElement } from '../interfaces/MediaContextElement';
 export class ArtworkService {
   constructor(private apiService: ApiService) { }
 
-  private defaultArtworkURL: string = "https://static.micahnorwoodjordan.com/placeholder.png";
+  private defaultArtworkURL: string = environment.defaultArtworkImageURL;
   artworkURL = signal(this.defaultArtworkURL);
 
   public async loadArtwork(element: MediaContextElement) {
