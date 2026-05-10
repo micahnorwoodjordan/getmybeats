@@ -121,6 +121,8 @@ export class PlaybackService {
     this.stopProgressLoop();
   }
 
+  public restartSong() { this.stop(); this.play(); }
+
   public async seek(seconds: number) {
     if (!this.buffer) return;
 

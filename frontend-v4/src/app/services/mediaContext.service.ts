@@ -4,19 +4,13 @@ import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
 import { PlaybackService } from './playback.service';
 import { RetrievalService } from './retrieval.service';
-import { CryptographyService } from './cryptography.service';
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class MediaContextService {
-  constructor(
-    private apiService: ApiService,
-    private playbackService: PlaybackService,
-    private retrievalService: RetrievalService,
-    private cryptographyService: CryptographyService
-  ) { }
+  constructor(private apiService: ApiService, private playbackService: PlaybackService, private retrievalService: RetrievalService) { }
 
   currentIndex = signal(0);
   repeatEnabled = signal(false);
@@ -26,6 +20,11 @@ export class MediaContextService {
 
   public async refreshMediaContext() { this.mediaContext.set(await this.apiService.getMediaContext()); }
   async next() {
+    if (this.repeatEnabled()) {
+      this.playbackService.restartSong();
+      return;
+    }
+ 
     await this.refreshMediaContext();
 
     if (this.currentIndex() < this.mediaContext().length - 1) {
@@ -38,6 +37,11 @@ export class MediaContextService {
   }
 
   async back() {
+    if (this.repeatEnabled()) {
+      this.playbackService.restartSong();
+      return;
+    }
+
     await this.refreshMediaContext();
 
     if (this.currentIndex() > 0) {
@@ -49,6 +53,18 @@ export class MediaContextService {
     this.retrievalService.downloadServerMedia(this.mediaContext()[this.currentIndex()], true);
   }
 
-  shuffle() { this.shuffleEnabled.set(!this.shuffleEnabled()); }
-  repeat() { this.repeatEnabled.set(!this.repeatEnabled()); }
+  shuffle() {
+    this.shuffleEnabled.set(!this.shuffleEnabled());
+
+    if (this.shuffleEnabled()) {
+      this.repeatEnabled.set(false);
+    }
+  }
+  repeat() {
+    this.repeatEnabled.set(!this.repeatEnabled());
+
+    if (this.repeatEnabled()) {
+      this.shuffleEnabled.set(false);
+    }
+  }
 }
