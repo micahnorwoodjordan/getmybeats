@@ -1,5 +1,8 @@
 <div class="track-details">
-    <div class="loading" *ngIf="isLoading">{{ downloadProgress }}%</div>
+    <div class="loadingProgress">
+        <span [style.visibility]="isLoading ? 'visible' : 'hidden'">{{ downloadProgress }}%</span>
+    </div>
+
     <h1 class="title">{{ title }}</h1>
     <h3 class="artist">{{ author }}</h3>
 </div>

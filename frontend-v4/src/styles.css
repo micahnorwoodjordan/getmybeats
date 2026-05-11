@@ -1,1 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+
+html, body {
+    height: 100%;
+    color: white;
+    font-family: 'Ubuntu';
+    margin: 0;
+    padding: 0;
+}
+
+mat-icon {
+    cursor: pointer;
+}
+
+mat-icon.disabled {
+    opacity: 0.2;
+    pointer-events: none;
+    cursor: default;
+}
+
+.interaction-button {  transition: 500ms; }
+
+.interaction-button:hover { transform: scale(1.5); transition: 500ms; }
+
+.mat-mdc-slider .mdc-slider__track--active_fill { border-color: #673ab7 !important; }  /* filled portion */
+
+.mat-mdc-slider .mdc-slider__track--inactive { background-color: rgba(255,255,255,0.25) !important; }  /* unfilled portion */
+
+.mat-mdc-slider .mdc-slider__thumb-knob {  /* circular thumb */
+    border-radius: 50% !important;
+
+    width: 16px !important;
+    height: 16px !important;
+
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+}

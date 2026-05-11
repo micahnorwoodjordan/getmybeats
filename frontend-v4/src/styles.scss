@@ -1,0 +1,9 @@
+@use '@angular/material' as mat;
+
+
+:root {
+  @include mat.bottom-sheet-overrides((
+    container-text-color: rgb(255, 255, 255),
+    container-background-color: #5c3a96,
+  ));
+}

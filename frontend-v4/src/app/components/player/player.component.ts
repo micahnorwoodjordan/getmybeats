@@ -5,12 +5,11 @@ import { ProgressComponent } from '../controls/progress/progress.component';
 import { DetailsComponent } from '../details/details.component';
 import { TrackMediaComponent } from '../trackmedia/trackmedia.component';
 
-import { AudioRetrievalInstruction } from '../../enums/AudioRetrievalInstruction';
-
 import { MediaContextService } from '../../services/mediaContext.service';
 import { PlaybackService } from '../../services/playback.service';
 import { RetrievalService } from '../../services/retrieval.service';
-
+import { ArtworkService } from '../../services/artwork.service';
+import { BackgroundImageComponent } from '../background/background-image-component/backgroundimage.component';
 
 @Component({
   selector: 'app-player',
@@ -19,19 +18,24 @@ import { RetrievalService } from '../../services/retrieval.service';
     SecondaryComponent,
     ProgressComponent,
     DetailsComponent,
-    TrackMediaComponent
+    TrackMediaComponent,
+    BackgroundImageComponent
   ],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css',
 })
 export class PlayerComponent implements OnInit {
-  public artworkURL: string = 'https://static.micahnorwoodjordan.com/me-sitting.png';  // TODO
-
-  constructor(public mediaContextService: MediaContextService, public playbackService: PlaybackService, public retrievalService: RetrievalService) { }
+  constructor(
+    public mediaContextService: MediaContextService,
+    public playbackService: PlaybackService,
+    public retrievalService: RetrievalService,
+    public artworkService: ArtworkService
+  ) { }
 
   async ngOnInit() {
     await this.mediaContextService.refreshMediaContext();
-    await this.retrievalService.downloadServerMedia(this.mediaContextService.mediaContext()[0], false);
+    let index = this.mediaContextService.currentIndex();
+    await this.retrievalService.downloadServerMedia(this.mediaContextService.mediaContext()[index], false);
   }
 
   public onNext() { this.mediaContextService.next() }
@@ -39,5 +43,5 @@ export class PlayerComponent implements OnInit {
   public onShuffle() { this.mediaContextService.shuffle(); }
   public onRepeat() { this.mediaContextService.repeat(); }
   public async onPlayPause() { await this.playbackService.togglePlayback(); }
-  public onSeek() {  }// TODO
+  public async onSeek(seconds: number) { await this.playbackService.seek(seconds); }
 }

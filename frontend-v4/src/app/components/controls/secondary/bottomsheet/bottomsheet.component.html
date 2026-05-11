@@ -1,0 +1,15 @@
+<div class="bottomsheet">
+  <h3>tracks</h3>
+  <mat-nav-list>
+    @for (mediaContextElement of mediaContext; track mediaContextElement.audio_filename_hash) {
+
+      <a
+        mat-list-item
+        (click)="select(mediaContextElement)"
+      >
+        {{ mediaContextElement.title }}
+      </a>
+
+    }
+  </mat-nav-list>
+</div>

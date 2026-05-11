@@ -11,8 +11,29 @@ export class PlaybackService {
   private source: AudioBufferSourceNode | null = null;
   private startTime = 0; // when playback started
   private pauseTime = 0; // accumulated paused offset
+  private animationFrame: number | null = null;
 
+  duration = signal(0);
   isPlaying = signal(false);
+  seconds = signal(0);
+
+  private startProgressLoop() {
+    const update = () => {
+      if (!this.isPlaying()) return;
+
+      this.seconds.set(this.getCurrentTime());
+      this.animationFrame = requestAnimationFrame(update);
+    };
+
+    update();
+  }
+
+  private stopProgressLoop() {
+    if (this.animationFrame !== null) {
+      cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = null;
+    }
+  }
 
   private initializeAudioContext(): void {
     if (!this.audioContext) {
@@ -28,7 +49,10 @@ export class PlaybackService {
     }
   }
 
-  private setDecodedBuffer(newDecodedBuffer: AudioBuffer) { this.buffer = newDecodedBuffer; }
+  private setDecodedBuffer(newDecodedBuffer: AudioBuffer) {
+    this.buffer = newDecodedBuffer;
+    this.duration.set(newDecodedBuffer.duration);
+  }
   
   public getCurrentTime(): number {
     if (!this.buffer) return 0;
@@ -50,18 +74,6 @@ export class PlaybackService {
     }
   }
 
-//   async seek(seconds: number) {
-//     if (!this.buffer) return;
-
-//     seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
-//     this.pauseTime = seconds;
-
-//     if (this.isPlaying()) {
-//       this.cleanUpSource();
-//       await this.play(); // restart from new offset
-//     }
-//   }
-
   private async play() {
     if (!this.buffer) return;
     if (!this.audioContext) this.audioContext = new AudioContext();
@@ -80,6 +92,7 @@ export class PlaybackService {
     this.startTime = this.audioContext.currentTime - offset;
     this.source.start(0, offset);
     this.isPlaying.set(true);
+    this.startProgressLoop();
 
     this.source.onended = () => {
       if (!this.isPlaying()) return; // avoid race with pause/stop
@@ -87,6 +100,7 @@ export class PlaybackService {
       this.cleanUpSource();
       this.pauseTime = 0;
       this.isPlaying.set(false);
+      this.stopProgressLoop();
     };
   }
 
@@ -97,12 +111,29 @@ export class PlaybackService {
     this.cleanUpSource();
     this.pauseTime = this.audioContext.currentTime - this.startTime;
     this.isPlaying.set(false);
+    this.stopProgressLoop();
   }
 
   private stop() {
     this.cleanUpSource();
     this.pauseTime = 0;
     this.isPlaying.set(false);
+    this.stopProgressLoop();
+  }
+
+  public restartSong() { this.stop(); this.play(); }
+
+  public async seek(seconds: number) {
+    if (!this.buffer) return;
+
+    seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
+    this.seconds.set(seconds);
+    this.pauseTime = this.seconds();
+
+    if (this.isPlaying()) {
+      this.cleanUpSource();
+      await this.play(); // restart from new offset
+    }
   }
 
   public async togglePlayback() {

@@ -1,13 +1,14 @@
 import { Component, Input } from '@angular/core';
 
+import { environment } from '../../../environments/environment.dev';
+
 
 @Component({
   selector: 'app-trackmedia',
-  imports: [
-  ],
+  imports: [],
   templateUrl: './trackmedia.component.html',
   styleUrl: './trackmedia.component.css',
 })
 export class TrackMediaComponent {
-  @Input() public artworkURL!: string;
+  @Input() artworkURL: string = environment.defaultArtworkImageURL;
 }
