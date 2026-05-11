@@ -1,9 +1,13 @@
-/* TODO move this CSS to the PlayerComponent */
+:host {
+    display: block;
+    width: 100%;
+}
+
 .control-buttons {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: clamp(12px, 4vw, 70px);
 }
 
 .play-pause { transform: scale(1.4); }

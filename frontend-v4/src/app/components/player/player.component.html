@@ -1,26 +1,28 @@
-<app-trackmedia [artworkURL]="artworkService.artworkURL()" />
+<div class="player-shell">
+    <div class="player">
+        <app-trackmedia [artworkURL]="artworkService.artworkURL()" />
 
-<app-details
-    [isLoading]="retrievalService.isLoading()"
-    [downloadProgress]="retrievalService.downloadProgress()"
-    [title]="retrievalService.title()"
-    [author]="retrievalService.author()"
+        <app-details
+            [isLoading]="retrievalService.isLoading()"
+            [downloadProgress]="retrievalService.downloadProgress()"
+            [title]="retrievalService.title()"
+            [author]="retrievalService.author()"
+        ></app-details>
 
-></app-details>
+        <app-primary
+            (next)="onNext()"
+            (back)="onBack()"
+            (playPause)="onPlayPause()"
+            [isPlaying]="playbackService.isPlaying()"
+            [isLoading]="retrievalService.isLoading()"
+            [shuffleEnabled]="mediaContextService.shuffleEnabled()"
+            [repeatEnabled]="mediaContextService.repeatEnabled()"
+            (shuffle)="mediaContextService.shuffle()"
+            (repeat)="mediaContextService.repeat()"
+        ></app-primary>
 
-<app-primary
-    (next)="onNext()"
-    (back)="onBack()"
-    (playPause)="onPlayPause()"
-    [isPlaying]="playbackService.isPlaying()"
-    [isLoading]="retrievalService.isLoading()"
-    [shuffleEnabled]="mediaContextService.shuffleEnabled()"
-    [repeatEnabled]="mediaContextService.repeatEnabled()"
-    (shuffle)="mediaContextService.shuffle()"
-    (repeat)="mediaContextService.repeat()"
-></app-primary>
+        <app-progress (seek)="onSeek($event)"></app-progress>
 
-
-<app-progress (seek)="onSeek($event)"></app-progress>
-
-<app-secondary />
+        <app-secondary />
+    </div>
+</div>
