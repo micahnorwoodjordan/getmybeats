@@ -18,4 +18,8 @@ constructor(
     @Inject(MAT_BOTTOM_SHEET_DATA)
     public mediaContext: MediaContextElement[]
   ) { }
+
+  public select(mediaContextElement: MediaContextElement) {
+    this.bottomSheetRef.dismiss(mediaContextElement);
+  }
 }

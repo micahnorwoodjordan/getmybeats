@@ -5,6 +5,7 @@ import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { BottomSheetComponent } from './bottomsheet/bottomsheet.component';
 import { environment } from '../../../../environments/environment.dev';
 import { MediaContextElement } from '../../../interfaces/MediaContextElement';
+import { MediaContextService } from '../../../services/mediaContext.service';
 
 
 @Component({
@@ -16,21 +17,27 @@ import { MediaContextElement } from '../../../interfaces/MediaContextElement';
   styleUrl: './secondary.component.css',
 })
 export class SecondaryComponent {
-  constructor(private bottomSheet: MatBottomSheet) { }
+  constructor(private medicContextService: MediaContextService, private bottomSheet: MatBottomSheet) { }
 
-  @Input() mediaContext: MediaContextElement[] = [];
+  @Input() mediaContext: MediaContextElement[] = [];  // only hydrates the initial component list items; subsequent bottomsgeet hydrations come from the injected mediacontextservice
   @Input() isLoading: boolean = true;
 
   public userExperienceReportUrl: string = environment.apiHost + "/user/experience";
   public browserSupportsAudioVolumeManipulation: boolean = true;
 
-  public openBottomSheet() {
-    this.bottomSheet.open(BottomSheetComponent, {
-      data: this.mediaContext
+  public async openBottomSheet() {
+    await this.medicContextService.refreshMediaContext();
+
+    const ref = this.bottomSheet.open(BottomSheetComponent, {
+      data: this.medicContextService.mediaContext()
+    });
+
+    ref.afterDismissed().subscribe((selectedTrack: MediaContextElement) => {
+      if (selectedTrack) {
+        this.medicContextService.selectTrack(selectedTrack);
+      }
     });
   }
-
-  public closeBottomSheet() { this.bottomSheet.dismiss(); }  // TODO
 
   public openCustomSnackBar() {  } // TODO
 }

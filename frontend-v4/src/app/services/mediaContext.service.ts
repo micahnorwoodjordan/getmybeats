@@ -22,6 +22,18 @@ export class MediaContextService {
 
   public async refreshMediaContext() { this.mediaContext.set(await this.apiService.getMediaContext()); }
 
+  public async selectTrack(mediaContextElement: MediaContextElement): Promise<void> {
+      const index = this.mediaContext().findIndex(x => x.audio_filename_hash === mediaContextElement.audio_filename_hash);
+
+      if (index === -1) {
+        console.error('Track not found in media context');
+        return;
+      }
+
+      this.currentIndex.set(index);
+      await this.retrievalService.downloadServerMedia(mediaContextElement, true);
+    }
+
   public async next() {
     if (this.repeatEnabled()) {
       this.playbackService.restartSong();
