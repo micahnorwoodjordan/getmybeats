@@ -9,6 +9,7 @@ import { MediaContextService } from '../../services/mediaContext.service';
 import { PlaybackService } from '../../services/playback.service';
 import { RetrievalService } from '../../services/retrieval.service';
 import { ArtworkService } from '../../services/artwork.service';
+import { BackgroundImageComponent } from '../background/background-image-component/backgroundimage.component';
 
 @Component({
   selector: 'app-player',
@@ -17,7 +18,8 @@ import { ArtworkService } from '../../services/artwork.service';
     SecondaryComponent,
     ProgressComponent,
     DetailsComponent,
-    TrackMediaComponent
+    TrackMediaComponent,
+    BackgroundImageComponent
   ],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css',
