@@ -1,0 +1,11 @@
+<div>
+  <mat-nav-list>
+    @for (mediaContextElement of mediaContext; track mediaContextElement.title) {
+
+      <a mat-list-item>
+        {{ mediaContextElement.title }}
+      </a>
+
+    }
+  </mat-nav-list>
+</div>

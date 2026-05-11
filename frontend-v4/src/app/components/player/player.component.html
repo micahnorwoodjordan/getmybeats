@@ -25,6 +25,9 @@
 
         <app-progress (seek)="onSeek($event)"></app-progress>
 
-        <app-secondary />
+        <app-secondary
+            [mediaContext]="mediaContextService.mediaContext()"
+            [isLoading]="retrievalService.isLoading()"
+        />
     </div>
 </div>
