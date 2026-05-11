@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
+import { environment } from '../../../../environments/environment.dev';
+
 
 @Component({
   selector: 'app-secondary',
@@ -10,8 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './secondary.component.html',
   styleUrl: './secondary.component.css',
 })
-export class SecondaryComponent {  // TODO
-  public userExperienceReportUrl: string = "";
+export class SecondaryComponent {
+  public userExperienceReportUrl: string = environment.apiHost + "/user/experience";
   public browserSupportsAudioVolumeManipulation: boolean = true;
 
   public openBottomSheet() {  }
