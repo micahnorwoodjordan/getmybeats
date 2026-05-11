@@ -39,5 +39,5 @@ export class SecondaryComponent {
     });
   }
 
-  public openCustomSnackBar() {  } // TODO
+  public openVolumeSnackBar() {  } // TODO
 }

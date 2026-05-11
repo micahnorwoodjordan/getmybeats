@@ -5,8 +5,9 @@
 
     <mat-icon class="icon" (click)="openBottomSheet()" matTooltip="select a song" [class.disabled]="isLoading">menu</mat-icon>
 
-    <mat-icon class="icon" (click)="openCustomSnackBar()" matTooltip="adjust audio volume"
-        [class.disabled]="!browserSupportsAudioVolumeManipulation">
+    <!-- TODO -->
+    <mat-icon class="icon" (click)="openVolumeSnackBar()" matTooltip="adjust audio volume"
+        [class.disabled]="true">
         volume_up
     </mat-icon>
 </div>
