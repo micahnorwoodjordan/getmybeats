@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.3.0]
+        node-version: [24.0.0]
 
     steps:
       - name: Checkout code
@@ -24,17 +24,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache-dependency-path: frontend-v3/package-lock.json
+          cache-dependency-path: frontend-v4/package-lock.json
           cache: 'npm'
 
       - name: Install dependencies
-        working-directory: frontend-v3
+        working-directory: frontend-v4
         run: npm install
 
-      - name: Run Node App
+      - name: Test Node App
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}
           NODE_VERBOSE: ${{ vars.NODE_VERBOSE }}
           NODE_OPTIONS: ${{ vars.NODE_OPTIONS }}
-        working-directory: frontend-v3
-        run: npm start
+        working-directory: frontend-v4
+        run: npm run build
