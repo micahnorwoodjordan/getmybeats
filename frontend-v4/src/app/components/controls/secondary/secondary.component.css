@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(12px, 4vw, 70px);
+  gap: clamp(12px, 12vw, 70px);
 }
 
 .icon { cursor: pointer; }

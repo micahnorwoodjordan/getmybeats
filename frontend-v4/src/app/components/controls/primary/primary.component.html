@@ -9,7 +9,7 @@
     </mat-icon>
 
     <mat-icon (click)="!isLoading && back.emit()" [class.disabled]="isLoading" class="interaction-button">skip_previous</mat-icon>
-    <mat-icon (click)="playPause.emit()" class="play-pause" class="interaction-button">{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+    <mat-icon (click)="playPause.emit()" class="play-pause" class="play-pause">{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
     <mat-icon (click)="!isLoading && next.emit()" [class.disabled]="isLoading" class="interaction-button">skip_next</mat-icon>
 
     <mat-icon

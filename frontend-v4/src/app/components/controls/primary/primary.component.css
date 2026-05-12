@@ -7,7 +7,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(12px, 4vw, 70px);
+  gap: clamp(12px, 10vw, 90px);
 }
 
-.play-pause { transform: scale(1.4); }
+.interaction-button { transform: scale(1.2); transition: 500ms; }
+
+.interaction-button:hover { transform: scale(1.6); transition: 500ms; }
+
+.play-pause { transform: scale(1.8); transition: 500ms; }
+.play-pause:hover { transform: scale(2.4); transition: 500ms; }
