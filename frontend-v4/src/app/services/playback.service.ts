@@ -1,7 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class PlaybackService {
+
   constructor() { }
 
   private audioContext: AudioContext | null = null;
@@ -9,13 +10,16 @@ export class PlaybackService {
   private buffer: AudioBuffer | null = null;
   private encodedBuffer: ArrayBuffer | null = null;
   private source: AudioBufferSourceNode | null = null;
+
   private startTime = 0; // when playback started
   private pauseTime = 0; // accumulated paused offset
   private animationFrame: number | null = null;
 
+
   duration = signal(0);
   isPlaying = signal(false);
   seconds = signal(0);
+  playbackEndedTick = signal(0);
 
   private startProgressLoop() {
     const update = () => {
@@ -37,7 +41,7 @@ export class PlaybackService {
 
   private initializeAudioContext(): void {
     if (!this.audioContext) {
-        this.audioContext = new AudioContext();
+      this.audioContext = new AudioContext();
     }
   }
 
@@ -45,7 +49,7 @@ export class PlaybackService {
     this.encodedBuffer = newBuffer;
 
     if (this.audioContext instanceof AudioContext) {
-        this.setDecodedBuffer(await this.audioContext.decodeAudioData(this.encodedBuffer));
+      this.setDecodedBuffer(await this.audioContext.decodeAudioData(this.encodedBuffer));
     }
   }
 
@@ -53,10 +57,10 @@ export class PlaybackService {
     this.buffer = newDecodedBuffer;
     this.duration.set(newDecodedBuffer.duration);
   }
-  
+
   public getCurrentTime(): number {
     if (!this.buffer) return 0;
-    if (this.audioContext === null) return 0;
+    if (!this.audioContext) return 0;
 
     return this.source ? this.audioContext.currentTime - this.startTime : this.pauseTime;
   }
@@ -64,11 +68,13 @@ export class PlaybackService {
   private cleanUpSource() {
     if (this.source) {
       this.source.onended = null;
+
       try {
         this.source.stop();
       } catch (_) {
         // ignore if already stopped
       }
+
       this.source.disconnect();
       this.source = null;
     }
@@ -79,11 +85,14 @@ export class PlaybackService {
     if (!this.audioContext) this.audioContext = new AudioContext();
     if (this.audioContext.state === 'suspended') await this.audioContext.resume();
 
-    this.cleanUpSource(); // prevent playback stream overlap
+    this.cleanUpSource();  // prevent playback stream overlap
 
-    if (this.pauseTime >= this.buffer.duration) this.pauseTime = 0;
+    if (this.pauseTime >= this.buffer.duration) {
+      this.pauseTime = 0;
+    }
 
     const offset = this.pauseTime;
+
     this.source = this.audioContext.createBufferSource();
     this.source.buffer = this.buffer;
     this.gainNode = this.audioContext.createGain();
@@ -95,18 +104,21 @@ export class PlaybackService {
     this.startProgressLoop();
 
     this.source.onended = () => {
-      if (!this.isPlaying()) return; // avoid race with pause/stop
-
-      this.cleanUpSource();
-      this.pauseTime = 0;
-      this.isPlaying.set(false);
-      this.stopProgressLoop();
+      this.handleEnd();
+      this.playbackEndedTick.update(v => v + 1);
     };
+  }
+
+  private handleEnd() {
+    this.cleanUpSource();
+    this.pauseTime = 0;
+    this.isPlaying.set(false);
+    this.stopProgressLoop();
   }
 
   private pause() {
     if (!this.isPlaying() || !this.source) return;
-    if (this.audioContext === null) return;
+    if (!this.audioContext) return;
 
     this.cleanUpSource();
     this.pauseTime = this.audioContext.currentTime - this.startTime;
@@ -121,18 +133,23 @@ export class PlaybackService {
     this.stopProgressLoop();
   }
 
-  public restartSong() { this.stop(); this.play(); }
+  public restartSong() {
+    this.stop();
+    this.play();
+  }
 
   public async seek(seconds: number) {
     if (!this.buffer) return;
 
-    seconds = Math.max(0, Math.min(seconds, this.buffer.duration));  // clamp to valid range
-    this.seconds.set(seconds);
-    this.pauseTime = this.seconds();
+    seconds = Math.max(0, Math.min(seconds, this.buffer.duration));
 
+    this.seconds.set(seconds);
+    this.pauseTime = seconds;
+
+    // restart from new offset
     if (this.isPlaying()) {
       this.cleanUpSource();
-      await this.play(); // restart from new offset
+      await this.play();
     }
   }
 
@@ -146,11 +163,12 @@ export class PlaybackService {
 
   public async loadTrack(buffer: ArrayBuffer, autoplay: boolean = true) {
     this.initializeAudioContext();
+
     await this.decodeBuffer(buffer);
 
     if (autoplay) {
-        this.stop();
-        await this.play();
+      this.stop();
+      await this.play();
     }
   }
 }

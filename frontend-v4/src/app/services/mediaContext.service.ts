@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect } from '@angular/core';
 
 import { ApiService } from './api.service';
 import { MediaContextElement } from '../interfaces/MediaContextElement';
@@ -12,8 +12,25 @@ import { getRandomInteger } from '../utilities';
   providedIn: 'root',
 })
 export class MediaContextService {
-  constructor(private apiService: ApiService, private playbackService: PlaybackService, private retrievalService: RetrievalService) { }
+  constructor(private apiService: ApiService, private playbackService: PlaybackService, private retrievalService: RetrievalService) {
+    effect(() => {
+      // effect is going to be triggered once on initial load, so let's keep this false positive from firing
+      const tick = this.playbackService.playbackEndedTick();
 
+    // skip initial run safely to keep from automatically playing
+      if (this.lastTick === -1) {
+        this.lastTick = tick;
+        return;
+      }
+
+      if (tick === this.lastTick) return;  // only react to real changes
+
+      this.lastTick = tick;
+      this.next();
+    });
+  }
+
+  private lastTick = -1;
   currentIndex = signal(0);
   repeatEnabled = signal(false);
   shuffleEnabled = signal(false);
