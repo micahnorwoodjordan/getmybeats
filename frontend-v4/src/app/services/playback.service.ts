@@ -15,11 +15,21 @@ export class PlaybackService {
   private pauseTime = 0; // accumulated paused offset
   private animationFrame: number | null = null;
 
-
+  volume = signal(100);
   duration = signal(0);
   isPlaying = signal(false);
   seconds = signal(0);
   playbackEndedTick = signal(0);
+
+  public updateVolume(value: number) {
+    this.volume.set(value);
+    value = value / 100;
+
+    
+    if (this.gainNode && this.audioContext) {
+      this.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
+    }
+  }
 
   private startProgressLoop() {
     const update = () => {

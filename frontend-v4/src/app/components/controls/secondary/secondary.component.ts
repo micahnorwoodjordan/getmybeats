@@ -1,11 +1,13 @@
 import { Component, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { BottomSheetComponent } from './bottomsheet/bottomsheet.component';
 import { environment } from '../../../../environments/environment.dev';
 import { MediaContextElement } from '../../../interfaces/MediaContextElement';
 import { MediaContextService } from '../../../services/mediaContext.service';
+import { VolumeSnackbarComponent } from '../volume-snackbar/volume-snackbar.component';
 
 
 @Component({
@@ -17,7 +19,7 @@ import { MediaContextService } from '../../../services/mediaContext.service';
   styleUrl: './secondary.component.css',
 })
 export class SecondaryComponent {
-  constructor(private medicContextService: MediaContextService, private bottomSheet: MatBottomSheet) { }
+  constructor(private medicContextService: MediaContextService, private bottomSheet: MatBottomSheet, private snackBar: MatSnackBar) { }
 
   @Input() mediaContext: MediaContextElement[] = [];  // only hydrates the initial component list items; subsequent bottomsgeet hydrations come from the injected mediacontextservice
   @Input() isLoading: boolean = true;
@@ -39,5 +41,12 @@ export class SecondaryComponent {
     });
   }
 
-  public openVolumeSnackBar() {  } // TODO
+  public openVolumeSnackBar() {
+    this.snackBar.openFromComponent(VolumeSnackbarComponent, {
+      duration: 7000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+      panelClass: ['volume-snackbar-panel']
+    });
+  }
 }
