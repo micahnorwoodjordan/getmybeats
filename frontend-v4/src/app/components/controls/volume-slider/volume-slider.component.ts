@@ -11,8 +11,8 @@ import { PlaybackService } from '../../../services/playback.service';
     MatIconModule,
     MatSliderModule
   ],
-  templateUrl: './volumeSlider.component.html',
-  styleUrl: './volumeSlider.component.css'
+  templateUrl: './volume-slider.component.html',
+  styleUrl: './volume-slider.component.css'
 })
 export class VolumeSliderComponent {
   constructor(public playbackService: PlaybackService) { }
