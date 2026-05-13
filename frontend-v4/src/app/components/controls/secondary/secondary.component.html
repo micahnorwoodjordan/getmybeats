@@ -4,5 +4,5 @@
     </a>
 
     <mat-icon class="icon" (click)="openBottomSheet()" matTooltip="select a song" [class.disabled]="isLoading">menu</mat-icon>
-    <mat-icon class="icon" (click)="openVolumeSnackBar()" matTooltip="adjust audio volume">volume_up</mat-icon>
+    <mat-icon class="icon" (click)="openVolumeSnackBar()" matTooltip="adjust audio volume" [class.disabled]="!supportsProgrammaticVolume()">volume_up</mat-icon>
 </div>
