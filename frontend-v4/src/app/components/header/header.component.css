@@ -24,8 +24,8 @@
 
 .segment {
     flex-shrink: 0;
-    padding-right: clamp(120px, 20vw, 320px);
-    font-size: 10px;
+    margin-right: clamp(120px, 20vw, 320px);
+    font-size: 0.7rem;
     font-weight: 500;
     letter-spacing: 0.03em;
     color: rgba(255, 210, 120, 0.95);
