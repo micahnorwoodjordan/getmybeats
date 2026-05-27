@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-header',
@@ -8,5 +7,5 @@ import { Component, OnInit } from '@angular/core';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
-  public warningString: string = "NOTE: If audio is muted on iOS Safari, disable Silent Mode using the side switch";
+  public warningString: string = "If audio is muted on iOS Safari, disable Silent Mode using the side switch";
 }
