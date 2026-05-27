@@ -10,6 +10,7 @@ import { PlaybackService } from '../../services/playback.service';
 import { RetrievalService } from '../../services/retrieval.service';
 import { ArtworkService } from '../../services/artwork.service';
 import { BackgroundImageComponent } from '../background/background-image-component/backgroundimage.component';
+import { HeaderComponent } from '../header/header.component';
 
 @Component({
   selector: 'app-player',
@@ -19,7 +20,9 @@ import { BackgroundImageComponent } from '../background/background-image-compone
     ProgressComponent,
     DetailsComponent,
     TrackMediaComponent,
-    BackgroundImageComponent
+    BackgroundImageComponent,
+    HeaderComponent
+
   ],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css',
