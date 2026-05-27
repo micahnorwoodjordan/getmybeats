@@ -1,0 +1,7 @@
+<div class="volume-slider">
+    <mat-slider class="slider" [max]="100" step="1">
+        <input matSliderThumb [value]="playbackService.volume()" (valueChange)="playbackService.updateVolume($event ? $event : 0)"/>
+    </mat-slider>
+
+    <div>{{ playbackService.volume() }}</div>
+</div>

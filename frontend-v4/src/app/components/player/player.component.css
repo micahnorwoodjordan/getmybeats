@@ -1,0 +1,11 @@
+.player {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: clamp(320px, 90vw, 540px);
+    min-height: 100vh;
+    margin: 0 auto;
+    gap: clamp(12px, 2vw, 28px);
+    padding-inline: clamp(12px, 4vw, 32px);
+}

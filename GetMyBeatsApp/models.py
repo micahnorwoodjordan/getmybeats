@@ -130,6 +130,7 @@ class Audio(models.Model):
     s3_upload_path = models.CharField(max_length=300, null=True, blank=True, unique=True)
     ext = models.CharField(max_length=20, blank=True, null=False)
     artwork = models.ForeignKey(AudioArtwork, on_delete=models.DO_NOTHING, null=True, blank=True)
+    author = models.CharField(max_length=200, blank=True, null=False, default='micah')
 
     def save(self, *args, **kwargs):
         """

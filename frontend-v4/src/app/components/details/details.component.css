@@ -1,0 +1,19 @@
+.track-details { text-align: center; }
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 6px 0 2px;
+}
+
+.artist {
+  font-size: 14px;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.loading {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-bottom: 6px;
+}

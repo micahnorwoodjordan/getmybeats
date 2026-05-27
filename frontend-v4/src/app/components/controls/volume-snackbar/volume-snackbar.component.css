@@ -1,0 +1,15 @@
+.volume-snackbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    width: 100%;
+}
+
+app-volume-slider {
+    flex: 1;
+}
+
+mat-icon {
+    cursor: pointer;
+}

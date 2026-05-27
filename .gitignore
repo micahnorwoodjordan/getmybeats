@@ -1,7 +1,7 @@
 getmybeats/__pycache__/
 *.sql
 *.pyc
-venv/
+.venv/
 .DS_Store
 media/
 *.log
@@ -10,3 +10,4 @@ GetMyBeatsApp/static/js/
 frontend/node_modules/
 _dj_cache
 dev/.aws/
+.venv/

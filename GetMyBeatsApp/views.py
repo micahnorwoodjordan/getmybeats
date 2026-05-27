@@ -6,7 +6,6 @@ from django.core.files.base import ContentFile
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
-from django.conf import settings
 
 
 from GetMyBeatsApp.decorators.views.asset_security import validate_user_agent, validate_audio_request_id
