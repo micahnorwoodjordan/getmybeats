@@ -1,0 +1,37 @@
+.ios-warning-banner {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 10px 0;
+    background: rgba(255, 170, 0, 0.12);
+    border-top: 1px solid rgba(255, 170, 0, 0.25);
+    border-bottom: 1px solid rgba(255, 170, 0, 0.25);
+    backdrop-filter: blur(12px);
+    white-space: nowrap;
+}
+
+.ios-warning-track {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+    animation: marquee 24s linear infinite;
+}
+
+.segment {
+    flex-shrink: 0;
+    padding-right: clamp(120px, 20vw, 320px);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: rgba(255, 210, 120, 0.95);
+}
+
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
