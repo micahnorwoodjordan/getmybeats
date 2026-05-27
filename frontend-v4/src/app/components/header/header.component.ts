@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
-  public warningString: string = "If audio is muted on iOS Safari, disable Silent Mode using the side switch";
+  public warningString: string = "If audio is muted on iOS Safari, disable Silent Mode using the silent mode switch";
 }
