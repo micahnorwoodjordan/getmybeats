@@ -12,9 +12,14 @@
 
 .ios-warning-track {
     display: flex;
-    width: max-content;
+    width: fit-content;
     will-change: transform;
     animation: marquee 24s linear infinite;
+}
+
+.group {
+    display: flex;
+    flex-shrink: 0;
 }
 
 .segment {
