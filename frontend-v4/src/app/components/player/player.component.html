@@ -1,5 +1,5 @@
 <div class="player-shell">
-    <div *ngIf="probablyiOSDevice">
+    <div *ngIf="probablyiOSDevice && displayiOSVolumeWarningToggle()" (click)="toggleDisplayiOSVolumeWarningToggle()">
         <app-header />
     </div>
 

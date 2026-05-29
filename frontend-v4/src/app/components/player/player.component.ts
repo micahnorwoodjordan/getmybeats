@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { PrimaryComponent } from '../controls/primary/primary.component';
 import { SecondaryComponent } from '../controls/secondary/secondary.component';
@@ -40,6 +40,7 @@ export class PlayerComponent implements OnInit {
   ) { }
 
   public probablyiOSDevice: boolean = !supportsProgrammaticVolume();
+  public displayiOSVolumeWarningToggle = signal(true);
 
   async ngOnInit() {
     await this.mediaContextService.refreshMediaContext();
@@ -51,6 +52,7 @@ export class PlayerComponent implements OnInit {
   public onBack() { this.mediaContextService.back() }
   public onShuffle() { this.mediaContextService.shuffle(); }
   public onRepeat() { this.mediaContextService.repeat(); }
+  public toggleDisplayiOSVolumeWarningToggle() { this.displayiOSVolumeWarningToggle.set(!this.displayiOSVolumeWarningToggle); }
   public async onPlayPause() { await this.playbackService.togglePlayback(); }
   public async onSeek(seconds: number) { await this.playbackService.seek(seconds); }
 }
