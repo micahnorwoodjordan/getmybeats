@@ -8,7 +8,6 @@ import { environment } from '../../../../environments/environment.dev';
 import { MediaContextElement } from '../../../interfaces/MediaContextElement';
 import { MediaContextService } from '../../../services/mediaContext.service';
 import { VolumeSnackbarComponent } from '../volume-snackbar/volume-snackbar.component';
-import { supportsProgrammaticVolume } from '../../../utilities';
 
 
 @Component({
@@ -26,7 +25,13 @@ export class SecondaryComponent {
   @Input() isLoading: boolean = true;
 
   public userExperienceReportUrl: string = environment.apiHost + "/user/experience";
-  public probablyiOSDevice = supportsProgrammaticVolume();
+
+  supportsProgrammaticVolume(): boolean {
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    return !isIOS;
+  }
+
 
   public async openBottomSheet() {
     await this.medicContextService.refreshMediaContext();
