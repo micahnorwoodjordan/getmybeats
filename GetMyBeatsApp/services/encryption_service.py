@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.cache import cache
 from django.db import transaction
+from django.conf import settings
 
 from GetMyBeatsApp.models import Audio, AudioFetchRequest
 
@@ -16,8 +17,11 @@ MODULE = __name__
 
 
 NONCE_LENGTH = 12
-PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
 CACHE_PREFIX = 'PLAYBACK_REQUEST_TICKET'
+
+
+class PlaybackRequestExpiredException(Exception):
+    pass
 
 
 class EncryptionService:
@@ -30,13 +34,21 @@ class EncryptionService:
 
         aesgcm = AESGCM(key)
         nonce = os.urandom(NONCE_LENGTH)
+        # NOTE: the material returned from this method call is ciphertext + 16-byte auth tag
+        # so the structure of the encrypted material is 12-byte nonce + ciphertext + 16-byte auth tag
+        # total length = ciphertext + 28 bytes dedicated to auth
         encrypted = aesgcm.encrypt(nonce, data, None)
         return nonce + encrypted
 
     def _get_encrypted_file(self, filepath, key):
         return self.encrypt_file(filepath, key)
 
-    def cache_playback_request_ticket_with_ttl(self, audio_request_id, encryption_key, ttl=PLAYBACK_REQUEST_TICKET_TTL):
+    def cache_playback_request_ticket_with_ttl(
+        self,
+        audio_request_id,
+        encryption_key,
+        ttl=settings.PLAYBACK_REQUEST_TICKET_TTL
+    ):
         cache_key = CACHE_PREFIX + '-' + audio_request_id
         cache.add(cache_key, encryption_key, timeout=ttl)
 
@@ -45,6 +57,10 @@ class EncryptionService:
             raise ObjectDoesNotExist('invalid audio request id')
 
         cached_value = cache.get(f'{CACHE_PREFIX}-{audio_request_id}')
+
+        if cached_value is None:
+            raise PlaybackRequestExpiredException('the playback request has expired. please try to fetch song again')
+
         key = bytes([int(part) for part in cached_value.split('.')])
         cache.delete(cached_value)
         return self._get_encrypted_file(filepath, key)

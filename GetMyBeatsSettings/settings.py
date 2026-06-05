@@ -151,3 +151,5 @@ LOGGING = {
         'level': 'WARNING',
     }
 }
+
+PLAYBACK_REQUEST_TICKET_TTL = 45  # seconds
